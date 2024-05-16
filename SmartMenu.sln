@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34202.233
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartMenu.API", "SmartMenu.API\SmartMenu.API.csproj", "{B50B16E6-8BB8-4499-A781-D22BFB7B7CC9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartMenu.DAO", "SmartMenu.DAO\SmartMenu.DAO.csproj", "{4F45D37B-65A4-4AFC-9BBF-5BD64AA8C6D2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartMenu.Domain", "SmartMenu.Domain\SmartMenu.Domain.csproj", "{D0DC974B-96B4-4105-8B40-C5D880D5B794}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B50B16E6-8BB8-4499-A781-D22BFB7B7CC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B50B16E6-8BB8-4499-A781-D22BFB7B7CC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B50B16E6-8BB8-4499-A781-D22BFB7B7CC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B50B16E6-8BB8-4499-A781-D22BFB7B7CC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F45D37B-65A4-4AFC-9BBF-5BD64AA8C6D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F45D37B-65A4-4AFC-9BBF-5BD64AA8C6D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F45D37B-65A4-4AFC-9BBF-5BD64AA8C6D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F45D37B-65A4-4AFC-9BBF-5BD64AA8C6D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0DC974B-96B4-4105-8B40-C5D880D5B794}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0DC974B-96B4-4105-8B40-C5D880D5B794}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0DC974B-96B4-4105-8B40-C5D880D5B794}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0DC974B-96B4-4105-8B40-C5D880D5B794}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D4DCD4B9-3C0A-40CE-81EC-347B95ACF8F0}
+	EndGlobalSection
+EndGlobal
