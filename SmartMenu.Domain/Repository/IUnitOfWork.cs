@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SmartMenu.Domain.Repository
+﻿namespace SmartMenu.Domain.Repository
 {
     public interface IUnitOfWork : IDisposable
     {
@@ -13,7 +7,11 @@ namespace SmartMenu.Domain.Repository
         IUserRepository UserRepository { get; }
         IStoreRepository StoreRepository { get; }
         IRoleRepository RoleRepository { get; }
-
+        ITemplateRepository TemplateRepository { get; }
+        ILayerRepository LayerRepository { get; }
+        ILayerItemRepository LayerItemRepository { get; }
+        IBoxRepository BoxRepository { get; }
+        IStoreDeviceRepository StoreDeviceRepository { get; }
         int Save();
     }
 }

@@ -14,6 +14,11 @@ namespace SmartMenu.DAO.Implementation
             UserRepository = new UserRepository(_context);
             StoreRepository = new StoreRepository(_context);
             RoleRepository = new RoleRepository(_context);
+            TemplateRepository = new TemplateRepository(_context);
+            LayerRepository = new LayerRepository(_context);
+            LayerItemRepository = new LayerItemRepository(_context);
+            BoxRepository = new BoxRepository(_context);
+            StoreDeviceRepository = new StoreDeviceRepository(_context);
         }
 
         public IBrandRepository BrandRepository { get; private set; }
@@ -26,7 +31,11 @@ namespace SmartMenu.DAO.Implementation
 
         public IRoleRepository RoleRepository { get; private set; }
 
-
+        public ITemplateRepository TemplateRepository { get; private set; }
+        public ILayerRepository LayerRepository { get; private set; }
+        public ILayerItemRepository LayerItemRepository { get; private set; }
+        public IBoxRepository BoxRepository { get; private set; }
+        public IStoreDeviceRepository StoreDeviceRepository { get; private set; }
         public void Dispose()
          {
             Dispose(true);

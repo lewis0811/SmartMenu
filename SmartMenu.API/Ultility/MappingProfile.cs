@@ -10,6 +10,11 @@ namespace SmartMenu.API.Ultility
         {
             CreateMap<Store, StoreCreateDTO>().ReverseMap();
             CreateMap<Store, StoreUpdateDTO>().ReverseMap();
+            CreateMap<Template, TemplateCreateDTO>().ReverseMap();
+            CreateMap<Layer, LayerCreateDTO>().ReverseMap();
+            CreateMap<Layer, LayerUpdateDTO>().ReverseMap();
+            CreateMap<Box, BoxCreateDTO>().ReverseMap();
+            CreateMap<Box, BoxUpdateDTO>().ReverseMap();
         }
     }
 }

@@ -1,13 +1,15 @@
 ﻿using SmartMenu.Domain.Models.Enum;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace SmartMenu.Domain.Models
+namespace SmartMenu.Domain.Models.DTO
 {
-    public class Box : BaseModel
+    public class BoxUpdateDTO
     {
-        public int BoxID { get; set; }
-        public int LayerID { get; set; }
         public int FontID { get; set; }
         public string? BoxContent { get; set; } = string.Empty;
 
@@ -22,12 +24,5 @@ namespace SmartMenu.Domain.Models
         public double BoxPositionX { get; set; }
         public double BoxPositionY { get; set; }
         public int BoxMaxCapacity { get; set; }
-
-        //[ForeignKey(nameof(LayerID))]
-        //public Layer? Layer { get; set; }
-
-        [ForeignKey(nameof(FontID))]
-        public Font? Font { get; set; }
-
     }
 }
