@@ -13,7 +13,14 @@ namespace SmartMenu.Domain.Repository
         IUserRepository UserRepository { get; }
         IStoreRepository StoreRepository { get; }
         IRoleRepository RoleRepository { get; }
-
+        ICategoryRepository CategoryRepository { get; }
+        IProductRepository ProductRepository { get; }
+        ICollectionRepository CollectionRepository { get; }
+        IMenuRepository MenuRepository { get; }
+        IStoreMenuRepository StoreMenuRepository { get; }
+        IProductGroupRepository ProductGroupRepository { get; }
+        IProductGroupItemRepository ProductGroupItemRepository { get; }
+        IStoreCollectionRepository StoreCollectionRepository { get; }
         int Save();
     }
 }
