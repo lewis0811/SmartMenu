@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartMenu.DAO;
 
@@ -11,9 +12,10 @@ using SmartMenu.DAO;
 namespace SmartMenu.DAO.Migrations
 {
     [DbContext(typeof(SmartMenuDBContext))]
-    partial class SmartMenuDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240518124053_UpdateBoxProperty")]
+    partial class UpdateBoxProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -192,10 +194,7 @@ namespace SmartMenu.DAO.Migrations
                     b.Property<int>("MenuID")
                         .HasColumnType("int");
 
-                    b.Property<double>("StartingHour")
-                        .HasColumnType("float");
-
-                    b.Property<int?>("StoreDeviceID")
+                    b.Property<int>("ScheduleID")
                         .HasColumnType("int");
 
                     b.Property<int>("TemplateID")
@@ -207,7 +206,7 @@ namespace SmartMenu.DAO.Migrations
 
                     b.HasIndex("MenuID");
 
-                    b.HasIndex("StoreDeviceID");
+                    b.HasIndex("ScheduleID");
 
                     b.HasIndex("TemplateID");
 
@@ -463,6 +462,25 @@ namespace SmartMenu.DAO.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("SmartMenu.Domain.Models.Schedule", b =>
+                {
+                    b.Property<int>("ScheduleID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ScheduleID"), 1L, 1);
+
+                    b.Property<double>("DurationByHour")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("ScheduleID");
+
+                    b.ToTable("Schedules");
+                });
+
             modelBuilder.Entity("SmartMenu.Domain.Models.Store", b =>
                 {
                     b.Property<int>("StoreID")
@@ -530,10 +548,16 @@ namespace SmartMenu.DAO.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreDeviceID"), 1L, 1);
 
+                    b.Property<int>("DisplayID")
+                        .HasColumnType("int");
+
                     b.Property<int>("DisplayType")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDisplay")
                         .HasColumnType("bit");
 
                     b.Property<string>("StoreDeviceName")
@@ -544,6 +568,8 @@ namespace SmartMenu.DAO.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("StoreDeviceID");
+
+                    b.HasIndex("DisplayID");
 
                     b.HasIndex("StoreID");
 
@@ -584,9 +610,6 @@ namespace SmartMenu.DAO.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TemplateID"), 1L, 1);
 
-                    b.Property<int?>("BrandID")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -599,8 +622,6 @@ namespace SmartMenu.DAO.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("TemplateID");
-
-                    b.HasIndex("BrandID");
 
                     b.ToTable("Templates");
                 });
@@ -684,9 +705,11 @@ namespace SmartMenu.DAO.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartMenu.Domain.Models.StoreDevice", null)
-                        .WithMany("Displays")
-                        .HasForeignKey("StoreDeviceID");
+                    b.HasOne("SmartMenu.Domain.Models.Schedule", "Schedule")
+                        .WithMany()
+                        .HasForeignKey("ScheduleID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SmartMenu.Domain.Models.Template", "Template")
                         .WithMany()
@@ -697,6 +720,8 @@ namespace SmartMenu.DAO.Migrations
                     b.Navigation("Collection");
 
                     b.Navigation("Menu");
+
+                    b.Navigation("Schedule");
 
                     b.Navigation("Template");
                 });
@@ -825,11 +850,19 @@ namespace SmartMenu.DAO.Migrations
 
             modelBuilder.Entity("SmartMenu.Domain.Models.StoreDevice", b =>
                 {
+                    b.HasOne("SmartMenu.Domain.Models.Display", "Display")
+                        .WithMany()
+                        .HasForeignKey("DisplayID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SmartMenu.Domain.Models.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Display");
 
                     b.Navigation("Store");
                 });
@@ -849,15 +882,6 @@ namespace SmartMenu.DAO.Migrations
                         .IsRequired();
 
                     b.Navigation("Menu");
-                });
-
-            modelBuilder.Entity("SmartMenu.Domain.Models.Template", b =>
-                {
-                    b.HasOne("SmartMenu.Domain.Models.Brand", "Brand")
-                        .WithMany()
-                        .HasForeignKey("BrandID");
-
-                    b.Navigation("Brand");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.User", b =>
@@ -912,11 +936,6 @@ namespace SmartMenu.DAO.Migrations
                     b.Navigation("StoreCollections");
 
                     b.Navigation("StoreMenus");
-                });
-
-            modelBuilder.Entity("SmartMenu.Domain.Models.StoreDevice", b =>
-                {
-                    b.Navigation("Displays");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.Template", b =>

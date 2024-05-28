@@ -27,6 +27,7 @@ namespace SmartMenu.DAO.Implementation
             LayerItemRepository = new LayerItemRepository(_context);
             BoxRepository = new BoxRepository(_context);
             StoreDeviceRepository = new StoreDeviceRepository(_context);
+            FontRepository = new FontRepository(_context);
         }
 
         public IBrandRepository BrandRepository { get; private set; }
@@ -53,6 +54,8 @@ namespace SmartMenu.DAO.Implementation
         public ILayerItemRepository LayerItemRepository { get; private set; }
         public IBoxRepository BoxRepository { get; private set; }
         public IStoreDeviceRepository StoreDeviceRepository { get; private set; }
+
+        public IFontRepository FontRepository { get; private set; }
         public void Dispose()
          {
             Dispose(true);

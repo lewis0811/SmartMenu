@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Repository;
@@ -7,6 +8,8 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_Admin)]
+    
     public class RolesController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;

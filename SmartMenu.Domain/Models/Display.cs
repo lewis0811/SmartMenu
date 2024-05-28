@@ -9,7 +9,7 @@ namespace SmartMenu.Domain.Models
         public int MenuID { get; set; }
         public int CollectionID { get; set; }
         public int TemplateID { get; set; }
-        public int ScheduleID { get; set; }
+        public double StartingHour { get; set; }
 
         //[ForeignKey("StoreDeviceID")]
         //public StoreDevice? StoreDevice { get; set; }
@@ -23,8 +23,8 @@ namespace SmartMenu.Domain.Models
         [ForeignKey("TemplateID")]
         public Template? Template { get; set; }
 
-        [ForeignKey("ScheduleID")]
-        public Schedule? Schedule { get; set; }
+        //[ForeignKey("ScheduleID")]
+        //public Schedule? Schedule { get; set; }
 
         public ICollection<DisplayItem>? DisplayItems { get; set; }
     }

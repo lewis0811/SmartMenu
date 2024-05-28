@@ -21,7 +21,7 @@ namespace SmartMenu.DAO
             ProductGroups = Set<ProductGroup>();
             ProductGroupsItem = Set<ProductGroupItem>();
             Roles = Set<Role>();
-            Schedules = Set<Schedule>();
+            //Schedules = Set<Schedule>();
             Stores = Set<Store>();
             StoreCollections = Set<StoreCollection>();
             StoreDevices = Set<StoreDevice>();
@@ -44,7 +44,7 @@ namespace SmartMenu.DAO
         public DbSet<ProductGroup> ProductGroups { get; set; }
         public DbSet<ProductGroupItem> ProductGroupsItem { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<Schedule> Schedules { get; set; }
+        //public DbSet<Schedule> Schedules { get; set; }
         public DbSet<Store> Stores { get; set; }
         public DbSet<StoreCollection> StoreCollections { get; set; }
         public DbSet<StoreDevice> StoreDevices { get; set; }

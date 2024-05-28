@@ -33,11 +33,11 @@ namespace SmartMenu.DAO.Implementation
                     .Where(c => c.StoreID == storeId);
             }
 
-            if (displayId != null)
-            {
-                data = data
-                    .Where(c => c.DisplayID == displayId);
-            }
+            //if (displayId != null)
+            //{
+            //    data = data
+            //        .Where(c => c.DisplayID == displayId);
+            //}
 
             if (searchString != null)
             {

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using SmartMenu.DAO.Implementation;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -29,12 +28,19 @@ namespace SmartMenu.API.Controllers
             int pageNumber = 1,
             int pageSize = 10)
         {
-            var data = _unitOfWork.BoxRepository
-                .GetAll(boxId, layerId, fontId, searchString, pageNumber, pageSize)
-                .ToList();
-            if (data.Count == 0) return NotFound();
+            try
+            {
+                var data = _unitOfWork.BoxRepository
+                    .GetAll(boxId, layerId, fontId, searchString, pageNumber, pageSize)
+                    .ToList();
+                if (data.Count == 0) return NotFound();
 
-            return Ok(data);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
@@ -74,5 +80,4 @@ namespace SmartMenu.API.Controllers
             return Ok();
         }
     }
-
 }

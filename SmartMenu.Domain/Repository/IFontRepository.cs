@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace SmartMenu.Domain.Repository
 {
-    public interface IUserRepository : IGenericRepository<User>
+    public interface IFontRepository : IGenericRepository<Font>
     {
-        User Login(UserLoginDTO userLoginDTO);
+        IEnumerable<Font> GetAll(int? fontId, string searchString, int pageNumber, int pageSize);
+        void Add(FontCreateDTO font);
     }
 }
