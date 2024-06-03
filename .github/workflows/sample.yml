@@ -27,6 +27,6 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish SmartMenu.API.csproj -c Release -o ./app/publish/p
+      run: dotnet publish SmartMenu.API.csproj -c Release -o ./SmartMenu.API/
     - name: Run
       run: dotnet SmartMenu.API.dll -o ./app/publish/p/SmartMenu.API.dll
