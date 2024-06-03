@@ -29,4 +29,4 @@ jobs:
     - name: Publish
       run: dotnet publish ./SmartMenu.API/SmartMenu.API.csproj -c Release -o ./app/publish/p/
     - name: Run
-      run: dotnet SmartMenu.API.dll -o ./app/publish/p/SmartMenu.API.dll
+      run: dotnet ./app/publish/p/SmartMenu.API.dll
