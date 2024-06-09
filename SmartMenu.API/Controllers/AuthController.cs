@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNet.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SmartMenu.Domain.Models;
@@ -61,7 +60,7 @@ namespace SmartMenu.API.Controllers
 
             SecurityToken token = handler.CreateToken(securityTokenDescriptor);
             string tokenString = handler.WriteToken(token);
-          
+
             return Ok(new { token = tokenString });
         }
     }

@@ -1,9 +1,9 @@
-﻿    using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
 {
-    public class User  : BaseModel
+    public class User : BaseModel
     {
         public Guid UserID { get; set; } = new Guid();
 

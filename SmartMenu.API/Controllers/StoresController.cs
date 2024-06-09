@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -47,7 +46,7 @@ namespace SmartMenu.API.Controllers
             var data = _mapper.Map<Store>(storeCreateDTO);
             _unitOfWork.StoreRepository.Add(data);
             _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new {data});
+            return CreatedAtAction(nameof(Get), new { data });
         }
 
         [HttpPut]
@@ -57,7 +56,7 @@ namespace SmartMenu.API.Controllers
             if (data == null) return NotFound();
 
             _mapper.Map(storeUpdateDTO, data);
-            
+
             _unitOfWork.StoreRepository.Update(data);
             _unitOfWork.Save();
             return Ok(data);

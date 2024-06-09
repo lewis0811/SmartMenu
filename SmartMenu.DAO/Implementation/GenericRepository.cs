@@ -3,7 +3,7 @@ using SmartMenu.Domain.Repository;
 
 namespace SmartMenu.DAO.Implementation
 {
-    public class GenericRepository<T> :BaseModel, IGenericRepository<T> where T : class
+    public class GenericRepository<T> : BaseModel, IGenericRepository<T> where T : class
     {
         private readonly SmartMenuDBContext _context;
 

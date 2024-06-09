@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SmartMenu.Domain.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
@@ -11,8 +12,10 @@ namespace SmartMenu.Domain.Models
         [Required]
         public string LayerName { get; set; } = string.Empty;
 
-        //[ForeignKey("TemplateID")]
-        //public Template? Template { get; set; }
+        public LayerType LayerType { get; set; }
+
+        [ForeignKey("TemplateID")]
+        public Template? Template { get; set; }
 
         public ICollection<LayerItem>? LayerItems { get; set; }
         public ICollection<Box>? Boxes { get; set; }

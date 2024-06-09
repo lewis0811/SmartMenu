@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SmartMenu.Domain.Models.Enum;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Drawing;
 
 namespace SmartMenu.Domain.Models
 {
     public class BoxContent
     {
         public int BoxContentID { get; set; }
-        public string Content { get; set;} = string.Empty;
+        public int FontID { get; set; }
+        public float FontSize { get; set; }
+        public StringAlignment FontAlignment { get; set; }
+        public BoxContentType ContentType { get; set; }
+        public string BoxColor { get; set; } = "#ffffff";
+
+        [ForeignKey(nameof(FontID))]
+        public Font? Font { get; set; }
     }
 }

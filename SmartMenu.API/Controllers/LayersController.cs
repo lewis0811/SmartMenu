@@ -54,7 +54,7 @@ namespace SmartMenu.API.Controllers
             _unitOfWork.LayerRepository.Add(data);
             _unitOfWork.Save();
 
-            return CreatedAtAction(nameof(Get),  data);
+            return CreatedAtAction(nameof(Get), data);
         }
 
         [HttpPut("{layerId}")]

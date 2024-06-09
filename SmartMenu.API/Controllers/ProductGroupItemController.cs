@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models;
+using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 
 namespace SmartMenu.API.Controllers

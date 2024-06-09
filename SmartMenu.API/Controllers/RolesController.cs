@@ -8,8 +8,8 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = SD.Role_Admin)]
-    
+    //[Authorize(Roles = SD.Role_Admin)]
+
     public class RolesController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;

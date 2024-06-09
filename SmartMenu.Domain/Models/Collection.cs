@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
 {
@@ -17,6 +16,6 @@ namespace SmartMenu.Domain.Models
         //public Brand? Brand { get; set; }
 
         public ICollection<ProductGroup>? ProductGroups { get; set; }
-        
+
     }
 }

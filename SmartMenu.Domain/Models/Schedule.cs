@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SmartMenu.Domain.Models
+﻿namespace SmartMenu.Domain.Models
 {
     public class Schedule : BaseModel
     {

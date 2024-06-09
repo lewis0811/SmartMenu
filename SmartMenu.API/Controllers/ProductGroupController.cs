@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models;
+using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 
 namespace SmartMenu.API.Controllers
@@ -33,9 +32,13 @@ namespace SmartMenu.API.Controllers
             var data = _unitOfWork.ProductGroupRepository.GetProductGroupWithGroupItem(productGroupId, menuId, collectionId, searchString, pageNumber, pageSize);
             return Ok(data);
         }
+
         [HttpPost]
         public IActionResult Add(ProductGroupCreateDTO productCreateDTO)
         {
+            if (productCreateDTO.MenuID == 0) productCreateDTO.MenuID = null;
+            else if (productCreateDTO.CollectionID == 0) productCreateDTO.CollectionID = null;
+            
             var data = _mapper.Map<ProductGroup>(productCreateDTO);
             _unitOfWork.ProductGroupRepository.Add(data);
             _unitOfWork.Save();

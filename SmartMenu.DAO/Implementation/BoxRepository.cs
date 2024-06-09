@@ -34,20 +34,12 @@ namespace SmartMenu.DAO.Implementation
                     .Where(c => c.LayerID == layerId);
             }
 
-            if (fontId != null)
-            {
-                data = data
-                    .Where(c => c.FontID == fontId);
-            }
-
-
             if (searchString != null)
             {
                 searchString = searchString.Trim();
                 data = data
-                    .Where(c => c.BoxColor.Contains(searchString)
-                    || c.BoxMaxCapacity.ToString().Contains(searchString)
-                    || c.FontSize.ToString().Contains(searchString)
+                    .Where(c =>
+                        c.BoxMaxCapacity.ToString().Contains(searchString)
                     || c.BoxMaxCapacity.ToString().Contains(searchString)
                     || c.BoxPositionX.ToString().Contains(searchString)
                     || c.BoxPositionY.ToString().Contains(searchString));

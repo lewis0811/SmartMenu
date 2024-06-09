@@ -57,7 +57,7 @@ namespace SmartMenu.DAO.Implementation
 
         public IFontRepository FontRepository { get; private set; }
         public void Dispose()
-         {
+        {
             Dispose(true);
             GC.SuppressFinalize(this);
         }

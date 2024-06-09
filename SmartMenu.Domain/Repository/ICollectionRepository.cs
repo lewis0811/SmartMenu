@@ -1,8 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using SmartMenu.Domain.Models;
-
-
-namespace SmartMenu.Domain.Repository
+﻿namespace SmartMenu.Domain.Repository
 {
     public interface ICollectionRepository : IGenericRepository<Models.Collection>
     {

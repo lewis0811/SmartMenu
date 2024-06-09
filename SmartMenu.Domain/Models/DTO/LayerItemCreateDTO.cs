@@ -6,7 +6,7 @@ namespace SmartMenu.Domain.Models.DTO
     public class LayerItemCreateDTO
     {
         public int LayerID { get; set; }
-        public LayerItemType LayerItemType { get; set; }
+        public LayerType LayerItemType { get; set; }
         [Required]
         public string LayerItemValue { get; set; } = string.Empty;
     }

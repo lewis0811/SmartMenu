@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
 {
     public class Store : BaseModel
     {
-        public int StoreID { get; set; } 
+        public int StoreID { get; set; }
         public int BrandID { get; set; }
 
         [Required]

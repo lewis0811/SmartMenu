@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models;
+using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 
 namespace SmartMenu.API.Controllers
@@ -23,7 +22,7 @@ namespace SmartMenu.API.Controllers
         [HttpGet]
         public IActionResult Get(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.BrandRepository.GetAll( brandId, searchString, pageNumber, pageSize);
+            var data = _unitOfWork.BrandRepository.GetAll(brandId, searchString, pageNumber, pageSize);
             return Ok(data);
         }
         [HttpGet("BrandStaff")]

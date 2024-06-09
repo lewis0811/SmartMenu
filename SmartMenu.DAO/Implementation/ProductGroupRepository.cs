@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Repository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartMenu.DAO.Implementation
 {
@@ -28,7 +23,8 @@ namespace SmartMenu.DAO.Implementation
         public IEnumerable<ProductGroup> GetProductGroupWithGroupItem(int? productGroupId, int? menuId, int? collectionId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _context.ProductGroups
-                .Include(c => c.ProductGroupItems)
+                .Include(c => c.ProductGroupItems)!
+                .ThenInclude(c => c.Product)
                 .AsQueryable();
 
             return DataQuery(data, productGroupId, menuId, collectionId, searchString, pageNumber, pageSize);
