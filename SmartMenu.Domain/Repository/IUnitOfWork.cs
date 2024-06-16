@@ -22,6 +22,7 @@
         IStoreCollectionRepository StoreCollectionRepository { get; }
 
         IFontRepository FontRepository { get; }
+        IStoreProductRepository StoreProductRepository { get; }
         int Save();
     }
 }

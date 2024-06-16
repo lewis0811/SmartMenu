@@ -37,7 +37,7 @@ namespace SmartMenu.API.Controllers
         [HttpPut]
         public IActionResult Update(int productGroupItemId, ProductGroupItemCreateDTO productGroupItemCreateDTO)
         {
-            var data = _unitOfWork.ProductGroupItemRepository.Find(c => c.ProductGroupItemID == productGroupItemId).FirstOrDefault();
+            var data = _unitOfWork.ProductGroupItemRepository.Find(c => c.ProductGroupItemId == productGroupItemId).FirstOrDefault();
             if (data == null) return NotFound();
             _mapper.Map(productGroupItemCreateDTO, data);
             _unitOfWork.ProductGroupItemRepository.Update(data);
@@ -48,7 +48,7 @@ namespace SmartMenu.API.Controllers
         [HttpDelete]
         public IActionResult Delete(int productGroupItemId)
         {
-            var data = _unitOfWork.ProductGroupItemRepository.Find(c => c.ProductGroupItemID == productGroupItemId).FirstOrDefault();
+            var data = _unitOfWork.ProductGroupItemRepository.Find(c => c.ProductGroupItemId == productGroupItemId).FirstOrDefault();
             if (data == null) return NotFound();
 
             data.IsDeleted = true;

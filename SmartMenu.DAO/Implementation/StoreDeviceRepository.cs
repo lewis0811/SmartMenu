@@ -43,8 +43,7 @@ namespace SmartMenu.DAO.Implementation
             {
                 searchString = searchString.Trim();
                 data = data
-                    .Where(c => c.StoreDeviceName.Contains(searchString)
-                    || c.DisplayType.ToString().Contains(searchString));
+                    .Where(c => c.StoreDeviceName.Contains(searchString));
             }
 
             return data;

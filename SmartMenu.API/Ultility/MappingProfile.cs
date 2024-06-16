@@ -32,7 +32,10 @@ namespace SmartMenu.API.Ultility
             CreateMap<BrandStaff, BrandStaffCreateDTO>().ReverseMap();
             CreateMap<User, UserCreateDTO>().ReverseMap();
             CreateMap<User, UserLoginDTO>().ReverseMap();
+            CreateMap<User, UserUpdateDTO>().ReverseMap();
             CreateMap<Font, FontCreateDTO>().ReverseMap();
+            CreateMap<StoreProduct, StoreProductCreateDTO>().ReverseMap();
+            CreateMap<StoreProduct, StoreProductUpdateDTO>().ReverseMap();
         }
     }
 }

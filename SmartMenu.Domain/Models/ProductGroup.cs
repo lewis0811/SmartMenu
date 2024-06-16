@@ -6,7 +6,9 @@ namespace SmartMenu.Domain.Models
     public class ProductGroup : BaseModel
     {
         public int ProductGroupID { get; set; }
+
         public int? MenuID { get; set; }
+
         public int? CollectionID { get; set; }
 
         [Required]
@@ -20,4 +22,5 @@ namespace SmartMenu.Domain.Models
 
         public ICollection<ProductGroupItem>? ProductGroupItems { get; set; }
     }
+
 }

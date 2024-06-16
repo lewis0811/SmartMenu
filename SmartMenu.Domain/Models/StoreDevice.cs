@@ -8,22 +8,17 @@ namespace SmartMenu.Domain.Models
     {
         public int StoreDeviceID { get; set; }
         public int StoreID { get; set; }
-        //public int DisplayID { get; set; }
 
         [Required]
         public string StoreDeviceName { get; set; } = string.Empty;
 
-        [Required]
-        public DisplayType DisplayType { get; set; }
-
-        //public bool IsDisplay { get; set; } = false;
+        public float DeviceWidth { get; set; } = 0;
+        public float DeviceHeight { get; set; } = 0;
 
         [ForeignKey(nameof(StoreID))]
         public Store? Store { get; set; }
 
         public ICollection<Display>? Displays { get; set; }
 
-        //[ForeignKey(nameof(DisplayID))]
-        //public Display? Display { get; set; }
     }
 }

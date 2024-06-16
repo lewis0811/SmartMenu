@@ -1,6 +1,8 @@
-﻿using SmartMenu.Domain.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+
 
 namespace SmartMenu.DAO.Implementation
 {
@@ -12,6 +14,14 @@ namespace SmartMenu.DAO.Implementation
             _context = context;
         }
 
+        public IEnumerable<User> GetAll(Guid? userId, string? searchString, int pageNumber, int pageSize)
+        {
+            var data = _context.Users
+                 .Include(c => c.Role)
+                 .AsQueryable();
+            return DataQuery(data, userId, searchString, pageNumber, pageSize);
+        }
+
         public User Login(UserLoginDTO userLoginDTO)
         {
             User user = _context.Users
@@ -20,6 +30,27 @@ namespace SmartMenu.DAO.Implementation
                 && c.Password.Equals(userLoginDTO.Password))!;
 
             return user;
+        }
+
+        private IEnumerable<User> DataQuery(IQueryable<User> data, Guid? userId, string? searchString, int pageNumber, int pageSize)
+        {
+            data = data.Where(c => c.IsDeleted == false);
+   
+            if (userId != null)
+            {
+                data = data
+                    .Where(c => c.UserID.ToString() == userId.ToString());
+            }
+
+            if (searchString != null)
+            {
+                searchString = searchString.Trim();
+                data = data
+                    .Where(c => c.UserName.Contains(searchString)
+                    || c.Email.Contains(searchString));
+            }
+
+            return PaginatedList<User>.Create(data, pageNumber, pageSize);
         }
     }
 }

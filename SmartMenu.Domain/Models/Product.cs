@@ -15,8 +15,8 @@ namespace SmartMenu.Domain.Models
         [Required]
         public string ProductDescription { get; set; } = string.Empty;
 
-        [Range(1, int.MaxValue)]
-        public double ProductPrice { get; set; } = 1;
+        //[Range(1, int.MaxValue)]
+        //public double ProductPrice { get; set; } = 1;
 
         [ForeignKey(nameof(BrandID))]
         public Brand? Brand { get; set; }

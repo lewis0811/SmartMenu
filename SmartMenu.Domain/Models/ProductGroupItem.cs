@@ -1,17 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
 {
     public class ProductGroupItem : BaseModel
     {
-        public int ProductGroupItemID { get; set; }
-        public int ProductGroupID { get; set; }
-        public int ProductID { get; set; }
+        public int ProductGroupItemId { get; set; }
+        [Required]
+        public int ProductGroupId { get; set; }
+        [Required]
+        public int ProductSizePriceId { get; set; }
 
-        [ForeignKey("ProductID")]
-        public Product? Product { get; set; }
+        [ForeignKey("ProductSizePriceId")]
+        public ProductSizePrice? ProductSizePrice { get; set; }
 
-        //[ForeignKey("ProductGroupID")]
-        //public ProductGroup? ProductGroup { get; set; }
+        [ForeignKey("ProductGroupId")]
+        public ProductGroup? ProductGroup { get; set; }
     }
 }

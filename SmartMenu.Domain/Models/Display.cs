@@ -10,6 +10,7 @@ namespace SmartMenu.Domain.Models
         public int? CollectionID { get; set; }
         public int TemplateID { get; set; }
         public double StartingHour { get; set; }
+        public double? EndingHour { get; set; } // optional
 
         [ForeignKey("StoreDeviceID")]
         public StoreDevice? StoreDevice { get; set; }
@@ -23,9 +24,14 @@ namespace SmartMenu.Domain.Models
         [ForeignKey("TemplateID")]
         public Template? Template { get; set; }
 
-        //[ForeignKey("ScheduleID")]
-        //public Schedule? Schedule { get; set; }
-
         public ICollection<DisplayItem>? DisplayItems { get; set; }
     }
 }
+
+/*
+ * var currentTime = DateTime.Now.Hour + (DateTime.Now.Minute / 60.0); // Current time in fractional hours
+var activeDisplay = dbContext.Displays
+    .Where(d => d.StartingHour <= currentTime && (d.EndingHour == null || d.EndingHour >= currentTime)) // Change > to >=
+    .OrderByDescending(d => d.StartingHour) // Get the latest one if multiple match
+    .FirstOrDefault(); 
+*/

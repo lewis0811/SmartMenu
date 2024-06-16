@@ -18,7 +18,7 @@ namespace SmartMenu.Domain.Models
 
         public Guid RoleID { get; set; }
 
-        [ForeignKey("RoleID")]
-        public Role? Role { get; set; }
+        [ForeignKey(nameof(RoleID))]
+        public Role? Role { get; set; } 
     }
 }

@@ -53,9 +53,9 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPut]
-        public IActionResult Update(int branchId, BrandCreateDTO brandCreateDTO)
+        public IActionResult Update(int brandId, BrandCreateDTO brandCreateDTO)
         {
-            var data = _unitOfWork.BrandRepository.Find(c => c.BrandID == branchId).FirstOrDefault();
+            var data = _unitOfWork.BrandRepository.Find(c => c.BrandID == brandId).FirstOrDefault();
             if (data == null) return NotFound();
 
             _mapper.Map(brandCreateDTO, data);
@@ -66,9 +66,9 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpDelete]
-        public IActionResult Delete(int branchId)
+        public IActionResult Delete(int brandId)
         {
-            var data = _unitOfWork.BrandRepository.Find(c => c.BrandID == branchId).FirstOrDefault();
+            var data = _unitOfWork.BrandRepository.Find(c => c.BrandID == brandId).FirstOrDefault();
             if (data == null) return NotFound();
 
             data.IsDeleted = true;

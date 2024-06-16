@@ -7,7 +7,7 @@ namespace SmartMenu.Domain.Models
         public int DisplayItemID { get; set; }
         public int DisplayID { get; set; }
         public int BoxID { get; set; }
-        public int ProductGroupID { get; set; }
+        public int? ProductGroupID { get; set; }
 
         [ForeignKey("DisplayID")]
         public Display? Display { get; set; }

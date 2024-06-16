@@ -17,24 +17,24 @@ namespace SmartMenu.DAO.Implementation
 
             return DataQuery(data, productGroupItemId, productGroupId, productId, searchString, pageNumber, pageSize);
         }
-        private IEnumerable<ProductGroupItem> DataQuery(IQueryable<ProductGroupItem> data, int? productGroupItemId, int? productGroupId, int? productId, string? searchString, int pageNumber, int pageSize)
+        private IEnumerable<ProductGroupItem> DataQuery(IQueryable<ProductGroupItem> data, int? productGroupItemId, int? productGroupId, int? productSizePriceId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
             if (productGroupItemId != null)
             {
                 data = data
-                    .Where(c => c.ProductGroupID == productGroupItemId);
+                    .Where(c => c.ProductGroupId == productGroupItemId);
             }
 
             if (productGroupId != null)
             {
                 data = data
-                    .Where(c => c.ProductGroupID == productGroupId);
+                    .Where(c => c.ProductGroupId == productGroupId);
             }
-            if (productId != null)
+            if (productSizePriceId != null)
             {
                 data = data
-                    .Where(c => c.ProductID == productId);
+                    .Where(c => c.ProductSizePriceId == productSizePriceId);
             }
 
 

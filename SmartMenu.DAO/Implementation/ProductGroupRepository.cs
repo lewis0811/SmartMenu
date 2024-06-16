@@ -24,6 +24,7 @@ namespace SmartMenu.DAO.Implementation
         {
             var data = _context.ProductGroups
                 .Include(c => c.ProductGroupItems)!
+                .ThenInclude(c => c.ProductSizePrice)
                 .ThenInclude(c => c.Product)
                 .AsQueryable();
 
