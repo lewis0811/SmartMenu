@@ -23,5 +23,7 @@ namespace SmartMenu.Domain.Models
 
         [ForeignKey(nameof(CategoryID))]
         public Category? Category { get; set; }
+
+        public ICollection<ProductSizePrice>? ProductSizePrices { get; set; }
     }
 }

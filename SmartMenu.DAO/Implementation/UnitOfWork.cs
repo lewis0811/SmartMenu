@@ -29,6 +29,9 @@ namespace SmartMenu.DAO.Implementation
             StoreDeviceRepository = new StoreDeviceRepository(_context);
             FontRepository = new FontRepository(_context);
             StoreProductRepository = new StoreProductRepository(_context);
+            ProductSizeRepository = new ProductSizeRepository(_context);
+            ProductSizePriceRepository = new ProductSizePriceRepository(_context);
+            BoxItemRepository = new BoxItemRepository(_context);
         }
 
         public IBrandRepository BrandRepository { get; private set; }
@@ -59,6 +62,9 @@ namespace SmartMenu.DAO.Implementation
         public IFontRepository FontRepository { get; private set; }
 
         public IStoreProductRepository StoreProductRepository { get; private set; }
+        public IProductSizePriceRepository ProductSizePriceRepository { get; private set; }
+        public IProductSizeRepository ProductSizeRepository { get; private set; }
+        public IBoxItemRepository BoxItemRepository { get; private set; }
         public void Dispose()
         {
             Dispose(true);

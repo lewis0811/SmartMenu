@@ -20,9 +20,11 @@
         IProductGroupRepository ProductGroupRepository { get; }
         IProductGroupItemRepository ProductGroupItemRepository { get; }
         IStoreCollectionRepository StoreCollectionRepository { get; }
-
+        IProductSizeRepository ProductSizeRepository { get; }
         IFontRepository FontRepository { get; }
         IStoreProductRepository StoreProductRepository { get; }
+        IProductSizePriceRepository ProductSizePriceRepository { get; }
+        IBoxItemRepository BoxItemRepository { get; }
         int Save();
     }
 }
