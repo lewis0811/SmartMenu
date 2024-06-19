@@ -22,8 +22,8 @@ namespace SmartMenu.API.Controllers
         [HttpGet]
         public ActionResult Get(int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.TemplateRepository.GetAll(templateId, searchString, pageNumber, pageSize).ToList();
-            if (data.Count == 0) return NotFound();
+            var data = _unitOfWork.TemplateRepository.GetAll(templateId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Template>();
 
             return Ok(data);
         }
@@ -31,8 +31,8 @@ namespace SmartMenu.API.Controllers
         [HttpGet("Layers")]
         public ActionResult GetLayers(int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.TemplateRepository.GetAllWithLayers(templateId, searchString, pageNumber, pageSize).ToList();
-            if (data.Count == 0) return NotFound();
+            var data = _unitOfWork.TemplateRepository.GetAllWithLayers(templateId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Template>();
 
             return Ok(data);
         }
@@ -40,6 +40,9 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(TemplateCreateDTO templateCreateDTO)
         {
+            var brand = _unitOfWork.BrandRepository.Find(c => c.BrandID == templateCreateDTO.BrandID && c.IsDeleted == false).FirstOrDefault();
+            if (brand == null) return BadRequest("Brand not found or deleted");
+
             var data = _mapper.Map<Template>(templateCreateDTO);
             _unitOfWork.TemplateRepository.Add(data);
             _unitOfWork.Save();
@@ -47,10 +50,10 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPut]
-        public IActionResult Update(int templateId, TemplateCreateDTO templateUpdateDTO)
+        public IActionResult Update(int templateId, TemplateUpdateDTO templateUpdateDTO)
         {
-            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Template not found or deleted");
 
             _mapper.Map(templateUpdateDTO, data);
 
@@ -63,8 +66,8 @@ namespace SmartMenu.API.Controllers
         [HttpDelete]
         public IActionResult Delete(int templateId)
         {
-            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Template not found or deleted");
 
             data.IsDeleted = true;
 

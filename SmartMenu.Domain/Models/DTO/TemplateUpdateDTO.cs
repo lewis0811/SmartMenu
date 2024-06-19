@@ -1,12 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SmartMenu.Domain.Models.DTO
 {
-    public class TemplateCreateDTO
+    public class TemplateUpdateDTO
     {
-        [Required(ErrorMessage = "Brand ID is required.")]
-        public int BrandID { get; set; }
-
         [Required(ErrorMessage = "Template Name is required.")]
         [StringLength(200, ErrorMessage = "Template Name cannot exceed 200 characters.")] // Example length constraint
         public string TemplateName { get; set; } = string.Empty;

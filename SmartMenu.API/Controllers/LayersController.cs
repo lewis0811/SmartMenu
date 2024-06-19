@@ -22,8 +22,8 @@ namespace SmartMenu.API.Controllers
         [HttpGet]
         public IActionResult Get(int? layerId, int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.LayerRepository.GetAll(layerId, templateId, searchString, pageNumber, pageSize).ToList();
-            if (data.Count == 0) return NotFound();
+            var data = _unitOfWork.LayerRepository.GetAll(layerId, templateId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Layer>();
 
             return Ok(data);
         }
@@ -31,8 +31,8 @@ namespace SmartMenu.API.Controllers
         [HttpGet("LayerItems")]
         public IActionResult GetLayerItems(int? layerId, int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.LayerRepository.GetAllWithLayerItems(layerId, templateId, searchString, pageNumber, pageSize).ToList();
-            if (data.Count == 0) return NotFound();
+            var data = _unitOfWork.LayerRepository.GetAllWithLayerItems(layerId, templateId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Layer>();
 
             return Ok(data);
         }
@@ -40,8 +40,8 @@ namespace SmartMenu.API.Controllers
         [HttpGet("Boxes")]
         public IActionResult GetWithBoxes(int? layerId, int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.LayerRepository.GetAllWithBoxes(layerId, templateId, searchString, pageNumber, pageSize).ToList();
-            if (data.Count == 0) return NotFound();
+            var data = _unitOfWork.LayerRepository.GetAllWithBoxes(layerId, templateId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Layer>();
 
             return Ok(data);
         }
@@ -49,6 +49,8 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(LayerCreateDTO layerCreateDTO)
         {
+            var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == layerCreateDTO.TemplateID && c.IsDeleted == false).FirstOrDefault();
+            if (template == null) return BadRequest("Template not found or deleted");
             var data = _mapper.Map<Layer>(layerCreateDTO);
 
             _unitOfWork.LayerRepository.Add(data);
@@ -60,8 +62,8 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{layerId}")]
         public IActionResult Update(int layerId, LayerUpdateDTO layerUpdateDTO)
         {
-            var data = _unitOfWork.LayerRepository.Find(c => c.LayerID == layerId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.LayerRepository.Find(c => c.LayerID == layerId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Template not found or deleted");
 
             _mapper.Map(layerUpdateDTO, data);
             _unitOfWork.LayerRepository.Update(data);
@@ -73,8 +75,8 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{layerId}")]
         public IActionResult Delete(int layerId)
         {
-            var data = _unitOfWork.LayerRepository.Find(c => c.LayerID == layerId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.LayerRepository.Find(c => c.LayerID == layerId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Template not found or deleted");
 
             data.IsDeleted = true;
 

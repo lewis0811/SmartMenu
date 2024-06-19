@@ -22,7 +22,10 @@ namespace SmartMenu.DAO.Implementation
         public IEnumerable<Template> GetAllWithLayers(int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _context.Templates
-                .Include(c => c.Layers)
+                .Include(c => c.Layers)!
+                .ThenInclude(c => c.Boxes)
+                .Include(c => c.Layers)!
+                .ThenInclude(c => c.LayerItems)
                 .AsQueryable();
             return DataQuery(data, templateId, searchString, pageNumber, pageSize);
         }

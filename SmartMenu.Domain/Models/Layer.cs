@@ -14,8 +14,8 @@ namespace SmartMenu.Domain.Models
 
         public LayerType LayerType { get; set; }
 
-        [ForeignKey("TemplateID")]
-        public Template? Template { get; set; }
+        //[ForeignKey("TemplateID")]
+        //public Template? Template { get; set; }
 
         public ICollection<LayerItem>? LayerItems { get; set; }
         public ICollection<Box>? Boxes { get; set; }

@@ -15,10 +15,9 @@ namespace SmartMenu.Domain.Models
         [Range(1, int.MaxValue, ErrorMessage = "Value must be greater than or equal to 1.")]
         public int BoxMaxCapacity { get; set; } = 1;
 
-        [ForeignKey(nameof(LayerID))]
-        public Layer? Layer { get; set; }
+        //[ForeignKey(nameof(LayerID))]
+        //public Layer? Layer { get; set; }
 
         public ICollection<BoxItem>? BoxItems { get; set; }
-        public ICollection<DisplayItem>? DisplayItems { get;  set; }
     }
 }

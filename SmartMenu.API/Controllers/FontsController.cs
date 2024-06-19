@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using SmartMenu.API.Ultility;
+using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 
@@ -25,6 +26,8 @@ namespace SmartMenu.API.Controllers
         public IActionResult Get(int? fontId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var fonts = _unitOfWork.FontRepository.GetAll(fontId, searchString, pageNumber, pageSize);
+            fonts ??= Enumerable.Empty<Font>();
+
             return Ok(fonts);
         }
 

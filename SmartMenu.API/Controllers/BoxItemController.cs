@@ -32,6 +32,12 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(BoxItemCreateDTO boxItemCreateDTO)
         {
+            var box = _unitOfWork.BoxRepository.Find(c => c.BoxID == boxItemCreateDTO.BoxId && c.IsDeleted == false).FirstOrDefault();
+            if (box == null) return BadRequest("Box not found or deleted");
+
+            var font = _unitOfWork.FontRepository.Find(c => c.FontID == boxItemCreateDTO.FontId && c.IsDeleted == false).FirstOrDefault();
+            if (font == null) return BadRequest("Font not found or deleted");
+
             var data = _mapper.Map<BoxItem>(boxItemCreateDTO);
 
             _unitOfWork.BoxItemRepository.Add(data);
@@ -43,8 +49,11 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{boxItemId}")]
         public IActionResult Update(int boxItemId, BoxItemUpdateDTO boxItemUpdateDTO)
         {
-            var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("BoxItem not found or deleted");
+
+            var font = _unitOfWork.FontRepository.Find(c => c.FontID == boxItemUpdateDTO.FontId && c.IsDeleted == false).FirstOrDefault();
+            if (font == null) return BadRequest("Font not found or deleted");
 
             _mapper.Map(boxItemUpdateDTO, data);
 
@@ -57,8 +66,8 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{boxItemId}")]
         public IActionResult Delete(int boxItemId)
         {
-            var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("BoxItem not found or deleted");
 
             data.IsDeleted = true;
             _unitOfWork.BoxItemRepository.Update(data);

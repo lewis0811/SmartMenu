@@ -23,7 +23,6 @@ namespace SmartMenu.API.Controllers
         public ActionResult Get(
             int? boxId,
             int? layerId,
-            int? fontId,
             string? searchString,
             int pageNumber = 1,
             int pageSize = 10)
@@ -31,9 +30,30 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var data = _unitOfWork.BoxRepository
-                    .GetAll(boxId, layerId, fontId, searchString, pageNumber, pageSize)
-                    .ToList();
-                if (data.Count == 0) return NotFound();
+                    .GetAll(boxId, layerId, searchString, pageNumber, pageSize);
+                data ??= Enumerable.Empty<Box>();
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("BoxItems")]
+        public ActionResult GetItems(
+            int? boxId,
+            int? layerId,
+            string? searchString,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            try
+            {
+                var data = _unitOfWork.BoxRepository
+                    .GetAllWithBoxItems(boxId, layerId, searchString, pageNumber, pageSize);
+                data ??= Enumerable.Empty<Box>();
 
                 return Ok(data);
             }
@@ -46,6 +66,8 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(BoxCreateDTO boxCreateDTO)
         {
+            var layer = _unitOfWork.LayerRepository.Find(c => c.LayerID == boxCreateDTO.LayerID && c.IsDeleted == false).FirstOrDefault();
+            if (layer == null) return BadRequest("Layer not found or deleted");
             var data = _mapper.Map<Box>(boxCreateDTO);
 
             _unitOfWork.BoxRepository.Add(data);
@@ -57,8 +79,8 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{boxId}")]
         public IActionResult Update(int boxId, BoxUpdateDTO boxUpdateDTO)
         {
-            var data = _unitOfWork.BoxRepository.Find(c => c.BoxID == boxId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.BoxRepository.Find(c => c.BoxID == boxId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Box not found or deleted");
 
             _mapper.Map(boxUpdateDTO, data);
             _unitOfWork.BoxRepository.Update(data);
@@ -70,8 +92,8 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{boxId}")]
         public IActionResult Delete(int boxId)
         {
-            var data = _unitOfWork.BoxRepository.Find(c => c.BoxID == boxId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.BoxRepository.Find(c => c.BoxID == boxId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Box not found or deleted");
 
             data.IsDeleted = true;
             _unitOfWork.BoxRepository.Update(data);

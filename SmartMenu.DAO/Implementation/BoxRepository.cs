@@ -1,4 +1,5 @@
-﻿using SmartMenu.Domain.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Repository;
 
 namespace SmartMenu.DAO.Implementation
@@ -12,13 +13,22 @@ namespace SmartMenu.DAO.Implementation
             _context = context;
         }
 
-        public IEnumerable<Box> GetAll(int? boxId, int? layerId, int? fontId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Box> GetAll(int? boxId, int? layerId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _context.Boxes.AsQueryable();
-            return DataQuery(data, boxId, layerId, fontId, searchString, pageNumber, pageSize);
+            return DataQuery(data, boxId, layerId, searchString, pageNumber, pageSize);
         }
 
-        private IEnumerable<Box> DataQuery(IQueryable<Box> data, int? boxId, int? layerId, int? fontId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Box> GetAllWithBoxItems(int? boxId, int? layerId, string? searchString, int pageNumber, int pageSize)
+        {
+            var data = _context.Boxes
+                .Include(c => c.BoxItems)!
+                .ThenInclude(c => c.Font)
+                .AsQueryable();
+            return DataQuery(data, boxId, layerId, searchString, pageNumber, pageSize);
+        }
+
+        private IEnumerable<Box> DataQuery(IQueryable<Box> data, int? boxId, int? layerId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(data => data.IsDeleted == false);
 

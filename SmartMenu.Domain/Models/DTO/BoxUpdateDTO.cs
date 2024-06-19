@@ -5,19 +5,21 @@ namespace SmartMenu.Domain.Models.DTO
 {
     public class BoxUpdateDTO
     {
-        public int FontID { get; set; }
-        public string? BoxContent { get; set; } = string.Empty;
+        [Range(0, float.MaxValue, ErrorMessage = "Box position X must be a non-negative number.")]
+        public float BoxPositionX { get; set; }
 
-        public double FontSize { get; set; }
+        [Range(0, float.MaxValue, ErrorMessage = "Box position Y must be a non-negative number.")]
+        public float BoxPositionY { get; set; }
 
-        [Required]
-        public BoxType BoxType { get; set; }
+        [Required(ErrorMessage = "Box width is required.")]
+        [Range(1, float.MaxValue, ErrorMessage = "Box width must be greater than 0.")] // Adjusted range to avoid 0 width
+        public float BoxWidth { get; set; }
 
-        [Required]
-        public string BoxColor { get; set; } = "#ffffff";
+        [Required(ErrorMessage = "Box height is required.")]
+        [Range(1, float.MaxValue, ErrorMessage = "Box height must be greater than 0.")] // Adjusted range to avoid 0 height
+        public float BoxHeight { get; set; }
 
-        public double BoxPositionX { get; set; }
-        public double BoxPositionY { get; set; }
-        public int BoxMaxCapacity { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Box max capacity must be at least 1.")] // This validation was already present
+        public int BoxMaxCapacity { get; set; } = 1;
     }
 }
