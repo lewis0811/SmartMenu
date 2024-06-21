@@ -28,6 +28,12 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(ProductCreateDTO productCreateDTO)
         {
+            var brand = _unitOfWork.BrandRepository.Find(c => c.BrandId == productCreateDTO.BrandID && c.IsDeleted == false).FirstOrDefault();
+            if (brand == null) return BadRequest("Brand not found or deleted");
+
+            var category = _unitOfWork.CategoryRepository.Find(c => c.CategoryID == productCreateDTO.CategoryID && c.IsDeleted == false).FirstOrDefault();
+            if (category == null) return BadRequest("Category not found or deleted");
+
             var data = _mapper.Map<Product>(productCreateDTO);
             _unitOfWork.ProductRepository.Add(data);
             _unitOfWork.Save();

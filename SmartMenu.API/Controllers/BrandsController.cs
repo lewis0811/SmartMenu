@@ -25,33 +25,28 @@ namespace SmartMenu.API.Controllers
             var data = _unitOfWork.BrandRepository.GetAll(brandId, searchString, pageNumber, pageSize);
             return Ok(data);
         }
+
         [HttpGet("BrandStaff")]
         public IActionResult GetBranchWithBrandStaff(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _unitOfWork.BrandRepository.GetBranchWithBrandStaff(brandId, searchString, pageNumber, pageSize);
             return Ok(data);
         }
+
         [HttpGet("BrandStore")]
         public IActionResult GetBranchWithStore(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _unitOfWork.BrandRepository.GetBranchWithStore(brandId, searchString, pageNumber, pageSize);
             return Ok(data);
         }
+
         [HttpGet("BrandProduct")]
         public IActionResult GetBranchWithProduct(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            try
-            {
                 var data = _unitOfWork.BrandRepository.GetBranchWithProduct(brandId, searchString, pageNumber, pageSize);
                 return Ok(data);
-            }
-            catch (Exception ex)
-            {
-
-                return BadRequest(ex);
-            }
-
         }
+
         [HttpPost]
         public IActionResult Add(BrandCreateDTO brandCreateDTO)
         {
