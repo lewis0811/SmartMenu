@@ -24,13 +24,13 @@ namespace SmartMenu.DAO.Implementation
             if (storeDeviceId != null)
             {
                 data = data
-                    .Where(c => c.StoreDeviceID == storeDeviceId);
+                    .Where(c => c.StoreDeviceId == storeDeviceId);
             }
 
             if (storeId != null)
             {
                 data = data
-                    .Where(c => c.StoreID == storeId);
+                    .Where(c => c.StoreId == storeId);
             }
 
             //if (displayId != null)

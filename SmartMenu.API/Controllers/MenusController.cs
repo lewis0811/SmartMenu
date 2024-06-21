@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MenuController : ControllerBase
+    public class MenusController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public MenuController(IUnitOfWork unitOfWork, IMapper mapper)
+        public MenusController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -40,11 +40,11 @@ namespace SmartMenu.API.Controllers
             return CreatedAtAction(nameof(Get), new { data });
         }
 
-        [HttpPut]
+        [HttpPut("{menuId}")]
         public IActionResult Update(int menuId, MenuUpdateDTO menuUpdateDTO)
         {
-            var data = _unitOfWork.MenuRepository.Find(c => c.MenuID == menuId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.MenuRepository.Find(c => c.MenuID == menuId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Menu not found or deleted");
 
             _mapper.Map(menuUpdateDTO, data);
 
@@ -53,11 +53,11 @@ namespace SmartMenu.API.Controllers
             return Ok(data);
         }
 
-        [HttpDelete]
+        [HttpDelete("{menuId}")]
         public IActionResult Delete(int menuId)
         {
-            var data = _unitOfWork.MenuRepository.Find(c => c.MenuID == menuId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.MenuRepository.Find(c => c.MenuID == menuId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Menu not found or deleted");
 
             data.IsDeleted = true;
             _unitOfWork.MenuRepository.Update(data);

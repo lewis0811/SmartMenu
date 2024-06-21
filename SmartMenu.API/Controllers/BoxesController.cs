@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BoxController : ControllerBase
+    public class BoxesController : ControllerBase
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
-        public BoxController(IMapper mapper, IUnitOfWork unitOfWork)
+        public BoxesController(IMapper mapper, IUnitOfWork unitOfWork)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -66,7 +66,7 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(BoxCreateDTO boxCreateDTO)
         {
-            var layer = _unitOfWork.LayerRepository.Find(c => c.LayerID == boxCreateDTO.LayerID && c.IsDeleted == false).FirstOrDefault();
+            var layer = _unitOfWork.LayerRepository.Find(c => c.LayerID == boxCreateDTO.LayerId && c.IsDeleted == false).FirstOrDefault();
             if (layer == null) return BadRequest("Layer not found or deleted");
             var data = _mapper.Map<Box>(boxCreateDTO);
 

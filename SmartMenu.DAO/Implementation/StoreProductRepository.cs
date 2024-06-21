@@ -13,7 +13,7 @@ namespace SmartMenu.DAO.Implementation
             _context = context;
         }
 
-        public IEnumerable<StoreProduct> GetStoreProducts(int? storeProductId, string searchString, int pageNumber, int pageSize)
+        public IEnumerable<StoreProduct> GetStoreProducts(int? storeProductId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _context.StoreProducts
                              .Include(x => x.Product)

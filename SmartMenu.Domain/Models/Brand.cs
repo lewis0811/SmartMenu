@@ -4,7 +4,7 @@ namespace SmartMenu.Domain.Models
 {
     public class Brand : BaseModel
     {
-        public int BrandID { get; set; }
+        public int BrandId { get; set; }
 
         [Required]
         public string BrandName { get; set; } = string.Empty;

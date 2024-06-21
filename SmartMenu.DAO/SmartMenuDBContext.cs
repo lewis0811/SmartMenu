@@ -13,6 +13,7 @@ namespace SmartMenu.DAO
             Categories = Set<Category>();
             Collections = Set<Collection>();
             Displays = Set<Display>();
+            DisplayItems = Set<DisplayItem>();
             Fonts = Set<Font>();
             Layers = Set<Layer>();
             LayersItem = Set<LayerItem>();
@@ -40,6 +41,7 @@ namespace SmartMenu.DAO
         public DbSet<Category> Categories { get; set; }
         public DbSet<Collection> Collections { get; set; }
         public DbSet<Display> Displays { get; set; }
+        public DbSet<DisplayItem> DisplayItems { get; set; }
         public DbSet<Font> Fonts { get; set; }
         public DbSet<Layer> Layers { get; set; }
         public DbSet<LayerItem> LayersItem { get; set; }

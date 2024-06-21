@@ -23,6 +23,8 @@ namespace SmartMenu.API.Controllers
         public IActionResult Get(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _unitOfWork.StoreRepository.GetAll(storeId, brandId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Store>();
+
             return Ok(data);
         }
 
@@ -30,6 +32,8 @@ namespace SmartMenu.API.Controllers
         public IActionResult GetStoreMenus(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _unitOfWork.StoreRepository.GetStoreWithMenus(storeId, brandId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Store>();
+
             return Ok(data);
         }
 
@@ -37,6 +41,8 @@ namespace SmartMenu.API.Controllers
         public IActionResult GetStoreCollection(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _unitOfWork.StoreRepository.GetStoreWithCollections(storeId, brandId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Store>();
+
             return Ok(data);
         }
 
@@ -49,11 +55,11 @@ namespace SmartMenu.API.Controllers
             return CreatedAtAction(nameof(Get), new { data });
         }
 
-        [HttpPut]
+        [HttpPut("{storeId}")]
         public IActionResult Update(int storeId, StoreUpdateDTO storeUpdateDTO)
         {
-            var data = _unitOfWork.StoreRepository.Find(c => c.StoreID == storeId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.StoreRepository.Find(c => c.StoreID == storeId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Store not found or deleted");
 
             _mapper.Map(storeUpdateDTO, data);
 
@@ -62,11 +68,11 @@ namespace SmartMenu.API.Controllers
             return Ok(data);
         }
 
-        [HttpDelete]
+        [HttpDelete("{storeId}")]
         public IActionResult Delete(int storeId)
         {
-            var data = _unitOfWork.StoreRepository.Find(c => c.StoreID == storeId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.StoreRepository.Find(c => c.StoreID == storeId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Store not found or deleted");
 
             data.IsDeleted = true;
             _unitOfWork.StoreRepository.Update(data);

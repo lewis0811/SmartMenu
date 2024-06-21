@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CollectionController : ControllerBase
+    public class CollectionsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CollectionController(IUnitOfWork unitOfWork, IMapper mapper)
+        public CollectionsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -22,6 +22,8 @@ namespace SmartMenu.API.Controllers
         public IActionResult Get(int? collectionId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _unitOfWork.CollectionRepository.GetAll(collectionId, brandId, searchString, pageNumber, pageSize);
+            data ??= Enumerable.Empty<Collection>();
+
             return Ok(data);
         }
 
@@ -40,7 +42,7 @@ namespace SmartMenu.API.Controllers
             return CreatedAtAction(nameof(Get), new { data });
         }
 
-        [HttpPut]
+        [HttpPut("{collectionId}")]
         public IActionResult Update(int collectionId, CollectionUpdateDTO collectionUpdateDTO)
         {
             var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionID == collectionId).FirstOrDefault();
@@ -53,7 +55,7 @@ namespace SmartMenu.API.Controllers
             return Ok(data);
         }
 
-        [HttpDelete]
+        [HttpDelete("{collectionId}")]
         public IActionResult Delete(int collectionId)
         {
             var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionID == collectionId).FirstOrDefault();

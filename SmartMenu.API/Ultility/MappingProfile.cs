@@ -44,6 +44,7 @@ namespace SmartMenu.API.Ultility
             CreateMap<ProductSizePrice, ProductSizePriceCreateDTO>().ReverseMap();
             CreateMap<LayerItem, LayerItemCreateDTO>().ReverseMap();
             CreateMap<LayerItem, LayerItemUpdateDTO>().ReverseMap();
+            CreateMap<Display, DisplayCreateDTO>().ReverseMap();
         }
     }
 }

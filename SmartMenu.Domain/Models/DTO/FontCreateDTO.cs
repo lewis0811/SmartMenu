@@ -6,6 +6,6 @@ namespace SmartMenu.Domain.Models.DTO
     public class FontCreateDTO
     {
         [Required]
-        public IFormFile File { get; set; }
+        public IFormFile? File { get; set; }
     }
 }

@@ -13,7 +13,5 @@ namespace SmartMenu.Domain.Models.DTO
         [Required]
         public string ProductDescription { get; set; } = string.Empty;
 
-        [Range(1, int.MaxValue)]
-        public double ProductPrice { get; set; } = 1;
     }
 }

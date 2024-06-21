@@ -22,7 +22,7 @@ namespace SmartMenu.DAO.Implementation
 
         public void Add(FontCreateDTO font, string path)
         {
-            string fontName = Path.GetFileName(font.File.FileName);
+            string fontName = Path.GetFileName(font.File!.FileName);
             string extensionName = Path.GetExtension(fontName);
             if (extensionName != ".ttf") { throw new Exception("File must be \".ttf\" extension! "); }
 

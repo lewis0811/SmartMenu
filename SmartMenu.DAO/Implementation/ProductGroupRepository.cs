@@ -25,11 +25,12 @@ namespace SmartMenu.DAO.Implementation
             var data = _context.ProductGroups
                 .Include(c => c.ProductGroupItems)!
                 .ThenInclude(c => c.ProductSizePrice)
-                .ThenInclude(c => c.Product)
+                .ThenInclude(c => c!.Product)
                 .AsQueryable();
 
             return DataQuery(data, productGroupId, menuId, collectionId, searchString, pageNumber, pageSize);
         }
+
         private IEnumerable<ProductGroup> DataQuery(IQueryable<ProductGroup> data, int? productGroupId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);

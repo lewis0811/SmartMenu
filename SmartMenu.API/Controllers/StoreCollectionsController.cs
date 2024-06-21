@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class StoreCollectionController : ControllerBase
+    public class StoreCollectionsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public StoreCollectionController(IUnitOfWork unitOfWork, IMapper mapper)
+        public StoreCollectionsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -34,7 +34,7 @@ namespace SmartMenu.API.Controllers
             return CreatedAtAction(nameof(Get), new { data });
         }
 
-        [HttpPut]
+        [HttpPut("{storeCollectionID}")]
         public IActionResult Update(int storeCollectionID, StoreCollectionCreateDTO storeCollectionCreateDTO)
         {
             var data = _unitOfWork.StoreCollectionRepository.Find(c => c.StoreCollectionID == storeCollectionID).FirstOrDefault();
@@ -45,7 +45,7 @@ namespace SmartMenu.API.Controllers
             return Ok(data);
         }
 
-        [HttpDelete]
+        [HttpDelete("{storeCollectionID}")]
         public IActionResult Delete(int storeCollectionID)
         {
             var data = _unitOfWork.StoreCollectionRepository.Find(c => c.StoreCollectionID == storeCollectionID).FirstOrDefault();

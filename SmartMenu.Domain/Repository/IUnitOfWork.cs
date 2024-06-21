@@ -25,6 +25,8 @@
         IStoreProductRepository StoreProductRepository { get; }
         IProductSizePriceRepository ProductSizePriceRepository { get; }
         IBoxItemRepository BoxItemRepository { get; }
+        IDisplayRepository DisplayRepository { get; }
+        IDisplayItemRepository DisplayItemRepository { get; }
         int Save();
     }
 }

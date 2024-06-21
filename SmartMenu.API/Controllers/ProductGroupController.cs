@@ -36,8 +36,6 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(ProductGroupCreateDTO productCreateDTO)
         {
-            if (productCreateDTO.MenuID == 0) productCreateDTO.MenuID = null;
-            else if (productCreateDTO.CollectionID == 0) productCreateDTO.CollectionID = null;
             
             var data = _mapper.Map<ProductGroup>(productCreateDTO);
             _unitOfWork.ProductGroupRepository.Add(data);
@@ -45,7 +43,7 @@ namespace SmartMenu.API.Controllers
             return CreatedAtAction(nameof(Get), new { data });
         }
 
-        [HttpPut]
+        [HttpPut("{productGroupId}")]
         public IActionResult Update(int productGroupId, ProductGroupUpdateDTO productGroupUpdateDTO)
         {
             var data = _unitOfWork.ProductGroupRepository.Find(c => c.ProductGroupID == productGroupId).FirstOrDefault();
@@ -58,7 +56,7 @@ namespace SmartMenu.API.Controllers
             return Ok(data);
         }
 
-        [HttpDelete]
+        [HttpDelete("{productGroupId}")]
         public IActionResult Delete(int productGroupId)
         {
             var data = _unitOfWork.ProductGroupRepository.Find(c => c.ProductGroupID == productGroupId).FirstOrDefault();

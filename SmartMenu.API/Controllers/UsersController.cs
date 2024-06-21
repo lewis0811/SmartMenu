@@ -9,12 +9,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UserController(IMapper mapper, IUnitOfWork unitOfWork)
+        public UsersController(IMapper mapper, IUnitOfWork unitOfWork)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -26,9 +26,8 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var data = _unitOfWork.UserRepository
-                    .GetAll(userId, searchString, pageNumber, pageSize)
-                    .ToList();
-                if (data.Count == 0) return NotFound();
+                    .GetAll(userId, searchString, pageNumber, pageSize);
+                data ??= Enumerable.Empty<User>();
 
                 return Ok(data);
             }
@@ -38,7 +37,7 @@ namespace SmartMenu.API.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPut("{userId}")]
         public IActionResult Update(Guid userId, UserUpdateDTO userUpdateDTO)
         {
             try

@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductSizeController : ControllerBase
+    public class ProductSizesController : ControllerBase
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
-        public ProductSizeController(IMapper mapper, IUnitOfWork unitOfWork)
+        public ProductSizesController(IMapper mapper, IUnitOfWork unitOfWork)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -40,8 +40,8 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{productSizeId}")]
         public IActionResult Update(int productSizeId, ProductCreateDTO productSizeUpdateDTO)
         {
-            var data = _unitOfWork.ProductSizeRepository.Find(c => c.ProductSizeId == productSizeId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.ProductSizeRepository.Find(c => c.ProductSizeId == productSizeId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("ProductSize not found or deleted");
 
             _mapper.Map(productSizeUpdateDTO, data);
             _unitOfWork.ProductSizeRepository.Update(data);
@@ -52,8 +52,8 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{productSizeId}")]
         public IActionResult Delete(int productSizeId)
         {
-            var data = _unitOfWork.ProductSizeRepository.Find(c => c.ProductSizeId == productSizeId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.ProductSizeRepository.Find(c => c.ProductSizeId == productSizeId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("ProductSize not found or deleted");
 
             data.IsDeleted = true;
             _unitOfWork.ProductSizeRepository.Update(data);

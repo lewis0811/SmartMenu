@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BrandController : ControllerBase
+    public class BrandsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public BrandController(IUnitOfWork unitOfWork, IMapper mapper)
+        public BrandsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -31,7 +31,7 @@ namespace SmartMenu.API.Controllers
             var data = _unitOfWork.BrandRepository.GetBranchWithBrandStaff(brandId, searchString, pageNumber, pageSize);
             return Ok(data);
         }
-        [HttpGet("brandStore")]
+        [HttpGet("BrandStore")]
         public IActionResult GetBranchWithStore(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _unitOfWork.BrandRepository.GetBranchWithStore(brandId, searchString, pageNumber, pageSize);
@@ -40,8 +40,17 @@ namespace SmartMenu.API.Controllers
         [HttpGet("BrandProduct")]
         public IActionResult GetBranchWithProduct(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.BrandRepository.GetBranchWithProduct(brandId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _unitOfWork.BrandRepository.GetBranchWithProduct(brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex);
+            }
+
         }
         [HttpPost]
         public IActionResult Add(BrandCreateDTO brandCreateDTO)
@@ -52,11 +61,11 @@ namespace SmartMenu.API.Controllers
             return CreatedAtAction(nameof(Get), new { data });
         }
 
-        [HttpPut]
-        public IActionResult Update(int brandId, BrandCreateDTO brandCreateDTO)
+        [HttpPut("{brandId}")]
+        public IActionResult Update(int brandId, BrandCreateDTO brandCreateDTO) 
         {
-            var data = _unitOfWork.BrandRepository.Find(c => c.BrandID == brandId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.BrandRepository.Find(c => c.BrandId == brandId && c.IsDeleted == false && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Brand not found or deleted");
 
             _mapper.Map(brandCreateDTO, data);
 
@@ -65,11 +74,11 @@ namespace SmartMenu.API.Controllers
             return Ok(data);
         }
 
-        [HttpDelete]
+        [HttpDelete("{brandId}")]
         public IActionResult Delete(int brandId)
         {
-            var data = _unitOfWork.BrandRepository.Find(c => c.BrandID == brandId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.BrandRepository.Find(c => c.BrandId == brandId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Brand not found or deleted");
 
             data.IsDeleted = true;
             _unitOfWork.BrandRepository.Update(data);

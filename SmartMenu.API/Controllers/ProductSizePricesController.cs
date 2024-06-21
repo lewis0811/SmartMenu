@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductSizePriceController : ControllerBase
+    public class ProductSizePricesController : ControllerBase
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
-        public ProductSizePriceController(IMapper mapper, IUnitOfWork unitOfWork)
+        public ProductSizePricesController(IMapper mapper, IUnitOfWork unitOfWork)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -40,8 +40,8 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{productSizePriceId}")]
         public IActionResult Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO)
         {
-            var data = _unitOfWork.ProductSizePriceRepository.Find(c => c.ProductSizePriceId == productSizePriceId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.ProductSizePriceRepository.Find(c => c.ProductSizePriceId == productSizePriceId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("ProductSizePrice not found or deleted");
 
             _mapper.Map(productSizePriceUpdateDTO, data);
             _unitOfWork.ProductSizePriceRepository.Update(data);
@@ -52,8 +52,8 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{productSizePriceId}")]
         public IActionResult Delete(int productSizePriceId)
         {
-            var data = _unitOfWork.ProductSizePriceRepository.Find(c => c.ProductSizePriceId == productSizePriceId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.ProductSizePriceRepository.Find(c => c.ProductSizePriceId == productSizePriceId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("ProductSizePrice not found or deleted");
 
             data.IsDeleted = true;
             _unitOfWork.ProductSizePriceRepository.Update(data);

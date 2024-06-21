@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class CategoriesController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CategoryController(IUnitOfWork unitOfWork, IMapper mapper)
+        public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -34,18 +34,19 @@ namespace SmartMenu.API.Controllers
             return CreatedAtAction(nameof(Get), new { data });
         }
 
-        [HttpPut]
+        [HttpPut("{categoryId}")]
         public IActionResult Update(int categoryId, CategoryCreateDTO categoryCreateDTO)
         {
-            var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryID == categoryId).FirstOrDefault();
-            if (data == null) return NotFound();
+            var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryID == categoryId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("Category not found or deleted");
+
             _mapper.Map(categoryCreateDTO, data);
             _unitOfWork.CategoryRepository.Update(data);
             _unitOfWork.Save();
             return Ok(data);
         }
 
-        [HttpDelete]
+        [HttpDelete("{categoryId}")]
         public IActionResult Delete(int categoryId)
         {
             var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryID == categoryId).FirstOrDefault();

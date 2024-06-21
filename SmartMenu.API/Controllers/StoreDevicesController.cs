@@ -40,8 +40,8 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{storeDeviceId}")]
         public IActionResult Update(int storeDeviceId, StoreDeviceUpdateDTO storeDeviceUpdateDTO)
         {
-            var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceID == storeDeviceId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("StoreDevice not found or deleted");
 
             _mapper.Map(storeDeviceUpdateDTO, data);
             _unitOfWork.StoreDeviceRepository.Update(data);
@@ -52,8 +52,8 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{storeDeviceId}")]
         public IActionResult Delete(int storeDeviceId)
         {
-            var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceID == storeDeviceId).FirstOrDefault();
-            if (data == null || data.IsDeleted == true) return NotFound();
+            var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false).FirstOrDefault();
+            if (data == null) return BadRequest("StoreDevice not found or deleted");
 
             data.IsDeleted = true;
             _unitOfWork.StoreDeviceRepository.Update(data);

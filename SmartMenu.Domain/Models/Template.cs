@@ -15,6 +15,7 @@ namespace SmartMenu.Domain.Models
 
         public float TemplateWidth { get; set; }
         public float TemplateHeight { get; set; }
+        public string TemplateImgPath { get; set; } = string.Empty;
 
         [ForeignKey(nameof(BrandID))]
         public Brand? Brand { get; set; }

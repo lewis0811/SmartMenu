@@ -4,18 +4,18 @@ namespace SmartMenu.Domain.Models
 {
     public class DisplayItem : BaseModel
     {
-        public int DisplayItemID { get; set; }
-        public int DisplayID { get; set; }
-        public int BoxID { get; set; }
-        public int? ProductGroupID { get; set; }
+        public int DisplayItemId { get; set; }
+        public int DisplayId { get; set; }
+        public int BoxId { get; set; }
+        public int ProductGroupId { get; set; }
 
-        [ForeignKey("DisplayID")]
+        [ForeignKey("DisplayId")]
         public Display? Display { get; set; }
 
-        [ForeignKey("BoxID")]
+        [ForeignKey("BoxId")]
         public Box? Box { get; set; }
 
-        [ForeignKey("ProductGroupID")]
+        [ForeignKey("ProductGroupId")]
         public ProductGroup? ProductGroup { get; set; }
     }
 }

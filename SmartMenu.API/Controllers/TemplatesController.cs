@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TemplateController : ControllerBase
+    public class TemplatesController : ControllerBase
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
-        public TemplateController(IMapper mapper, IUnitOfWork unitOfWork)
+        public TemplatesController(IMapper mapper, IUnitOfWork unitOfWork)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -40,7 +40,7 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(TemplateCreateDTO templateCreateDTO)
         {
-            var brand = _unitOfWork.BrandRepository.Find(c => c.BrandID == templateCreateDTO.BrandID && c.IsDeleted == false).FirstOrDefault();
+            var brand = _unitOfWork.BrandRepository.Find(c => c.BrandId == templateCreateDTO.BrandId && c.IsDeleted == false).FirstOrDefault();
             if (brand == null) return BadRequest("Brand not found or deleted");
 
             var data = _mapper.Map<Template>(templateCreateDTO);
@@ -49,7 +49,7 @@ namespace SmartMenu.API.Controllers
             return CreatedAtAction(nameof(Get), data);
         }
 
-        [HttpPut]
+        [HttpPut("{templateId}")]
         public IActionResult Update(int templateId, TemplateUpdateDTO templateUpdateDTO)
         {
             var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId && c.IsDeleted == false).FirstOrDefault();
@@ -63,7 +63,7 @@ namespace SmartMenu.API.Controllers
             return Ok();
         }
 
-        [HttpDelete]
+        [HttpDelete("{templateId}")]
         public IActionResult Delete(int templateId)
         {
             var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId && c.IsDeleted == false).FirstOrDefault();

@@ -32,6 +32,8 @@ namespace SmartMenu.DAO.Implementation
             ProductSizeRepository = new ProductSizeRepository(_context);
             ProductSizePriceRepository = new ProductSizePriceRepository(_context);
             BoxItemRepository = new BoxItemRepository(_context);
+            DisplayRepository = new DisplayRepository(_context);
+            DisplayItemRepository = new DisplayItemRepository(_context);
         }
 
         public IBrandRepository BrandRepository { get; private set; }
@@ -65,6 +67,8 @@ namespace SmartMenu.DAO.Implementation
         public IProductSizePriceRepository ProductSizePriceRepository { get; private set; }
         public IProductSizeRepository ProductSizeRepository { get; private set; }
         public IBoxItemRepository BoxItemRepository { get; private set; }
+        public IDisplayRepository DisplayRepository { get; private set; }
+        public IDisplayItemRepository DisplayItemRepository { get; private set; }
         public void Dispose()
         {
             Dispose(true);

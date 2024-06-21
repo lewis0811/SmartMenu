@@ -8,12 +8,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BrandStaffController : ControllerBase
+    public class BrandStaffsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public BrandStaffController(IUnitOfWork unitOfWork, IMapper mapper)
+        public BrandStaffsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -28,13 +28,16 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(BrandStaffCreateDTO brandStaffCreateDTO)
         {
+            var user = _unitOfWork.UserRepository.Find(c => c.UserID == brandStaffCreateDTO.UserID && c.IsDeleted == false).FirstOrDefault();
+            if (user == null) return BadRequest("User not found or deleted.");
+
             var data = _mapper.Map<BrandStaff>(brandStaffCreateDTO);
             _unitOfWork.BrandStaffRepository.Add(data);
             _unitOfWork.Save();
             return CreatedAtAction(nameof(Get), new { data });
         }
 
-        [HttpPut]
+        [HttpPut("{brandStaffId}")]
         public IActionResult Update(int brandStaffId, BrandStaffCreateDTO brandStaffCreateDTO)
         {
             var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffID == brandStaffId).FirstOrDefault();
@@ -45,7 +48,7 @@ namespace SmartMenu.API.Controllers
             return Ok(data);
         }
 
-        [HttpDelete]
+        [HttpDelete("{brandStaffId}")]
         public IActionResult Delete(int brandStaffId)
         {
             var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffID == brandStaffId).FirstOrDefault();

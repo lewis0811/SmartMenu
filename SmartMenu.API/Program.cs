@@ -8,6 +8,7 @@ using SmartMenu.DAO;
 using SmartMenu.DAO.Implementation;
 using SmartMenu.Domain.Repository;
 using System.Text;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false
     };
 });
+
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -58,6 +61,11 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+// Add AWS S3 configuration
+
+builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+builder.Services.AddAWSService<IAmazonS3>();
 
 // Add Entity Framework
 builder.Services.AddDbContext<SmartMenuDBContext>

@@ -4,24 +4,25 @@ namespace SmartMenu.Domain.Models
 {
     public class Display : BaseModel
     {
-        public int DisplayID { get; set; }
-        public int StoreDeviceID { get; set; }
-        public int? MenuID { get; set; }
-        public int? CollectionID { get; set; }
-        public int TemplateID { get; set; }
+        public int DisplayId { get; set; }
+        public int StoreDeviceId { get; set; }
+        public int? MenuId { get; set; }
+        public int? CollectionId { get; set; }
+        public int TemplateId { get; set; }
         public double StartingHour { get; set; }
         public double? EndingHour { get; set; } // optional
+        public string? DisplayImgPath { get; set; } 
 
-        [ForeignKey("StoreDeviceID")]
+        [ForeignKey("StoreDeviceId")]
         public StoreDevice? StoreDevice { get; set; }
 
-        [ForeignKey("MenuID")]
+        [ForeignKey("MenuId")]
         public Menu? Menu { get; set; }
 
-        [ForeignKey("CollectionID")]
+        [ForeignKey("CollectionId")]
         public Collection? Collection { get; set; }
 
-        [ForeignKey("TemplateID")]
+        [ForeignKey("TemplateId")]
         public Template? Template { get; set; }
 
         public ICollection<DisplayItem>? DisplayItems { get; set; }
@@ -33,5 +34,5 @@ namespace SmartMenu.Domain.Models
 var activeDisplay = dbContext.Displays
     .Where(d => d.StartingHour <= currentTime && (d.EndingHour == null || d.EndingHour >= currentTime)) // Change > to >=
     .OrderByDescending(d => d.StartingHour) // Get the latest one if multiple match
-    .FirstOrDefault(); 
+    .FirstOrDefault();
 */

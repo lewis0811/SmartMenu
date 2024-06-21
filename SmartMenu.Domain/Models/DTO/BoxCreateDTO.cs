@@ -8,7 +8,7 @@ namespace SmartMenu.Domain.Models.DTO
 
         [Required(ErrorMessage = "Layer ID is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Layer ID must be a positive integer.")]
-        public int LayerID { get; set; }
+        public int LayerId { get; set; }
 
         [Range(0, float.MaxValue, ErrorMessage = "Box position X must be a non-negative number.")]
         public float BoxPositionX { get; set; }

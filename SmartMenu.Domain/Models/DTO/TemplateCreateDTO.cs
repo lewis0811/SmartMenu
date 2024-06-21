@@ -5,7 +5,7 @@ namespace SmartMenu.Domain.Models.DTO
     public class TemplateCreateDTO
     {
         [Required(ErrorMessage = "Brand ID is required.")]
-        public int BrandID { get; set; }
+        public int BrandId { get; set; }
 
         [Required(ErrorMessage = "Template Name is required.")]
         [StringLength(200, ErrorMessage = "Template Name cannot exceed 200 characters.")] // Example length constraint
@@ -19,5 +19,9 @@ namespace SmartMenu.Domain.Models.DTO
 
         [Range(40f, 3125f, ErrorMessage = "Template Height must be between 40 and 3125f.")] // Example range constraint
         public float TemplateHeight { get; set; }
+
+        [Required(ErrorMessage = "Template image path is required.")]
+        [Url(ErrorMessage = "Template image path must be a valid URL.")] // Use UrlAttribute for URL validation
+        public string TemplateImgPath { get; set; } = string.Empty;
     }
 }
