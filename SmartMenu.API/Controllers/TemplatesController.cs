@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Azure;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,67 +14,70 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ITemplateService _templateService;
 
-        public TemplatesController(IMapper mapper, IUnitOfWork unitOfWork)
+        public TemplatesController(IMapper mapper, IUnitOfWork unitOfWork, ITemplateService templateService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _templateService = templateService;
         }
 
         [HttpGet]
         public ActionResult Get(int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.TemplateRepository.GetAll(templateId, searchString, pageNumber, pageSize);
-            data ??= Enumerable.Empty<Template>();
-
-            return Ok(data);
+            try
+            {
+                var data = _templateService.GetAll(templateId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("Layers")]
         public ActionResult GetLayers(int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.TemplateRepository.GetAllWithLayers(templateId, searchString, pageNumber, pageSize);
-            data ??= Enumerable.Empty<Template>();
-
-            return Ok(data);
+            try
+            {
+                var data = _templateService.GetAllWithLayers(templateId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
         public IActionResult Add(TemplateCreateDTO templateCreateDTO)
         {
-            var brand = _unitOfWork.BrandRepository.Find(c => c.BrandId == templateCreateDTO.BrandId && c.IsDeleted == false).FirstOrDefault();
-            if (brand == null) return BadRequest("Brand not found or deleted");
+            var data = _templateService.Add(templateCreateDTO);
 
-            var data = _mapper.Map<Template>(templateCreateDTO);
-            _unitOfWork.TemplateRepository.Add(data);
-            _unitOfWork.Save();
             return CreatedAtAction(nameof(Get), data);
         }
 
         [HttpPut("{templateId}")]
         public IActionResult Update(int templateId, TemplateUpdateDTO templateUpdateDTO)
         {
-            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Template not found or deleted");
+            try
+            {
+                var data = _templateService.Update(templateId, templateUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
 
-            _mapper.Map(templateUpdateDTO, data);
-
-            _unitOfWork.TemplateRepository.Update(data);
-            _unitOfWork.Save();
-
-            return Ok();
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{templateId}")]
         public IActionResult Delete(int templateId)
         {
-            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Template not found or deleted");
-
-            data.IsDeleted = true;
-
-            _unitOfWork.TemplateRepository.Update(data);
-            _unitOfWork.Save();
+            _templateService.Delete(templateId);
 
             return Ok();
         }
