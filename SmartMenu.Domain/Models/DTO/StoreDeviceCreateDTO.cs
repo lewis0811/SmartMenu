@@ -6,13 +6,12 @@ namespace SmartMenu.Domain.Models.DTO
     public class StoreDeviceCreateDTO
     {
         public int StoreID { get; set; }
-        public int DisplayID { get; set; }
 
         [Required]
         public string StoreDeviceName { get; set; } = string.Empty;
 
-        [Required]
-        public DisplayType DisplayType { get; set; }
+        public float DeviceWidth { get; set; } = 0;
+        public float DeviceHeight { get; set; } = 0;
 
         public bool IsDisplay { get; set; } = false;
     }

@@ -5,20 +5,20 @@ namespace SmartMenu.Domain.Models
 {
     public class ProductGroup : BaseModel
     {
-        public int ProductGroupID { get; set; }
+        public int ProductGroupId { get; set; }
 
-        public int? MenuID { get; set; }
+        public int? MenuId { get; set; }
 
-        public int? CollectionID { get; set; }
+        public int? CollectionId { get; set; }
 
         [Required]
         public string ProductGroupName { get; set; } = string.Empty;
 
-        [ForeignKey(nameof(MenuID))]
-        public Menu? Menu { get; set; }
+        //[ForeignKey(nameof(MenuId))]
+        //public Menu? Menu { get; set; }
 
-        [ForeignKey(nameof(CollectionID))]
-        public Collection? Collection { get; set; }
+        //[ForeignKey(nameof(CollectionId))]
+        //public Collection? Collection { get; set; }
 
         public ICollection<ProductGroupItem>? ProductGroupItems { get; set; }
     }

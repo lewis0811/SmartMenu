@@ -22,11 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SmartMenu.DAO\SmartMenu.DAO.csproj" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <ProjectReference Include="..\SmartMenu.Service\SmartMenu.Service.csproj" />
   </ItemGroup>
 
 

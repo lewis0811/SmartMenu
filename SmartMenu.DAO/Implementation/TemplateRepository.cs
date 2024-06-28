@@ -23,11 +23,25 @@ namespace SmartMenu.DAO.Implementation
         {
             var data = _context.Templates
                 .Include(c => c.Layers)!
-                .ThenInclude(c => c.Boxes)
+                .ThenInclude(c => c.Boxes)!
+                .ThenInclude(c => c.BoxItems)
                 .Include(c => c.Layers)!
-                .ThenInclude(c => c.LayerItems)
+                .ThenInclude(c => c.LayerItem)
                 .AsQueryable();
             return DataQuery(data, templateId, searchString, pageNumber, pageSize);
+        }
+
+        public Template GetTemplateWithLayersAndBoxes(int templateId)
+        {
+            var data = _context.Templates
+                .Include(c => c.Layers)!
+                .ThenInclude(c => c.Boxes)
+                .Include(c => c.Layers)!
+                .ThenInclude(c => c.LayerItem)
+                .Where(c => c.TemplateId == templateId)
+                .FirstOrDefault();
+
+            return data!;
         }
 
         private IEnumerable<Template> DataQuery(IQueryable<Template> data, int? templateId, string? searchString, int pageNumber, int pageSize)
@@ -36,7 +50,7 @@ namespace SmartMenu.DAO.Implementation
             if (templateId != null)
             {
                 data = data
-                    .Where(c => c.TemplateID == templateId);
+                    .Where(c => c.TemplateId == templateId);
             }
 
             if (searchString != null)
@@ -44,7 +58,7 @@ namespace SmartMenu.DAO.Implementation
                 searchString = searchString.Trim();
                 data = data
                     .Where(c => c.TemplateName.Contains(searchString)
-                    || c.TemplateDescription.Contains(searchString));
+                    || c.TemplateDescription!.Contains(searchString));
             }
 
             return PaginatedList<Template>.Create(data, pageNumber, pageSize);

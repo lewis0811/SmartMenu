@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SmartMenu.Domain.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartMenu.Domain.Models.DTO
 {
@@ -8,5 +9,7 @@ namespace SmartMenu.Domain.Models.DTO
 
         [Required]
         public string LayerName { get; set; } = string.Empty;
+
+        public LayerType LayerType { get; set; }
     }
 }

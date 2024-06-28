@@ -37,6 +37,8 @@ namespace SmartMenu.API.Ultility
             CreateMap<Font, FontCreateDTO>().ReverseMap();
             CreateMap<StoreProduct, StoreProductCreateDTO>().ReverseMap();
             CreateMap<StoreProduct, StoreProductUpdateDTO>().ReverseMap();
+            CreateMap<StoreDevice, StoreDeviceCreateDTO>().ReverseMap();
+            CreateMap<StoreDevice, StoreDeviceUpdateDTO>().ReverseMap();
             CreateMap<BoxItem, BoxItemCreateDTO>().ReverseMap();
             CreateMap<BoxItem, BoxItemUpdateDTO>().ReverseMap();
             CreateMap<ProductSize, ProductSizeCreateDTO>().ReverseMap();
@@ -45,6 +47,8 @@ namespace SmartMenu.API.Ultility
             CreateMap<LayerItem, LayerItemCreateDTO>().ReverseMap();
             CreateMap<LayerItem, LayerItemUpdateDTO>().ReverseMap();
             CreateMap<Display, DisplayCreateDTO>().ReverseMap();
+            CreateMap<DisplayItem, DisplayItemUpdateDTO>().ReverseMap();
+            CreateMap<DisplayItem, DisplayItemCreateDTO>().ReverseMap();
         }
     }
 }

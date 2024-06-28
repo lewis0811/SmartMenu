@@ -42,6 +42,11 @@ namespace SmartMenu.DAO.Implementation
             return _context.Set<T>().Find(id)!;
         }
 
+        public IQueryable<T> EnableQuery()
+        {
+            return _context.Set<T>().AsQueryable();
+        }
+
         public void Remove(T entity)
         {
             throw new NotImplementedException();

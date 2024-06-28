@@ -37,7 +37,7 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{categoryId}")]
         public IActionResult Update(int categoryId, CategoryCreateDTO categoryCreateDTO)
         {
-            var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryID == categoryId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryId == categoryId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Category not found or deleted");
 
             _mapper.Map(categoryCreateDTO, data);
@@ -49,7 +49,7 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{categoryId}")]
         public IActionResult Delete(int categoryId)
         {
-            var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryID == categoryId).FirstOrDefault();
+            var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryId == categoryId).FirstOrDefault();
             if (data == null) return NotFound();
 
             data.IsDeleted = true;

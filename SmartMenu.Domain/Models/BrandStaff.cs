@@ -5,16 +5,16 @@ namespace SmartMenu.Domain.Models
 {
     public class BrandStaff : BaseModel
     {
-        public int BrandStaffID { get; set; }
+        public int BrandStaffId { get; set; }
         [Required]
-        public int BrandID { get; set; }
+        public int BrandId { get; set; }
         [Required]
-        public Guid UserID { get; set; }
+        public Guid UserId { get; set; }
 
-        //[ForeignKey("BrandID")]
+        //[ForeignKey(nameof(BrandId))]
         //public Brand? Brand { get; set; }
 
-        [ForeignKey("UserID")]
+        [ForeignKey(nameof(UserId))]
         public User? User { get; set; }
     }
 }

@@ -10,5 +10,7 @@ namespace SmartMenu.Domain.Repository
     public interface IDisplayRepository : IGenericRepository<Display>
     {
         IEnumerable<Display> GetAll(int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize);
+        Display GetWithItems(int displayId);
+        IEnumerable<Display> GetWithItems(int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize);
     }
 }

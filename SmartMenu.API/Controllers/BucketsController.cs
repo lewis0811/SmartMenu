@@ -41,7 +41,7 @@ namespace SmartMenu.API.Controllers
 
             if (templateId != null)
             {
-                var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId && c.IsDeleted == false).FirstOrDefault();
+                var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault();
                 if (template == null) return BadRequest("Template not found or deleted");
 
                 responseData = responseData.Where(c => c.Key.Contains(template.TemplateName.Trim())).ToList();
@@ -49,7 +49,7 @@ namespace SmartMenu.API.Controllers
 
             if (displayId != null)
             {
-                var display = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == displayId && c.IsDeleted == false).FirstOrDefault();
+                var display = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == displayId && c.IsDeleted == false).FirstOrDefault();
                 if (display == null) return BadRequest("Display not found or deleted");
 
                 

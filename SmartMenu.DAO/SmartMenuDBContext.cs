@@ -21,7 +21,6 @@ namespace SmartMenu.DAO
             Products = Set<Product>();
             ProductGroups = Set<ProductGroup>();
             ProductGroupsItem = Set<ProductGroupItem>();
-            Roles = Set<Role>();
             //Schedules = Set<Schedule>();
             Stores = Set<Store>();
             StoreCollections = Set<StoreCollection>();
@@ -30,7 +29,7 @@ namespace SmartMenu.DAO
             StoreProducts = Set<StoreProduct>();
             Templates = Set<Template>();
             Users = Set<User>();
-            ProductSizes = Set<ProductSize>();
+            //ProductSizes = Set<ProductSize>();
             ProductSizePrices = Set<ProductSizePrice>();
             BoxItems = Set<BoxItem>();
         }
@@ -49,7 +48,7 @@ namespace SmartMenu.DAO
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductGroup> ProductGroups { get; set; }
         public DbSet<ProductGroupItem> ProductGroupsItem { get; set; }
-        public DbSet<Role> Roles { get; set; }
+        //public DbSet<Role> Roles { get; set; }
         //public DbSet<Schedule> Schedules { get; set; }
         public DbSet<Store> Stores { get; set; }
         public DbSet<StoreCollection> StoreCollections { get; set; }
@@ -58,7 +57,7 @@ namespace SmartMenu.DAO
         public DbSet<StoreProduct> StoreProducts { get; set; }
         public DbSet<Template> Templates { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<ProductSize> ProductSizes { get; set; }
+        //public DbSet<ProductSize> ProductSizes { get; set; }
         public DbSet<ProductSizePrice> ProductSizePrices { get; set; }
         public DbSet<BoxItem> BoxItems { get; set; }
     }

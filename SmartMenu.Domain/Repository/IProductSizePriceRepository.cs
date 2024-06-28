@@ -9,6 +9,6 @@ namespace SmartMenu.Domain.Repository
 {
     public interface IProductSizePriceRepository : IGenericRepository<ProductSizePrice>
     {
-        IEnumerable<ProductSizePrice> GetAll(int? productSizePriceId, int? productId, int? productSizeId, string? searchString, int pageNumber, int pageSize);
+        IEnumerable<ProductSizePrice> GetAll(int? productSizePriceId, int? productId, string? searchString, int pageNumber, int pageSize);
     }
 }

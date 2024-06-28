@@ -1,4 +1,6 @@
-﻿namespace SmartMenu.Domain.Repository
+﻿using SmartMenu.Domain.Models;
+
+namespace SmartMenu.Domain.Repository
 {
     public interface ICollectionRepository : IGenericRepository<Models.Collection>
     {

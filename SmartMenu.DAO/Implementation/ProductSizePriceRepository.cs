@@ -14,16 +14,15 @@ namespace SmartMenu.DAO.Implementation
             _context = context;
         }
 
-        public IEnumerable<ProductSizePrice> GetAll(int? productSizePriceId, int? productId, int? productSizeId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<ProductSizePrice> GetAll(int? productSizePriceId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _context.ProductSizePrices
-                .Include(c => c.ProductSize)
                 .AsQueryable();
 
-            return DataQuery(data, productSizePriceId, productId, productSizeId, searchString, pageNumber, pageSize);
+            return DataQuery(data, productSizePriceId, productId, searchString, pageNumber, pageSize);
         }
 
-        private IEnumerable<ProductSizePrice> DataQuery(IQueryable<ProductSizePrice> data, int? productSizePriceId, int? productId, int? productSizeId, string? searchString, int pageNumber, int pageSize)
+        private IEnumerable<ProductSizePrice> DataQuery(IQueryable<ProductSizePrice> data, int? productSizePriceId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
 
@@ -37,14 +36,9 @@ namespace SmartMenu.DAO.Implementation
                 data = data.Where(c => c.ProductId == productId);
             }
 
-            if (productSizeId != null)
-            {
-                data = data.Where(c => c.ProductSizeId == productSizeId);
-            }
-
             if (searchString != null)
             {
-                data = data.Where(c => c.ProductSize!.SizeName.Contains(searchString)
+                data = data.Where(c => c.ProductSizeType.ToString().Contains(searchString)
                 || c.Price.ToString() == searchString);
             }
 

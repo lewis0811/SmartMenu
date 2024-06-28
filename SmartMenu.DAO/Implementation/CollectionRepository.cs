@@ -32,13 +32,13 @@ namespace SmartMenu.DAO.Implementation
             if (collectionId != null)
             {
                 data = data
-                    .Where(c => c.CollectionID == collectionId);
+                    .Where(c => c.CollectionId == collectionId);
             }
 
             if (brandId != null)
             {
                 data = data
-                    .Where(c => c.BrandID == brandId);
+                    .Where(c => c.BrandId == brandId);
             }
 
             if (searchString != null)
@@ -46,7 +46,7 @@ namespace SmartMenu.DAO.Implementation
                 searchString = searchString.Trim();
                 data = data
                     .Where(c => c.CollectionName.Contains(searchString)
-                    || c.CollectionDescription.Contains(searchString));
+                    || c.CollectionDescription!.Contains(searchString));
             }
 
             return PaginatedList<Collection>.Create(data, pageNumber, pageSize);

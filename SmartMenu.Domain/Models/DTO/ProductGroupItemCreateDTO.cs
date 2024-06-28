@@ -1,8 +1,12 @@
-﻿namespace SmartMenu.Domain.Models.DTO
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SmartMenu.Domain.Models.DTO
 {
     public class ProductGroupItemCreateDTO
     {
-        public int ProductGroupID { get; set; }
-        public int ProductID { get; set; }
+        [Required]
+        public int ProductGroupId { get; set; }
+        [Required]
+        public int ProductId { get; set; }
     }
 }

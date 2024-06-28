@@ -9,8 +9,8 @@ namespace SmartMenu.Domain.Models
         [Required]
         public string BrandName { get; set; } = string.Empty;
 
-        public string BrandDescription { get; set; } = string.Empty;
-        public string BrandImage { get; set; } = string.Empty;
+        public string? BrandDescription { get; set; }
+        public string? BrandImage { get; set; }
 
         [EmailAddress]
         [Required]
@@ -18,6 +18,6 @@ namespace SmartMenu.Domain.Models
 
         public ICollection<BrandStaff> BrandStaffs { get; set; } = new List<BrandStaff>();
         public ICollection<Store>? Stores { get; set; } = new List<Store>();
-        public ICollection<Product>? Products { get; set; } = new List<Product>();
+        public ICollection<Category>? Categories { get; set; } = new List<Category>();
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace SmartMenu.Domain.Models.Enum
 {
-    public enum BoxContentType
+    public enum BoxItemType
     {
         Header = 0,
         Body = 1,

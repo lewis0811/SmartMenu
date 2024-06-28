@@ -35,13 +35,13 @@ namespace SmartMenu.DAO.Implementation
             if (boxId != null)
             {
                 data = data
-                    .Where(c => c.BoxID == boxId);
+                    .Where(c => c.BoxId == boxId);
             }
 
             if (layerId != null)
             {
                 data = data
-                    .Where(c => c.LayerID == layerId);
+                    .Where(c => c.LayerId == layerId);
             }
 
             if (searchString != null)

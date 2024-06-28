@@ -11,11 +11,11 @@ namespace SmartMenu.Domain.Models
         public int FontId { get; set; }
         public double FontSize { get; set; }
         public StringAlignment TextFormat { get; set; }
-        public BoxType BoxType { get; set; }
+        public BoxItemType BoxItemType { get; set; }
         public string BoxColor { get; set; } = "#ffffff";
 
-        //[ForeignKey(nameof(BoxId))]
-        //public Box? Box { get; set; }
+        [ForeignKey(nameof(BoxId))]
+        public Box? Box { get; set; }
 
         [ForeignKey(nameof(FontId))]
         public Font? Font { get; set; }

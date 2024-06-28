@@ -9,6 +9,5 @@ namespace SmartMenu.Domain.Repository
         public IEnumerable<Brand> GetBranchWithBrandStaff(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10);
 
         public IEnumerable<Brand> GetBranchWithStore(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10);
-        public IEnumerable<Brand> GetBranchWithProduct(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10);
     }
 }

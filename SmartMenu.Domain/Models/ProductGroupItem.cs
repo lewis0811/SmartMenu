@@ -6,15 +6,17 @@ namespace SmartMenu.Domain.Models
     public class ProductGroupItem : BaseModel
     {
         public int ProductGroupItemId { get; set; }
+
         [Required]
         public int ProductGroupId { get; set; }
+
         [Required]
-        public int ProductSizePriceId { get; set; }
+        public int ProductId { get; set; }
 
-        [ForeignKey("ProductSizePriceId")]
-        public ProductSizePrice? ProductSizePrice { get; set; }
+        [ForeignKey(nameof(ProductId))]
+        public Product? Product { get; set; }
 
-        [ForeignKey("ProductGroupId")]
-        public ProductGroup? ProductGroup { get; set; }
+        //[ForeignKey(nameof(ProductGroupId))]
+        //public ProductGroup? ProductGroup { get; set; }
     }
 }

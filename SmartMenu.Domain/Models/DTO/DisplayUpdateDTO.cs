@@ -19,12 +19,9 @@ namespace SmartMenu.Domain.Models.DTO
         [Range(1, int.MaxValue, ErrorMessage = "Template ID must be a positive integer.")]
         public int TemplateId { get; set; }
 
-        [Required(ErrorMessage = "Starting hour is required.")]
-        [Range(0, 23.99, ErrorMessage = "Starting hour must be between 0 and 23.99.")]
-        public double StartingHour { get; set; }
-
-        [Range(0, 23.99, ErrorMessage = "Ending hour must be between 0 and 23.99.")] // Only validate if not null
-        public double? EndingHour { get; set; }
+        [Required(ErrorMessage = "Active hour is required.")]
+        [Range(0, 23.99, ErrorMessage = "Active hour must be between 0 and 23.99.")]
+        public double ActiveHour { get; set; }
 
         [Required(ErrorMessage = "Display image path is required.")]
         [Url(ErrorMessage = "Display image path must be a valid URL.")] // Use UrlAttribute for URL validation

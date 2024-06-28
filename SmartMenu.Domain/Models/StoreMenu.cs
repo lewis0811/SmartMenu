@@ -4,14 +4,14 @@ namespace SmartMenu.Domain.Models
 {
     public class StoreMenu : BaseModel
     {
-        public int StoreMenuID { get; set; }
-        public int StoreID { get; set; }
-        public int MenuID { get; set; }
+        public int StoreMenuId { get; set; }
+        public int StoreId { get; set; }
+        public int MenuId { get; set; }
 
-        [ForeignKey("MenuID")]
+        [ForeignKey(nameof(MenuId))]
         public Menu? Menu { get; set; }
 
-        //[ForeignKey(nameof(StoreID))]
-        //public Store? Store { get; set; }
+        [ForeignKey(nameof(StoreId))]
+        public Store? Store { get; set; }
     }
 }

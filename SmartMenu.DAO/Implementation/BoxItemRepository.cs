@@ -46,7 +46,7 @@ namespace SmartMenu.DAO.Implementation
                 data = data.Where(c => c.TextFormat.ToString() == searchString
                 || c.FontSize.ToString() == searchString
                 || c.BoxColor == searchString
-                || c.BoxType.ToString() == searchString
+                || c.BoxItemType.ToString() == searchString
                 );
             }
 

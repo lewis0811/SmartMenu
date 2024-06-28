@@ -17,7 +17,6 @@ namespace SmartMenu.DAO.Implementation
         public IEnumerable<User> GetAll(Guid? userId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _context.Users
-                 .Include(c => c.Role)
                  .AsQueryable();
             return DataQuery(data, userId, searchString, pageNumber, pageSize);
         }

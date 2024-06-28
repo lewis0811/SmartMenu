@@ -1,8 +1,8 @@
-﻿using SmartMenu.Domain.Models;
+﻿//using SmartMenu.Domain.Models;
 
-namespace SmartMenu.Domain.Repository
-{
-    public interface IRoleRepository : IGenericRepository<Role>
-    {
-    }
-}
+//namespace SmartMenu.Domain.Repository
+//{
+//    public interface IRoleRepository : IGenericRepository<Role>
+//    {
+//    }
+//}

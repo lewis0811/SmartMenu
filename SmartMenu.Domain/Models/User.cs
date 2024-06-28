@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using SmartMenu.Domain.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartMenu.Domain.Models
 {
@@ -16,9 +16,6 @@ namespace SmartMenu.Domain.Models
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        public Guid RoleID { get; set; }
-
-        [ForeignKey(nameof(RoleID))]
-        public Role? Role { get; set; } 
+        public Role Role { get; set; }
     }
 }

@@ -4,7 +4,7 @@ namespace SmartMenu.Domain.Models
 {
     public class Font : BaseModel
     {
-        public int FontID { get; set; }
+        public int FontId { get; set; }
         [Required]
         public string FontName { get; set; } = string.Empty;
         [Required]

@@ -35,9 +35,9 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPut("{storeCollectionID}")]
-        public IActionResult Update(int storeCollectionID, StoreCollectionCreateDTO storeCollectionCreateDTO)
+        public IActionResult Update(int storeCollectionId, StoreCollectionCreateDTO storeCollectionCreateDTO)
         {
-            var data = _unitOfWork.StoreCollectionRepository.Find(c => c.StoreCollectionID == storeCollectionID).FirstOrDefault();
+            var data = _unitOfWork.StoreCollectionRepository.Find(c => c.StoreCollectionId == storeCollectionId).FirstOrDefault();
             if (data == null) return NotFound();
             _mapper.Map(storeCollectionCreateDTO, data);
             _unitOfWork.StoreCollectionRepository.Update(data);
@@ -46,9 +46,9 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpDelete("{storeCollectionID}")]
-        public IActionResult Delete(int storeCollectionID)
+        public IActionResult Delete(int storeCollectionId)
         {
-            var data = _unitOfWork.StoreCollectionRepository.Find(c => c.StoreCollectionID == storeCollectionID).FirstOrDefault();
+            var data = _unitOfWork.StoreCollectionRepository.Find(c => c.StoreCollectionId == storeCollectionId).FirstOrDefault();
             if (data == null) return NotFound();
 
             data.IsDeleted = true;

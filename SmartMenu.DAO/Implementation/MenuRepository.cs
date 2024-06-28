@@ -28,26 +28,28 @@ namespace SmartMenu.DAO.Implementation
 
             return DataQuery(data, menuId, brandId, searchString, pageNumber, pageSize);
         }
+
+
         private IEnumerable<Menu> DataQuery(IQueryable<Menu> data, int? menuId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
             if (menuId != null)
             {
                 data = data
-                    .Where(c => c.MenuID == menuId);
+                    .Where(c => c.MenuId == menuId);
             }
 
             if (brandId != null)
             {
                 data = data
-                    .Where(c => c.BrandID == brandId);
+                    .Where(c => c.BrandId == brandId);
             }
 
             if (searchString != null)
             {
                 searchString = searchString.Trim();
                 data = data
-                    .Where(c => c.MenuDescription.Contains(searchString)
+                    .Where(c => c.MenuDescription!.Contains(searchString)
                     || c.MenuName.Contains(searchString));
             }
 

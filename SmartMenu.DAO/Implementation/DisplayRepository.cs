@@ -23,6 +23,38 @@ namespace SmartMenu.DAO.Implementation
             return DataQuery(data, displayId, menuId, collectionId, searchString, pageNumber, pageSize);
         }
 
+        public Display GetWithItems(int displayId)
+        {
+            var data = _context.Displays
+                .Include(c => c.DisplayItems)!
+                .ThenInclude(c => c.ProductGroup)!
+                .ThenInclude(c => c!.ProductGroupItems)!
+                .ThenInclude(c => c!.Product)
+                .ThenInclude(c => c!.ProductSizePrices)
+                .Include(c => c.DisplayItems)!
+                .ThenInclude(c => c.Box)
+                .ThenInclude(c => c!.BoxItems)
+                .Where(c => c.DisplayId == displayId)
+                .FirstOrDefault();
+
+            return data!;
+        }
+
+        public IEnumerable<Display> GetWithItems(int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
+        {
+            var data = _context.Displays
+                .Include(c => c.DisplayItems)!
+                .ThenInclude(c => c.ProductGroup)!
+                .ThenInclude(c => c!.ProductGroupItems)!
+                .ThenInclude(c => c!.Product)
+                .ThenInclude(c => c!.ProductSizePrices)
+                .Include(c => c.DisplayItems)!
+                .ThenInclude(c => c.Box)
+                .ThenInclude(c => c!.BoxItems);
+
+            return DataQuery(data, displayId, menuId, collectionId, searchString, pageNumber, pageSize);
+        }
+
         private IEnumerable<Display> DataQuery(IQueryable<Display> data, int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
@@ -44,8 +76,7 @@ namespace SmartMenu.DAO.Implementation
 
             if (searchString != null)
             {
-                data = data.Where(c => c.StartingHour.ToString().Contains(searchString)
-                                                                            || c.EndingHour.ToString()!.Contains(searchString));
+                data = data.Where(c => c.ActiveHour.ToString().Contains(searchString));
             }
 
             return PaginatedList<Display>.Create(data, pageNumber, pageSize);

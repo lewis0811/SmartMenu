@@ -22,7 +22,7 @@ namespace SmartMenu.Domain.Models.DTO
         public StringAlignment TextFormat { get; set; }
 
         [Required(ErrorMessage = "Box type is required.")]
-        public BoxType BoxType { get; set; }
+        public BoxItemType BoxType { get; set; }
 
         [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Invalid box color. Use a valid hexadecimal color code (e.g., #RRGGBB).")]
         public string BoxColor { get; set; } = "#ffffff";
