@@ -4,8 +4,9 @@ using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
 
-namespace SmartMenu.Service.Interfaces
+namespace SmartMenu.Service.Services
 {
     public class BoxService : IBoxService
     {
