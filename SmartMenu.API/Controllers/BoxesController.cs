@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,11 +12,13 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IBoxService _boxService;
 
-        public BoxesController(IMapper mapper, IUnitOfWork unitOfWork)
+        public BoxesController(IMapper mapper, IUnitOfWork unitOfWork, IBoxService boxService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _boxService = boxService;
         }
 
         [HttpGet]
@@ -29,10 +31,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data = _unitOfWork.BoxRepository
-                    .GetAll(boxId, layerId, searchString, pageNumber, pageSize);
-                data ??= Enumerable.Empty<Box>();
-
+                var data = _boxService.GetAll(boxId, layerId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)
@@ -51,10 +50,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data = _unitOfWork.BoxRepository
-                    .GetAllWithBoxItems(boxId, layerId, searchString, pageNumber, pageSize);
-                data ??= Enumerable.Empty<Box>();
-
+                var data = _boxService.GetAllWithBoxItems(boxId, layerId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)
@@ -66,40 +62,43 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(BoxCreateDTO boxCreateDTO)
         {
-            var layer = _unitOfWork.LayerRepository.Find(c => c.LayerId == boxCreateDTO.LayerId && c.IsDeleted == false).FirstOrDefault();
-            if (layer == null) return BadRequest("Layer not found or deleted");
-            var data = _mapper.Map<Box>(boxCreateDTO);
-
-            _unitOfWork.BoxRepository.Add(data);
-            _unitOfWork.Save();
-
-            return CreatedAtAction(nameof(Get), data);
+            try
+            {
+                var data = _boxService.Add(boxCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{boxId}")]
         public IActionResult Update(int boxId, BoxUpdateDTO boxUpdateDTO)
         {
-            var data = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Box not found or deleted");
-
-            _mapper.Map(boxUpdateDTO, data);
-            _unitOfWork.BoxRepository.Update(data);
-            _unitOfWork.Save();
-
-            return Ok(data);
+            try
+            {
+                var data = _boxService.Update(boxId, boxUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{boxId}")]
         public IActionResult Delete(int boxId)
         {
-            var data = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Box not found or deleted");
-
-            data.IsDeleted = true;
-            _unitOfWork.BoxRepository.Update(data);
-            _unitOfWork.Save();
-
-            return Ok();
+            try
+            {
+                _boxService.Delete(boxId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
