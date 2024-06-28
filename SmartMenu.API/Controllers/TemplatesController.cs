@@ -52,7 +52,7 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{templateId}")]
         public IActionResult Update(int templateId, TemplateUpdateDTO templateUpdateDTO)
         {
-            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Template not found or deleted");
 
             _mapper.Map(templateUpdateDTO, data);
@@ -66,7 +66,7 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{templateId}")]
         public IActionResult Delete(int templateId)
         {
-            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateID == templateId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Template not found or deleted");
 
             data.IsDeleted = true;

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SmartMenu.Domain.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartMenu.Domain.Models.DTO
 {
@@ -13,6 +14,6 @@ namespace SmartMenu.Domain.Models.DTO
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        public Guid RoleID { get; set; }
+        public Role Role { get; set; }
     }
 }

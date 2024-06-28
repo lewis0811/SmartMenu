@@ -45,7 +45,7 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{collectionId}")]
         public IActionResult Update(int collectionId, CollectionUpdateDTO collectionUpdateDTO)
         {
-            var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionID == collectionId).FirstOrDefault();
+            var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionId == collectionId).FirstOrDefault();
             if (data == null) return NotFound();
 
             _mapper.Map(collectionUpdateDTO, data);
@@ -58,7 +58,7 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{collectionId}")]
         public IActionResult Delete(int collectionId)
         {
-            var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionID == collectionId).FirstOrDefault();
+            var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionId == collectionId).FirstOrDefault();
             if (data == null) return NotFound();
 
             data.IsDeleted = true;

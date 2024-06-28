@@ -24,11 +24,35 @@ namespace SmartMenu.DAO.Implementation
         {
             var data = _context.ProductGroups
                 .Include(c => c.ProductGroupItems)!
-                .ThenInclude(c => c.ProductSizePrice)
                 .ThenInclude(c => c!.Product)
                 .AsQueryable();
 
             return DataQuery(data, productGroupId, menuId, collectionId, searchString, pageNumber, pageSize);
+        }
+
+        public List<ProductGroup> GetProductGroup(int? productGroupId, int? menuId, int? collectionId)
+        {
+            var data = _context.ProductGroups
+                .Include(c => c.ProductGroupItems)!
+                .ThenInclude(c => c!.Product)
+                .AsQueryable();
+
+            if (productGroupId != null)
+            {
+                data = data.Where(c => c.ProductGroupId == productGroupId);
+            }
+
+            if (menuId != null)
+            {
+                data = data.Where(c => c.MenuId == menuId);
+            }
+
+            if (collectionId != null)
+            {
+                data = data.Where(c => c.CollectionId == collectionId);
+            }
+
+            return data.ToList();
         }
 
         private IEnumerable<ProductGroup> DataQuery(IQueryable<ProductGroup> data, int? productGroupId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
@@ -37,18 +61,18 @@ namespace SmartMenu.DAO.Implementation
             if (productGroupId != null)
             {
                 data = data
-                    .Where(c => c.ProductGroupID == productGroupId);
+                    .Where(c => c.ProductGroupId == productGroupId);
             }
 
             if (menuId != null)
             {
                 data = data
-                    .Where(c => c.MenuID == menuId);
+                    .Where(c => c.MenuId == menuId);
             }
             if (collectionId != null)
             {
                 data = data
-                    .Where(c => c.CollectionID == collectionId);
+                    .Where(c => c.CollectionId == collectionId);
             }
 
             if (searchString != null)

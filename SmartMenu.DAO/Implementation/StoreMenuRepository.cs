@@ -25,19 +25,19 @@ namespace SmartMenu.DAO.Implementation
             if (storeMenuId != null)
             {
                 data = data
-                    .Where(c => c.StoreMenuID == storeMenuId);
+                    .Where(c => c.StoreMenuId == storeMenuId);
             }
 
             if (storeId != null)
             {
                 data = data
-                    .Where(c => c.StoreID == storeId);
+                    .Where(c => c.StoreId == storeId);
             }
 
             if (menuId != null)
             {
                 data = data
-                    .Where(c => c.MenuID == menuId);
+                    .Where(c => c.MenuId == menuId);
             }
 
             return PaginatedList<StoreMenu>.Create(data, pageNumber, pageSize);

@@ -6,7 +6,7 @@
         IBrandStaffRepository BrandStaffRepository { get; }
         IUserRepository UserRepository { get; }
         IStoreRepository StoreRepository { get; }
-        IRoleRepository RoleRepository { get; }
+        //IRoleRepository RoleRepository { get; }
         ITemplateRepository TemplateRepository { get; }
         ILayerRepository LayerRepository { get; }
         ILayerItemRepository LayerItemRepository { get; }
@@ -20,7 +20,7 @@
         IProductGroupRepository ProductGroupRepository { get; }
         IProductGroupItemRepository ProductGroupItemRepository { get; }
         IStoreCollectionRepository StoreCollectionRepository { get; }
-        IProductSizeRepository ProductSizeRepository { get; }
+        //IProductSizeRepository ProductSizeRepository { get; }
         IFontRepository FontRepository { get; }
         IStoreProductRepository StoreProductRepository { get; }
         IProductSizePriceRepository ProductSizePriceRepository { get; }

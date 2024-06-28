@@ -32,10 +32,10 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(BoxItemCreateDTO boxItemCreateDTO)
         {
-            var box = _unitOfWork.BoxRepository.Find(c => c.BoxID == boxItemCreateDTO.BoxId && c.IsDeleted == false).FirstOrDefault();
+            var box = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxItemCreateDTO.BoxId && c.IsDeleted == false).FirstOrDefault();
             if (box == null) return BadRequest("Box not found or deleted");
 
-            var font = _unitOfWork.FontRepository.Find(c => c.FontID == boxItemCreateDTO.FontId && c.IsDeleted == false).FirstOrDefault();
+            var font = _unitOfWork.FontRepository.Find(c => c.FontId == boxItemCreateDTO.FontId && c.IsDeleted == false).FirstOrDefault();
             if (font == null) return BadRequest("Font not found or deleted");
 
             var data = _mapper.Map<BoxItem>(boxItemCreateDTO);
@@ -52,7 +52,7 @@ namespace SmartMenu.API.Controllers
             var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("BoxItem not found or deleted");
 
-            var font = _unitOfWork.FontRepository.Find(c => c.FontID == boxItemUpdateDTO.FontId && c.IsDeleted == false).FirstOrDefault();
+            var font = _unitOfWork.FontRepository.Find(c => c.FontId == boxItemUpdateDTO.FontId && c.IsDeleted == false).FirstOrDefault();
             if (font == null) return BadRequest("Font not found or deleted");
 
             _mapper.Map(boxItemUpdateDTO, data);

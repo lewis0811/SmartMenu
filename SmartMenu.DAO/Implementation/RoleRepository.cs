@@ -1,10 +1,10 @@
-﻿using SmartMenu.Domain.Models;
-using SmartMenu.Domain.Repository;
+﻿//using SmartMenu.Domain.Models;
+//using SmartMenu.Domain.Repository;
 
-namespace SmartMenu.DAO.Implementation
-{
-    public class RoleRepository : GenericRepository<Role>, IRoleRepository
-    {
-        public RoleRepository(SmartMenuDBContext context) : base(context) { }
-    }
-}
+//namespace SmartMenu.DAO.Implementation
+//{
+//    public class RoleRepository : GenericRepository<Role>, IRoleRepository
+//    {
+//        public RoleRepository(SmartMenuDBContext context) : base(context) { }
+//    }
+//}

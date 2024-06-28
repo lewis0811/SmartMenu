@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 
 namespace SmartMenu.API.Controllers
@@ -22,7 +23,7 @@ namespace SmartMenu.API.Controllers
         [HttpGet]
         public IActionResult Get(int? productSizePriceId, int? productId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.ProductSizePriceRepository.GetAll(productSizePriceId, productId, productId, searchString, pageNumber, pageSize);
+            var data = _unitOfWork.ProductSizePriceRepository.GetAll(productSizePriceId, productId, searchString, pageNumber, pageSize);
             if (data == null) data ??= Enumerable.Empty<ProductSizePrice>();
 
             return Ok(data);
@@ -31,6 +32,13 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(ProductSizePriceCreateDTO productSizePriceCreateDTO)
         {
+            var product = _unitOfWork.ProductRepository.Find(c => c.ProductId == productSizePriceCreateDTO.ProductId).FirstOrDefault();
+            var productSizes = Enum.GetValues(typeof(ProductSizeType));
+            
+
+            if (product == null) return BadRequest("Product doesn't exist or deleted.");
+            if (productSizes.Length < (int)productSizePriceCreateDTO.ProductSizeType) return BadRequest("Product size doesn't exist or deleted.");
+
             var data = _mapper.Map<ProductSizePrice>(productSizePriceCreateDTO);
             _unitOfWork.ProductSizePriceRepository.Add(data);
             _unitOfWork.Save();

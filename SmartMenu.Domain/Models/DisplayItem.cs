@@ -9,13 +9,13 @@ namespace SmartMenu.Domain.Models
         public int BoxId { get; set; }
         public int ProductGroupId { get; set; }
 
-        [ForeignKey("DisplayId")]
-        public Display? Display { get; set; }
+        //[ForeignKey(nameof(DisplayId))]
+        //public Display? Display { get; set; }
 
-        [ForeignKey("BoxId")]
+        [ForeignKey(nameof(BoxId))]
         public Box? Box { get; set; }
 
-        [ForeignKey("ProductGroupId")]
+        [ForeignKey(nameof(ProductGroupId))]
         public ProductGroup? ProductGroup { get; set; }
     }
 }

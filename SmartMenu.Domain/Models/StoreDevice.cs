@@ -15,8 +15,8 @@ namespace SmartMenu.Domain.Models
         public float DeviceWidth { get; set; } = 0;
         public float DeviceHeight { get; set; } = 0;
 
-        [ForeignKey(nameof(StoreId))]
-        public Store? Store { get; set; }
+        //[ForeignKey(nameof(StoreId))]
+        //public Store? Store { get; set; }
 
         public ICollection<Display>? Displays { get; set; }
 

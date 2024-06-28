@@ -21,7 +21,7 @@ namespace SmartMenu.DAO.Implementation
             if (categoryId != null)
             {
                 data = data
-                    .Where(c => c.CategoryID == categoryId);
+                    .Where(c => c.CategoryId == categoryId);
             }
 
             if (searchString != null)

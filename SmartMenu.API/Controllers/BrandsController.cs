@@ -1,13 +1,17 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 
 namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_Admin)]
     public class BrandsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -40,12 +44,12 @@ namespace SmartMenu.API.Controllers
             return Ok(data);
         }
 
-        [HttpGet("BrandProduct")]
-        public IActionResult GetBranchWithProduct(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
-        {
-                var data = _unitOfWork.BrandRepository.GetBranchWithProduct(brandId, searchString, pageNumber, pageSize);
-                return Ok(data);
-        }
+        //[HttpGet("BrandProduct")]
+        //public IActionResult GetBranchWithProduct(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        //{
+        //        var data = _unitOfWork.BrandRepository.GetBranchWithProduct(brandId, searchString, pageNumber, pageSize);
+        //        return Ok(data);
+        //}
 
         [HttpPost]
         public IActionResult Add(BrandCreateDTO brandCreateDTO)

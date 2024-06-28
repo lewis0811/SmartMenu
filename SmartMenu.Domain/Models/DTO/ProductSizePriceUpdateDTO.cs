@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartMenu.Domain.Models.Enum;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace SmartMenu.Domain.Models.DTO
 {
     public class ProductSizePriceUpdateDTO
     {
-        public int ProductSizeId { get; set; }
+        public ProductSizeType ProductSizeType{ get; set; }
         public double Price { get; set; }
     }
 }

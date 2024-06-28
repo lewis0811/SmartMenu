@@ -9,6 +9,8 @@ using SmartMenu.DAO.Implementation;
 using SmartMenu.Domain.Repository;
 using System.Text;
 using Amazon.S3;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,7 +75,8 @@ builder.Services.AddDbContext<SmartMenuDBContext>
         => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
     );
 
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+// Add DI Services
+builder.Services.AddDIServices();
 
 // Auto Mapper Configurations
 var mapperConfig = new MapperConfiguration(mc =>

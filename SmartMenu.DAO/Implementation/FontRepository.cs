@@ -53,7 +53,7 @@ namespace SmartMenu.DAO.Implementation
             if (fontId != null)
             {
                 data = data
-                    .Where(c => c.FontID == fontId);
+                    .Where(c => c.FontId == fontId);
             }
             if (searchString != null)
             {

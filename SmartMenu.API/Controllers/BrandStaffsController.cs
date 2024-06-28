@@ -40,7 +40,7 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{brandStaffId}")]
         public IActionResult Update(int brandStaffId, BrandStaffCreateDTO brandStaffCreateDTO)
         {
-            var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffID == brandStaffId).FirstOrDefault();
+            var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffId == brandStaffId).FirstOrDefault();
             if (data == null) return NotFound();
             _mapper.Map(brandStaffCreateDTO, data);
             _unitOfWork.BrandStaffRepository.Update(data);
@@ -51,7 +51,7 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{brandStaffId}")]
         public IActionResult Delete(int brandStaffId)
         {
-            var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffID == brandStaffId).FirstOrDefault();
+            var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffId == brandStaffId).FirstOrDefault();
             if (data == null) return NotFound();
 
             data.IsDeleted = true;

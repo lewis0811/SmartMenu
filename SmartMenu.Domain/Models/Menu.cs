@@ -1,18 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
 {
     public class Menu : BaseModel
     {
-        public int MenuID { get; set; }
-        public int BrandID { get; set; }
+        public int MenuId { get; set; }
+        public int BrandId { get; set; }
 
         [Required]
         public string MenuName { get; set; } = string.Empty;
 
-        public string MenuDescription { get; set; } = string.Empty;
+        public string? MenuDescription { get; set; } 
 
-        //[ForeignKey(nameof(BrandID))]
+        //[ForeignKey(nameof(BrandId))]
         //public Brand? Brand { get; set; }
 
         public ICollection<ProductGroup>? ProductGroups { get; set; }

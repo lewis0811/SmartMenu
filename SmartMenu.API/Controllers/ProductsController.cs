@@ -20,18 +20,15 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get(int? storeId, int? categoryId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public IActionResult Get(int? storeId, int? categoryId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.ProductRepository.GetAll(storeId, categoryId, brandId, searchString, pageNumber, pageSize);
+            var data = _unitOfWork.ProductRepository.GetAll(storeId, categoryId, searchString, pageNumber, pageSize);
             return Ok(data);
         }
         [HttpPost]
         public IActionResult Add(ProductCreateDTO productCreateDTO)
         {
-            var brand = _unitOfWork.BrandRepository.Find(c => c.BrandId == productCreateDTO.BrandID && c.IsDeleted == false).FirstOrDefault();
-            if (brand == null) return BadRequest("Brand not found or deleted");
-
-            var category = _unitOfWork.CategoryRepository.Find(c => c.CategoryID == productCreateDTO.CategoryID && c.IsDeleted == false).FirstOrDefault();
+            var category = _unitOfWork.CategoryRepository.Find(c => c.CategoryId == productCreateDTO.CategoryId && c.IsDeleted == false).FirstOrDefault();
             if (category == null) return BadRequest("Category not found or deleted");
 
             var data = _mapper.Map<Product>(productCreateDTO);
@@ -43,7 +40,7 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{productId}")]
         public IActionResult Update(int productId, ProductCreateDTO productCreateDTO)
         {
-            var data = _unitOfWork.ProductRepository.Find(c => c.ProductID == productId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.ProductRepository.Find(c => c.ProductId == productId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Product not found or deleted");
 
             _mapper.Map(productCreateDTO, data);
@@ -56,7 +53,7 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{productId}")]
         public IActionResult Delete(int productId)
         {
-            var data = _unitOfWork.ProductRepository.Find(c => c.ProductID == productId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.ProductRepository.Find(c => c.ProductId == productId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Product not found or deleted");
 
             data.IsDeleted = true;

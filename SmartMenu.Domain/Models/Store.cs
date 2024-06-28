@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
 {
     public class Store : BaseModel
     {
-        public int StoreID { get; set; }
-        public int BrandID { get; set; }
+        public int StoreId { get; set; }
+        public int BrandId { get; set; }
 
         [Required]
         public string StoreLocation { get; set; } = string.Empty;
@@ -18,7 +19,7 @@ namespace SmartMenu.Domain.Models
         [Required]
         public string StoreContactNumber { get; set; } = string.Empty;
 
-        //[ForeignKey(nameof(BrandID))]
+        //[ForeignKey(nameof(BrandId))]
         //public Brand? Brand { get; set; }
 
         public ICollection<StoreMenu>? StoreMenus { get; set; } = new List<StoreMenu>();

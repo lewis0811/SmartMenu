@@ -2,8 +2,7 @@
 {
     public enum BoxType
     {
-        Header = 0,
-        Body = 1,
-        Static = 2
+        UseInTemplate = 0,
+        UseInDisplay = 1,
     }
 }

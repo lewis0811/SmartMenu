@@ -14,34 +14,26 @@ namespace SmartMenu.DAO.Implementation
             _context = context;
         }
 
-        public IEnumerable<Product> GetAll(int? productId, int? brandId, int? categoryId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public IEnumerable<Product> GetAll(int? productId, int? categoryId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _context.Products
-                .Include(c => c.ProductSizePrices)!
-                .ThenInclude(c => c.ProductSize)
                 .AsQueryable();
-            return DataQuery(data, productId, brandId, categoryId, searchString, pageNumber, pageSize);
+            return DataQuery(data, productId, categoryId, searchString, pageNumber, pageSize);
         }
 
-        private IEnumerable<Product> DataQuery(IQueryable<Product> data, int? productId, int? brandId, int? categoryId, string? searchString, int pageNumber, int pageSize)
+        private IEnumerable<Product> DataQuery(IQueryable<Product> data, int? productId, int? categoryId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
             if (productId != null)
             {
                 data = data
-                    .Where(c => c.ProductID == productId);
-            }
-
-            if (brandId != null)
-            {
-                data = data
-                    .Where(c => c.BrandID == brandId);
+                    .Where(c => c.ProductId == productId);
             }
 
             if (categoryId != null)
             {
                 data = data
-                    .Where(c => c.CategoryID == categoryId);
+                    .Where(c => c.CategoryId == categoryId);
             }
 
             if (searchString != null)
@@ -49,7 +41,7 @@ namespace SmartMenu.DAO.Implementation
                 searchString = searchString.Trim();
                 data = data
                     .Where(c => c.ProductName.Contains(searchString)
-                    || c.ProductDescription.Contains(searchString));
+                    || c.ProductDescription!.Contains(searchString));
             }
 
             return PaginatedList<Product>.Create(data, pageNumber, pageSize);

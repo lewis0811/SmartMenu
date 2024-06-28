@@ -30,7 +30,17 @@ namespace SmartMenu.DAO.Implementation
         public IEnumerable<Layer> GetAllWithLayerItems(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _context.Layers
-                .Include(c => c.LayerItems)
+                .Include(c => c.LayerItem)
+                .AsQueryable();
+            return DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
+        }
+
+        public IEnumerable<Layer> GetAllWithLayerItemsAndBoxes(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
+        {
+            var data = _context.Layers
+                .Include(c => c.LayerItem)
+                .Include(c => c.Boxes)!
+                .ThenInclude(c => c.BoxItems)
                 .AsQueryable();
             return DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
         }
@@ -41,12 +51,12 @@ namespace SmartMenu.DAO.Implementation
 
             if (templateId != null)
             {
-                data = data.Where(c => c.TemplateID == templateId);
+                data = data.Where(c => c.TemplateId == templateId);
             }
 
             if (layerId != null)
             {
-                data = data.Where(c => c.LayerID == layerId);
+                data = data.Where(c => c.LayerId == layerId);
             }
 
             if (searchString != null)

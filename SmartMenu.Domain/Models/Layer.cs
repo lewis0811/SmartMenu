@@ -6,18 +6,21 @@ namespace SmartMenu.Domain.Models
 {
     public class Layer : BaseModel
     {
-        public int LayerID { get; set; }
-        public int TemplateID { get; set; }
+        public int LayerId { get; set; }
+        public int TemplateId { get; set; }
+        public int LayerItemId { get; set; }
 
         [Required]
         public string LayerName { get; set; } = string.Empty;
 
         public LayerType LayerType { get; set; }
 
-        //[ForeignKey("TemplateID")]
+        //[ForeignKey(nameof(TemplateId))]
         //public Template? Template { get; set; }
 
-        public ICollection<LayerItem>? LayerItems { get; set; }
+        [ForeignKey(nameof(LayerItemId))]
+        public LayerItem? LayerItem { get; set; }
+
         public ICollection<Box>? Boxes { get; set; }
     }
 }

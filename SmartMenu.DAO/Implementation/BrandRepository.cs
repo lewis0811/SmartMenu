@@ -24,11 +24,11 @@ namespace SmartMenu.DAO.Implementation
             return DataQuery(data, brandId, searchString, pageNumber, pageSize);
         }
 
-        public IEnumerable<Brand> GetBranchWithProduct(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
-        {
-            var data = _context.Brands.Include(x => x.Products).AsQueryable();
-            return DataQuery(data, brandId, searchString, pageNumber, pageSize);
-        }
+        //public IEnumerable<Brand> GetBranchWithProduct(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        //{
+        //    var data = _context.Brands.Include(x => x.Products).AsQueryable();
+        //    return DataQuery(data, brandId, searchString, pageNumber, pageSize);
+        //}
 
         public IEnumerable<Brand> GetBranchWithStore(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
@@ -50,8 +50,8 @@ namespace SmartMenu.DAO.Implementation
                 searchString = searchString.Trim();
                 data = data
                     .Where(c => c.BrandName.Contains(searchString)
-                    || c.BrandDescription.Contains(searchString)
-                    || c.BrandImage.Contains(searchString)
+                    || c.BrandDescription!.Contains(searchString)
+                    || c.BrandImage!.Contains(searchString)
                     || c.BrandContactEmail.Contains(searchString));
             }
 

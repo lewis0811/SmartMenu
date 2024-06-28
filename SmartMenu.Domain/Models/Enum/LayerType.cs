@@ -2,7 +2,8 @@
 {
     public enum LayerType
     {
-        ImageLayer = 0,
-        ContentLayer = 1,
+        ImageLayer = 0, // Layer for images
+        RenderLayer = 1, // Layer for rendering menu/collections
+        StaticTextLayer = 2, //Layer for text create in template
     }
 }

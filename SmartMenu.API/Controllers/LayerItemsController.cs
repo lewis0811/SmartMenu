@@ -20,9 +20,9 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get(int? layerItemId, int? layerId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public IActionResult Get(int? layerItemId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.LayerItemRepository.GetAll(layerItemId, layerId, searchString, pageNumber, pageSize);
+            var data = _unitOfWork.LayerItemRepository.GetAll(layerItemId, searchString, pageNumber, pageSize);
             data ??= Enumerable.Empty<LayerItem>();
 
             return Ok(data);
@@ -31,7 +31,7 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(LayerItemCreateDTO layerItemCreateDTO)
         {
-            var layer = _unitOfWork.LayerRepository.Find(c => c.LayerID == layerItemCreateDTO.LayerID && c.IsDeleted == false).FirstOrDefault();
+            var layer = _unitOfWork.LayerRepository.Find(c => c.LayerId == layerItemCreateDTO.LayerID && c.IsDeleted == false).FirstOrDefault();
             if (layer == null) return BadRequest("Layer not found or deleted");
             var data = _mapper.Map<LayerItem>(layerItemCreateDTO);
 
@@ -44,7 +44,7 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{layerItemId}")]
         public IActionResult Update(int layerItemId, LayerItemUpdateDTO layerItemUpdateDTO)
         {
-            var data = _unitOfWork.LayerItemRepository.Find(c => c.LayerItemID == layerItemId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.LayerItemRepository.Find(c => c.LayerItemId == layerItemId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Layer item not found or deleted");
 
             _mapper.Map(layerItemUpdateDTO, data);
@@ -57,7 +57,7 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{layerItemId}")]
         public IActionResult Delete(int layerItemId)
         {
-            var data = _unitOfWork.LayerItemRepository.Find(c => c.LayerItemID == layerItemId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.LayerItemRepository.Find(c => c.LayerItemId == layerItemId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Layer item not found or deleted");
 
             data.IsDeleted = true;

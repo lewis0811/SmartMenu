@@ -58,7 +58,7 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{storeId}")]
         public IActionResult Update(int storeId, StoreUpdateDTO storeUpdateDTO)
         {
-            var data = _unitOfWork.StoreRepository.Find(c => c.StoreID == storeId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.StoreRepository.Find(c => c.StoreId == storeId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Store not found or deleted");
 
             _mapper.Map(storeUpdateDTO, data);
@@ -71,7 +71,7 @@ namespace SmartMenu.API.Controllers
         [HttpDelete("{storeId}")]
         public IActionResult Delete(int storeId)
         {
-            var data = _unitOfWork.StoreRepository.Find(c => c.StoreID == storeId && c.IsDeleted == false).FirstOrDefault();
+            var data = _unitOfWork.StoreRepository.Find(c => c.StoreId == storeId && c.IsDeleted == false).FirstOrDefault();
             if (data == null) return BadRequest("Store not found or deleted");
 
             data.IsDeleted = true;
