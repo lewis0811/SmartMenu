@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
 
 namespace SmartMenu.API.Controllers
 {
@@ -10,51 +11,55 @@ namespace SmartMenu.API.Controllers
     [ApiController]
     public class DisplayItemsController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IDisplayItemService _displayItemService;
 
-        public DisplayItemsController(IMapper mapper, IUnitOfWork unitOfWork)
+        public DisplayItemsController(IDisplayItemService displayItemService)
         {
-            _mapper = mapper;
-            _unitOfWork = unitOfWork;
+            _displayItemService = displayItemService;
         }
 
         [HttpGet]
-        public IActionResult Get(int displayItemId, int displayId, int boxId, int productGroupId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public IActionResult Get(int? displayItemId, int? displayId, int? boxId, int? productGroupId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.DisplayItemRepository
-                .GetAll(displayItemId, displayId, boxId, productGroupId, searchString, pageNumber, pageSize);
-            data ??= Enumerable.Empty<DisplayItem>();
+            try
+            {
+                var data = _displayItemService
+                        .GetAll(displayItemId, displayId, boxId, productGroupId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
 
-            return Ok(data);
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
         public IActionResult Add(DisplayItemCreateDTO displayItemCreateDTO)
         {
-            var data = _mapper.Map<DisplayItem>(displayItemCreateDTO);
-            _unitOfWork.DisplayItemRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), data);
+            try
+            {
+                var data = _displayItemService.AddDisplayItem(displayItemCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{displayItemId}")]
         public IActionResult Update(int displayItemId, DisplayItemUpdateDTO displayItemUpdateDTO)
         {
-            var data = _mapper.Map<DisplayItem>(displayItemUpdateDTO);
-            _unitOfWork.DisplayItemRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            var data = _displayItemService.Update(displayItemId, displayItemUpdateDTO);
+            return Ok(data);
         }
 
         [HttpDelete("{displayItemId}")]
         public IActionResult Delete(int displayItemId)
         {
-            var data = _unitOfWork.DisplayItemRepository.Find(c => c.DisplayItemId == displayItemId).FirstOrDefault();
-            if (data == null) return BadRequest("DisplayItem not found or deleted");
-
-            _unitOfWork.DisplayItemRepository.Remove(data);
-            _unitOfWork.Save();
+            _displayItemService.Delete(displayItemId);
             return Ok();
         }
     }

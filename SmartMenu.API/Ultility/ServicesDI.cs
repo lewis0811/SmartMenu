@@ -20,6 +20,7 @@ namespace SmartMenu.API.Ultility
             services.AddScoped<ILayerService, LayerService>();
             services.AddScoped<IlayerItemService, LayerItemService>();
             services.AddScoped<IDisplayService, DisplayService>();
+            services.AddScoped<IDisplayItemService, DisplayItemService>();
             return services;
         }
     }

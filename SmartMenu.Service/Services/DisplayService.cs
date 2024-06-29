@@ -189,8 +189,9 @@ namespace SmartMenu.Service.Services
 
         public void Delete(int displayId)
         {
-            var data = _unitOfWork.DisplayRepository.Find(c => c.DisplayId == displayId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) throw new Exception("Display not found or deleted");
+            var data = _unitOfWork.DisplayRepository.Find(c => c.DisplayId == displayId && c.IsDeleted == false).FirstOrDefault()
+            ?? throw new Exception("Display not found or deleted");
+
             _unitOfWork.DisplayRepository.Remove(data);
             _unitOfWork.Save();
         }

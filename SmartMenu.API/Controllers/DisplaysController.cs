@@ -1,9 +1,5 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SmartMenu.Domain.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models.DTO;
-using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 
 namespace SmartMenu.API.Controllers
@@ -29,7 +25,6 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-
                 return BadRequest(ex.Message);
             }
         }
@@ -44,7 +39,6 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-
                 return BadRequest(ex.Message);
             }
         }
@@ -59,7 +53,6 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-
                 return BadRequest(ex.Message);
             }
         }
@@ -71,7 +64,7 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var data = _displayService.AddDisplayV2(displayCreateDTO);
-                return CreatedAtAction(nameof(Get), new {displayId = data.DisplayId});
+                return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
             }
             catch (Exception ex)
             {
@@ -89,7 +82,6 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-
                 return BadRequest(ex.Message);
             }
         }
@@ -104,7 +96,6 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-
                 return BadRequest(ex.Message);
             }
         }
