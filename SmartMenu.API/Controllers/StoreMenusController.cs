@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,50 +14,69 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IStoreMenuService _storeMenuService;
 
-        public StoreMenusController(IUnitOfWork unitOfWork, IMapper mapper)
+        public StoreMenusController(IUnitOfWork unitOfWork, IMapper mapper, IStoreMenuService storeMenuService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _storeMenuService = storeMenuService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? storeMenuId, int? storeId, int? menuId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? storeMenuId, int? storeId, int? menuId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.StoreMenuRepository.GetAll(storeMenuId, storeId, menuId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _storeMenuService.GetAll(storeMenuId, storeId, menuId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpPost]
-        public IActionResult Add(StoreMenuCreateDTO storeMenuCreateDTO)
+        public ActionResult Add(StoreMenuCreateDTO storeMenuCreateDTO)
         {
 
-            var data = _mapper.Map<StoreMenu>(storeMenuCreateDTO);
-            _unitOfWork.StoreMenuRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _storeMenuService.Add(storeMenuCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{storeMenuId}")]
-        public IActionResult Update(int storeMenuId, StoreMenuCreateDTO storeMenuCreateDTO)
+        public ActionResult Update(int storeMenuId, StoreMenuCreateDTO storeMenuCreateDTO)
         {
-            var data = _unitOfWork.StoreMenuRepository.Find(c => c.StoreMenuId == storeMenuId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("StoreMenu not found or deleted");
-            _mapper.Map(storeMenuCreateDTO, data);
-            _unitOfWork.StoreMenuRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _storeMenuService.Update(storeMenuId, storeMenuCreateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{storeMenuId}")]
-        public IActionResult Delete(int storeMenuId)
+        public ActionResult Delete(int storeMenuId)
         {
-            var data = _unitOfWork.StoreMenuRepository.Find(c => c.StoreMenuId == storeMenuId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("StoreMenu not found or deleted");
-
-            data.IsDeleted = true;
-            _unitOfWork.StoreMenuRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _storeMenuService.Delete(storeMenuId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

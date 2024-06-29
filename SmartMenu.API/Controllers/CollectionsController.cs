@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,59 +14,81 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICollectionService _collectionService;
 
-        public CollectionsController(IUnitOfWork unitOfWork, IMapper mapper)
+        public CollectionsController(IUnitOfWork unitOfWork, IMapper mapper, ICollectionService collectionService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _collectionService = collectionService;
         }
         [HttpGet]
-        public IActionResult Get(int? collectionId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? collectionId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.CollectionRepository.GetAll(collectionId, brandId, searchString, pageNumber, pageSize);
-            data ??= Enumerable.Empty<Collection>();
-
-            return Ok(data);
+            try
+            {
+                var data = _collectionService.GetAll(collectionId, brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("ProductGroup")]
-        public IActionResult GetCollectionProductGroup(int? collectionId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult GetCollectionProductGroup(int? collectionId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.CollectionRepository.GetCollectionWithProductGroup(collectionId, brandId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _collectionService.GetCollectionWithProductGroup(collectionId, brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpPost]
-        public IActionResult Add(CollectionCreateDTO collectionCreateDTO)
+        public ActionResult Add(CollectionCreateDTO collectionCreateDTO)
         {
-            var data = _mapper.Map<Collection>(collectionCreateDTO);
-            _unitOfWork.CollectionRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _collectionService.Add(collectionCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{collectionId}")]
-        public IActionResult Update(int collectionId, CollectionUpdateDTO collectionUpdateDTO)
+        public ActionResult Update(int collectionId, CollectionUpdateDTO collectionUpdateDTO)
         {
-            var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionId == collectionId).FirstOrDefault();
-            if (data == null) return NotFound();
-
-            _mapper.Map(collectionUpdateDTO, data);
-
-            _unitOfWork.CollectionRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _collectionService.Update(collectionId, collectionUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{collectionId}")]
-        public IActionResult Delete(int collectionId)
+        public ActionResult Delete(int collectionId)
         {
-            var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionId == collectionId).FirstOrDefault();
-            if (data == null) return NotFound();
-
-            data.IsDeleted = true;
-            _unitOfWork.CollectionRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _collectionService.Delete(collectionId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

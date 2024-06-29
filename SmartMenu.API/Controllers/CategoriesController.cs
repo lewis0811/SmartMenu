@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,50 +14,68 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICategoryService _categoryService;
 
-        public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper)
+        public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper, ICategoryService categoryService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _categoryService = categoryService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? categoryId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? categoryId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.CategoryRepository.GetAll(categoryId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _categoryService.GetAll(categoryId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            };
         }
         [HttpPost]
-        public IActionResult Add(CategoryCreateDTO categoryCreateDTO)
+        public ActionResult Add(CategoryCreateDTO categoryCreateDTO)
         {
-            var data = _mapper.Map<Category>(categoryCreateDTO);
-            _unitOfWork.CategoryRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _categoryService.Add(categoryCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{categoryId}")]
-        public IActionResult Update(int categoryId, CategoryCreateDTO categoryCreateDTO)
+        public ActionResult Update(int categoryId, CategoryCreateDTO categoryCreateDTO)
         {
-            var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryId == categoryId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Category not found or deleted");
-
-            _mapper.Map(categoryCreateDTO, data);
-            _unitOfWork.CategoryRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _categoryService.Update(categoryId, categoryCreateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{categoryId}")]
-        public IActionResult Delete(int categoryId)
+        public ActionResult Delete(int categoryId)
         {
-            var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryId == categoryId).FirstOrDefault();
-            if (data == null) return NotFound();
-
-            data.IsDeleted = true;
-            _unitOfWork.CategoryRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _categoryService.Delete(categoryId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

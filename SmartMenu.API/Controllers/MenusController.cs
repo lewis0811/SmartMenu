@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,57 +14,81 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IMenuService _menuService;
 
-        public MenusController(IUnitOfWork unitOfWork, IMapper mapper)
+        public MenusController(IUnitOfWork unitOfWork, IMapper mapper, IMenuService menuService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _menuService = menuService;
         }
         [HttpGet]
-        public IActionResult Get(int? menuId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? menuId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.MenuRepository.GetAll(menuId, brandId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _menuService.GetAll(menuId, brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("ProductGroup")]
-        public IActionResult GetMenuProductGroup(int? menuId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult GetMenuProductGroup(int? menuId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.MenuRepository.GetMenuWithProductGroup(menuId, brandId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _menuService.GetMenuWithProductGroup(menuId, brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpPost]
-        public IActionResult Add(MenuCreateDTO menuCreateDTO)
+        public ActionResult Add(MenuCreateDTO menuCreateDTO)
         {
-            var data = _mapper.Map<Menu>(menuCreateDTO);
-            _unitOfWork.MenuRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _menuService.Add(menuCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{menuId}")]
-        public IActionResult Update(int menuId, MenuUpdateDTO menuUpdateDTO)
+        public ActionResult Update(int menuId, MenuUpdateDTO menuUpdateDTO)
         {
-            var data = _unitOfWork.MenuRepository.Find(c => c.MenuId == menuId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Menu not found or deleted");
-
-            _mapper.Map(menuUpdateDTO, data);
-
-            _unitOfWork.MenuRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _menuService.Update(menuId, menuUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{menuId}")]
-        public IActionResult Delete(int menuId)
+        public ActionResult Delete(int menuId)
         {
-            var data = _unitOfWork.MenuRepository.Find(c => c.MenuId == menuId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Menu not found or deleted");
-
-            data.IsDeleted = true;
-            _unitOfWork.MenuRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _menuService.Delete(menuId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

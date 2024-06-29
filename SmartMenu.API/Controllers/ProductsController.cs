@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,54 +14,68 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IProductService _productService;
 
-        public ProductsController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ProductsController(IUnitOfWork unitOfWork, IMapper mapper, IProductService productService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _productService = productService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? storeId, int? categoryId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? productId, int? categoryId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.ProductRepository.GetAll(storeId, categoryId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _productService.GetAll(categoryId, productId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            };
         }
         [HttpPost]
-        public IActionResult Add(ProductCreateDTO productCreateDTO)
+        public ActionResult Add(ProductCreateDTO productCreateDTO)
         {
-            var category = _unitOfWork.CategoryRepository.Find(c => c.CategoryId == productCreateDTO.CategoryId && c.IsDeleted == false).FirstOrDefault();
-            if (category == null) return BadRequest("Category not found or deleted");
-
-            var data = _mapper.Map<Product>(productCreateDTO);
-            _unitOfWork.ProductRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _productService.Add(productCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{productId}")]
-        public IActionResult Update(int productId, ProductCreateDTO productCreateDTO)
+        public ActionResult Update(int productId, ProductUpdateDTO productCreateDTO)
         {
-            var data = _unitOfWork.ProductRepository.Find(c => c.ProductId == productId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Product not found or deleted");
-
-            _mapper.Map(productCreateDTO, data);
-
-            _unitOfWork.ProductRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _productService.Update(productId, productCreateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{productId}")]
-        public IActionResult Delete(int productId)
+        public ActionResult Delete(int productId)
         {
-            var data = _unitOfWork.ProductRepository.Find(c => c.ProductId == productId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Product not found or deleted");
-
-            data.IsDeleted = true;
-            _unitOfWork.ProductRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _productService.Delete(productId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
