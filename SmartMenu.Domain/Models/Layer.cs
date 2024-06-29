@@ -8,7 +8,6 @@ namespace SmartMenu.Domain.Models
     {
         public int LayerId { get; set; }
         public int TemplateId { get; set; }
-        public int LayerItemId { get; set; }
 
         [Required]
         public string LayerName { get; set; } = string.Empty;
@@ -18,7 +17,7 @@ namespace SmartMenu.Domain.Models
         //[ForeignKey(nameof(TemplateId))]
         //public Template? Template { get; set; }
 
-        [ForeignKey(nameof(LayerItemId))]
+
         public LayerItem? LayerItem { get; set; }
 
         public ICollection<Box>? Boxes { get; set; }
