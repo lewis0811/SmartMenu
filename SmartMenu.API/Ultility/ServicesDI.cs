@@ -14,7 +14,7 @@ namespace SmartMenu.API.Ultility
 
             // Services DI
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IBoxService, BoxService>();
+            services.AddScoped<IBoxItemService, Service.Services.BoxItemService>();
             services.AddScoped<ITemplateService, TemplateService>();
 
             return services;

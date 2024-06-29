@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using SmartMenu.Domain.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models.DTO;
-using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
 
 namespace SmartMenu.API.Controllers
 {
@@ -10,70 +8,67 @@ namespace SmartMenu.API.Controllers
     [ApiController]
     public class BoxItemController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IBoxItemService _boxItemService;
 
-        public BoxItemController(IMapper mapper, IUnitOfWork unitOfWork)
+        public BoxItemController(IBoxItemService boxItemService)
         {
-            _mapper = mapper;
-            _unitOfWork = unitOfWork;
+            _boxItemService = boxItemService;
         }
 
         [HttpGet]
         public IActionResult Get(int? boxItemId, int? boxId, int? fontId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.BoxItemRepository
-                .GetAll(boxItemId, boxId, fontId, searchString, pageNumber, pageSize);
-            
-            data ??= Enumerable.Empty<BoxItem>();
-            return Ok(data);
+            try
+            {
+                var data = _boxItemService.GetAll(boxItemId, boxId, fontId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
         public IActionResult Add(BoxItemCreateDTO boxItemCreateDTO)
         {
-            var box = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxItemCreateDTO.BoxId && c.IsDeleted == false).FirstOrDefault();
-            if (box == null) return BadRequest("Box not found or deleted");
-
-            var font = _unitOfWork.FontRepository.Find(c => c.FontId == boxItemCreateDTO.FontId && c.IsDeleted == false).FirstOrDefault();
-            if (font == null) return BadRequest("Font not found or deleted");
-
-            var data = _mapper.Map<BoxItem>(boxItemCreateDTO);
-
-            _unitOfWork.BoxItemRepository.Add(data);
-            _unitOfWork.Save();
-
-            return CreatedAtAction(nameof(Get), data);
+            try
+            {
+                var data = _boxItemService.AddBoxItem(boxItemCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{boxItemId}")]
         public IActionResult Update(int boxItemId, BoxItemUpdateDTO boxItemUpdateDTO)
         {
-            var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("BoxItem not found or deleted");
-
-            var font = _unitOfWork.FontRepository.Find(c => c.FontId == boxItemUpdateDTO.FontId && c.IsDeleted == false).FirstOrDefault();
-            if (font == null) return BadRequest("Font not found or deleted");
-
-            _mapper.Map(boxItemUpdateDTO, data);
-
-            _unitOfWork.BoxItemRepository.Update(data);
-            _unitOfWork.Save();
-
-            return Ok(data);
+            try
+            {
+                var data = _boxItemService.Update(boxItemId, boxItemUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{boxItemId}")]
         public IActionResult Delete(int boxItemId)
         {
-            var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("BoxItem not found or deleted");
-
-            data.IsDeleted = true;
-            _unitOfWork.BoxItemRepository.Update(data);
-            _unitOfWork.Save();
-
-            return Ok(data);
+            try
+            {
+                _boxItemService.Delete(boxItemId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

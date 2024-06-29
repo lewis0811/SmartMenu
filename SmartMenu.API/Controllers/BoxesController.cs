@@ -12,9 +12,9 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IBoxService _boxService;
+        private readonly IBoxItemService _boxService;
 
-        public BoxesController(IMapper mapper, IUnitOfWork unitOfWork, IBoxService boxService)
+        public BoxesController(IMapper mapper, IUnitOfWork unitOfWork, IBoxItemService boxService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
