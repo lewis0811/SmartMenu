@@ -12,14 +12,10 @@ namespace SmartMenu.API.Controllers
     [ApiController]
     public class TemplatesController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly ITemplateService _templateService;
 
-        public TemplatesController(IMapper mapper, IUnitOfWork unitOfWork, ITemplateService templateService)
+        public TemplatesController( ITemplateService templateService)
         {
-            _mapper = mapper;
-            _unitOfWork = unitOfWork;
             _templateService = templateService;
         }
 
