@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
 
 namespace SmartMenu.API.Controllers
 {
@@ -10,62 +11,70 @@ namespace SmartMenu.API.Controllers
     [ApiController]
     public class LayerItemsController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly IlayerItemService _layerItemService;
 
-        public LayerItemsController(IUnitOfWork unitOfWork, IMapper mapper)
+        public LayerItemsController(IlayerItemService layerItemService)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _layerItemService = layerItemService;
         }
 
         [HttpGet]
         public IActionResult Get(int? layerItemId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.LayerItemRepository.GetAll(layerItemId, searchString, pageNumber, pageSize);
-            data ??= Enumerable.Empty<LayerItem>();
-
-            return Ok(data);
+            try
+            {
+                var data = _layerItemService.GetAll(layerItemId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
         public IActionResult Add(LayerItemCreateDTO layerItemCreateDTO)
         {
-            var layer = _unitOfWork.LayerRepository.Find(c => c.LayerId == layerItemCreateDTO.LayerID && c.IsDeleted == false).FirstOrDefault();
-            if (layer == null) return BadRequest("Layer not found or deleted");
-            var data = _mapper.Map<LayerItem>(layerItemCreateDTO);
+            try
+            {
+                var data = _layerItemService.AddLayerItem(layerItemCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
 
-            _unitOfWork.LayerItemRepository.Add(data);
-            _unitOfWork.Save();
-
-            return CreatedAtAction(nameof(Get), data);
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{layerItemId}")]
         public IActionResult Update(int layerItemId, LayerItemUpdateDTO layerItemUpdateDTO)
         {
-            var data = _unitOfWork.LayerItemRepository.Find(c => c.LayerItemId == layerItemId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Layer item not found or deleted");
+            try
+            {
+                var data = _layerItemService.Update(layerItemId, layerItemUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
 
-            _mapper.Map(layerItemUpdateDTO, data);
-            _unitOfWork.LayerItemRepository.Update(data);
-            _unitOfWork.Save();
-
-            return Ok(data);
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{layerItemId}")]
         public IActionResult Delete(int layerItemId)
         {
-            var data = _unitOfWork.LayerItemRepository.Find(c => c.LayerItemId == layerItemId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Layer item not found or deleted");
+            try
+            {
+                _layerItemService.Delete(layerItemId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
 
-            data.IsDeleted = true;
-
-            _unitOfWork.LayerItemRepository.Update(data);
-            _unitOfWork.Save();
-
-            return Ok(data);
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
