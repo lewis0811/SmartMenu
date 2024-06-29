@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,62 +14,83 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IProductGroupService _productGroupService;
 
-        public ProductGroupController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ProductGroupController(IUnitOfWork unitOfWork, IMapper mapper, IProductGroupService productGroupService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _productGroupService = productGroupService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? productGroupId, int? menuId, int? collectionId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? productGroupId, int? menuId, int? collectionId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.ProductGroupRepository.GetAll(productGroupId, menuId, collectionId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _productGroupService.GetAll(productGroupId, menuId, collectionId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("GroupItem")]
-        public IActionResult GetProductGroupWithGroupItem(int? productGroupId, int? menuId, int? collectionId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult GetProductGroupWithGroupItem(int? productGroupId, int? menuId, int? collectionId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.ProductGroupRepository.GetProductGroupWithGroupItem(productGroupId, menuId, collectionId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _productGroupService.GetProductGroupWithGroupItem(productGroupId, menuId, collectionId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
-        public IActionResult Add(ProductGroupCreateDTO productCreateDTO)
+        public ActionResult Add(ProductGroupCreateDTO productCreateDTO)
         {
-            if (productCreateDTO.MenuID == 0) productCreateDTO.MenuID = null;
-            if (productCreateDTO.CollectionID == 0) productCreateDTO.CollectionID = null;
-
-            var data = _mapper.Map<ProductGroup>(productCreateDTO);
-            _unitOfWork.ProductGroupRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _productGroupService.Add(productCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{productGroupId}")]
-        public IActionResult Update(int productGroupId, ProductGroupUpdateDTO productGroupUpdateDTO)
+        public ActionResult Update(int productGroupId, ProductGroupUpdateDTO productGroupUpdateDTO)
         {
-            var data = _unitOfWork.ProductGroupRepository.Find(c => c.ProductGroupId == productGroupId).FirstOrDefault();
-            if (data == null) return NotFound();
-
-            _mapper.Map(productGroupUpdateDTO, data);
-
-            _unitOfWork.ProductGroupRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _productGroupService.Update(productGroupId, productGroupUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{productGroupId}")]
-        public IActionResult Delete(int productGroupId)
+        public ActionResult Delete(int productGroupId)
         {
-            var data = _unitOfWork.ProductGroupRepository.Find(c => c.ProductGroupId == productGroupId).FirstOrDefault();
-            if (data == null) return NotFound();
-
-            data.IsDeleted = true;
-            _unitOfWork.ProductGroupRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _productGroupService.Delete(productGroupId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

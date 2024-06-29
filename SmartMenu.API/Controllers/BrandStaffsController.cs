@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,52 +14,68 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IBrandStaffService _brandStaffService;
 
-        public BrandStaffsController(IUnitOfWork unitOfWork, IMapper mapper)
+        public BrandStaffsController(IUnitOfWork unitOfWork, IMapper mapper, IBrandStaffService brandStaffService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _brandStaffService = brandStaffService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? brandStaffId, int? brandId, Guid? userId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? brandStaffId, int? brandId, Guid? userId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.BrandStaffRepository.GetAll(brandStaffId, brandId, userId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _brandStaffService.GetAll(brandStaffId, brandId, userId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            };
         }
         [HttpPost]
-        public IActionResult Add(BrandStaffCreateDTO brandStaffCreateDTO)
+        public ActionResult Add(BrandStaffCreateDTO brandStaffCreateDTO)
         {
-            var user = _unitOfWork.UserRepository.Find(c => c.UserID == brandStaffCreateDTO.UserID && c.IsDeleted == false).FirstOrDefault();
-            if (user == null) return BadRequest("User not found or deleted.");
-
-            var data = _mapper.Map<BrandStaff>(brandStaffCreateDTO);
-            _unitOfWork.BrandStaffRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _brandStaffService.Add(brandStaffCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{brandStaffId}")]
-        public IActionResult Update(int brandStaffId, BrandStaffCreateDTO brandStaffCreateDTO)
+        public ActionResult Update(int brandStaffId, BrandStaffCreateDTO brandStaffCreateDTO)
         {
-            var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffId == brandStaffId).FirstOrDefault();
-            if (data == null) return NotFound();
-            _mapper.Map(brandStaffCreateDTO, data);
-            _unitOfWork.BrandStaffRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _brandStaffService.Update(brandStaffId, brandStaffCreateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{brandStaffId}")]
-        public IActionResult Delete(int brandStaffId)
+        public ActionResult Delete(int brandStaffId)
         {
-            var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffId == brandStaffId).FirstOrDefault();
-            if (data == null) return NotFound();
-
-            data.IsDeleted = true;
-            _unitOfWork.BrandStaffRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _brandStaffService.Delete(brandStaffId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

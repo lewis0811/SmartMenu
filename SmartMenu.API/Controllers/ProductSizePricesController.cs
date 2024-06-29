@@ -4,6 +4,8 @@ using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -13,60 +15,69 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IProductSizePriceService _productSizePriceService;
 
-        public ProductSizePricesController(IMapper mapper, IUnitOfWork unitOfWork)
+        public ProductSizePricesController(IMapper mapper, IUnitOfWork unitOfWork, IProductSizePriceService productSizePriceService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _productSizePriceService = productSizePriceService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? productSizePriceId, int? productId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? productSizePriceId, int? productId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.ProductSizePriceRepository.GetAll(productSizePriceId, productId, searchString, pageNumber, pageSize);
-            if (data == null) data ??= Enumerable.Empty<ProductSizePrice>();
-
-            return Ok(data);
+            try
+            {
+                var data = _productSizePriceService.GetAll(productSizePriceId, productId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            };
         }
 
         [HttpPost]
-        public IActionResult Add(ProductSizePriceCreateDTO productSizePriceCreateDTO)
+        public ActionResult Add(ProductSizePriceCreateDTO productSizePriceCreateDTO)
         {
-            var product = _unitOfWork.ProductRepository.Find(c => c.ProductId == productSizePriceCreateDTO.ProductId).FirstOrDefault();
-            var productSizes = Enum.GetValues(typeof(ProductSizeType));
-            
-
-            if (product == null) return BadRequest("Product doesn't exist or deleted.");
-            if (productSizes.Length < (int)productSizePriceCreateDTO.ProductSizeType) return BadRequest("Product size doesn't exist or deleted.");
-
-            var data = _mapper.Map<ProductSizePrice>(productSizePriceCreateDTO);
-            _unitOfWork.ProductSizePriceRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), data);
+            try
+            {
+                var data = _productSizePriceService.Add(productSizePriceCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{productSizePriceId}")]
-        public IActionResult Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO)
+        public ActionResult Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO)
         {
-            var data = _unitOfWork.ProductSizePriceRepository.Find(c => c.ProductSizePriceId == productSizePriceId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("ProductSizePrice not found or deleted");
-
-            _mapper.Map(productSizePriceUpdateDTO, data);
-            _unitOfWork.ProductSizePriceRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _productSizePriceService.Update(productSizePriceId, productSizePriceUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{productSizePriceId}")]
-        public IActionResult Delete(int productSizePriceId)
+        public ActionResult Delete(int productSizePriceId)
         {
-            var data = _unitOfWork.ProductSizePriceRepository.Find(c => c.ProductSizePriceId == productSizePriceId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("ProductSizePrice not found or deleted");
-
-            data.IsDeleted = true;
-            _unitOfWork.ProductSizePriceRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _productSizePriceService.Delete(productSizePriceId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

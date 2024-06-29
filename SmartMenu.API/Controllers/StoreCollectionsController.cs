@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,49 +14,68 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IStoreCollectionService _storeCollectionService;
 
-        public StoreCollectionsController(IUnitOfWork unitOfWork, IMapper mapper)
+        public StoreCollectionsController(IUnitOfWork unitOfWork, IMapper mapper, IStoreCollectionService storeCollectionService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _storeCollectionService = storeCollectionService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? storeCollectionId, int? collectionId, int? storeId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? storeCollectionId, int? collectionId, int? storeId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.StoreCollectionRepository.GetAll(storeCollectionId, collectionId, storeId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _storeCollectionService.GetAll(storeCollectionId, collectionId, storeId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpPost]
-        public IActionResult Add(StoreCollectionCreateDTO storeCollectionCreateDTO)
+        public ActionResult Add(StoreCollectionCreateDTO storeCollectionCreateDTO)
         {
-            var data = _mapper.Map<StoreCollection>(storeCollectionCreateDTO);
-            _unitOfWork.StoreCollectionRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _storeCollectionService.Add(storeCollectionCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{storeCollectionID}")]
-        public IActionResult Update(int storeCollectionId, StoreCollectionCreateDTO storeCollectionCreateDTO)
+        public ActionResult Update(int storeCollectionId, StoreCollectionCreateDTO storeCollectionCreateDTO)
         {
-            var data = _unitOfWork.StoreCollectionRepository.Find(c => c.StoreCollectionId == storeCollectionId).FirstOrDefault();
-            if (data == null) return NotFound();
-            _mapper.Map(storeCollectionCreateDTO, data);
-            _unitOfWork.StoreCollectionRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _storeCollectionService.Update(storeCollectionId, storeCollectionCreateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{storeCollectionID}")]
-        public IActionResult Delete(int storeCollectionId)
+        public ActionResult Delete(int storeCollectionId)
         {
-            var data = _unitOfWork.StoreCollectionRepository.Find(c => c.StoreCollectionId == storeCollectionId).FirstOrDefault();
-            if (data == null) return NotFound();
-
-            data.IsDeleted = true;
-            _unitOfWork.StoreCollectionRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _storeCollectionService.Delete(storeCollectionId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

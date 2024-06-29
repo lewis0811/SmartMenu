@@ -21,6 +21,20 @@ namespace SmartMenu.API.Ultility
             services.AddScoped<IlayerItemService, LayerItemService>();
             services.AddScoped<IDisplayService, DisplayService>();
             services.AddScoped<IDisplayItemService, DisplayItemService>();
+            services.AddScoped<IStoreService, StoreService>();
+            services.AddScoped<IBrandService, BrandService>();
+            services.AddScoped<IStoreCollectionService, StoreCollectionService>();
+            services.AddScoped<IStoreMenuService, StoreMenuService>();
+            services.AddScoped<IStoreProductService, StoreProductService>();
+            services.AddScoped<IMenuService, MenuService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ICollectionService, CollectionService>();
+            services.AddScoped<IBrandStaffService, BrandStaffService>();
+            services.AddScoped<IProductSizePriceService, ProductSizePriceService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IProductSizeService, ProductSizeService>();
+            services.AddScoped<IProductGroupItemService, ProductGroupItemService>();
+            services.AddScoped<IProductGroupService, ProductGroupService>();
             return services;
         }
     }
