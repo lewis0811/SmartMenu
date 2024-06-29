@@ -5,7 +5,7 @@ using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Ultility
 {
-    public static class ServicesDI 
+    public static class ServicesDI
     {
         public static IServiceCollection AddDIServices(this IServiceCollection services)
         {
@@ -14,9 +14,12 @@ namespace SmartMenu.API.Ultility
 
             // Services DI
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IBoxItemService, Service.Services.BoxItemService>();
+            services.AddScoped<IBoxService, BoxService>();
             services.AddScoped<ITemplateService, TemplateService>();
-
+            services.AddScoped<IBoxItemService, BoxItemService>();
+            services.AddScoped<ILayerService, LayerService>();
+            services.AddScoped<IlayerItemService, LayerItemService>();
+            services.AddScoped<IDisplayService, DisplayService>();
             return services;
         }
     }
