@@ -10,7 +10,7 @@ namespace SmartMenu.Domain.Models
         [Required]
         public string LayerItemValue { get; set; } = string.Empty;
 
-        [ForeignKey(nameof(LayerId))]
-        public Layer? Layer {  get; set; }
+        //[ForeignKey(nameof(LayerId))]
+        //public Layer? Layer {  get; set; }
     }
 }
