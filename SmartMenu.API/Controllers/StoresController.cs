@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -12,72 +14,97 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IStoreService _storeService;
 
-        public StoresController(IUnitOfWork unitOfWork, IMapper mapper)
+       public StoresController(IUnitOfWork unitOfWork, IMapper mapper, IStoreService storeService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _storeService = storeService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.StoreRepository.GetAll(storeId, brandId, searchString, pageNumber, pageSize);
-            data ??= Enumerable.Empty<Store>();
-
-            return Ok(data);
+            try
+            {
+                var data = _storeService.GetAll(storeId, brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("StoreMenus")]
-        public IActionResult GetStoreMenus(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult GetStoreMenus(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.StoreRepository.GetStoreWithMenus(storeId, brandId, searchString, pageNumber, pageSize);
-            data ??= Enumerable.Empty<Store>();
-
-            return Ok(data);
+            try
+            {
+                var data = _storeService.GetStoreWithMenus(storeId, brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("StoreCollections")]
         public IActionResult GetStoreCollection(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.StoreRepository.GetStoreWithCollections(storeId, brandId, searchString, pageNumber, pageSize);
-            data ??= Enumerable.Empty<Store>();
-
-            return Ok(data);
+            try
+            {
+                var data = _storeService.GetStoreWithCollections(storeId, brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
         public IActionResult Add(StoreCreateDTO storeCreateDTO)
         {
-            var data = _mapper.Map<Store>(storeCreateDTO);
-            _unitOfWork.StoreRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _storeService.Add(storeCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{storeId}")]
         public IActionResult Update(int storeId, StoreUpdateDTO storeUpdateDTO)
         {
-            var data = _unitOfWork.StoreRepository.Find(c => c.StoreId == storeId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Store not found or deleted");
-
-            _mapper.Map(storeUpdateDTO, data);
-
-            _unitOfWork.StoreRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _storeService.Update(storeId, storeUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{storeId}")]
         public IActionResult Delete(int storeId)
         {
-            var data = _unitOfWork.StoreRepository.Find(c => c.StoreId == storeId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Store not found or deleted");
-
-            data.IsDeleted = true;
-            _unitOfWork.StoreRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _storeService.Delete(storeId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

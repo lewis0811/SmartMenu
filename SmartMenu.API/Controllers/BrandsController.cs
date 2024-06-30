@@ -6,6 +6,8 @@ using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
+using SmartMenu.Service.Interfaces;
+using SmartMenu.Service.Services;
 
 namespace SmartMenu.API.Controllers
 {
@@ -16,32 +18,55 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IBrandService _brandService;
 
-        public BrandsController(IUnitOfWork unitOfWork, IMapper mapper)
+        public BrandsController(IUnitOfWork unitOfWork, IMapper mapper, IBrandService brandService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _brandService = brandService;
         }
 
         [HttpGet]
-        public IActionResult Get(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.BrandRepository.GetAll(brandId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _brandService.GetAll(brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("BrandStaff")]
-        public IActionResult GetBranchWithBrandStaff(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult GetBranchWithBrandStaff(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.BrandRepository.GetBranchWithBrandStaff(brandId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _brandService.GetBranchWithBrandStaff(brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("BrandStore")]
-        public IActionResult GetBranchWithStore(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult GetBranchWithStore(int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.BrandRepository.GetBranchWithStore(brandId, searchString, pageNumber, pageSize);
-            return Ok(data);
+            try
+            {
+                var data = _brandService.GetBranchWithStore(brandId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         //[HttpGet("BrandProduct")]
@@ -52,37 +77,45 @@ namespace SmartMenu.API.Controllers
         //}
 
         [HttpPost]
-        public IActionResult Add(BrandCreateDTO brandCreateDTO)
+        public ActionResult Add(BrandCreateDTO brandCreateDTO)
         {
-            var data = _mapper.Map<Brand>(brandCreateDTO);
-            _unitOfWork.BrandRepository.Add(data);
-            _unitOfWork.Save();
-            return CreatedAtAction(nameof(Get), new { data });
+            try
+            {
+                var data = _brandService.Add(brandCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{brandId}")]
-        public IActionResult Update(int brandId, BrandCreateDTO brandCreateDTO) 
+        public ActionResult Update(int brandId, BrandUpdateDTO brandUpdateDTO) 
         {
-            var data = _unitOfWork.BrandRepository.Find(c => c.BrandId == brandId && c.IsDeleted == false && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Brand not found or deleted");
-
-            _mapper.Map(brandCreateDTO, data);
-
-            _unitOfWork.BrandRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok(data);
+            try
+            {
+                var data = _brandService.Update(brandId, brandUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{brandId}")]
-        public IActionResult Delete(int brandId)
+        public ActionResult Delete(int brandId)
         {
-            var data = _unitOfWork.BrandRepository.Find(c => c.BrandId == brandId && c.IsDeleted == false).FirstOrDefault();
-            if (data == null) return BadRequest("Brand not found or deleted");
-
-            data.IsDeleted = true;
-            _unitOfWork.BrandRepository.Update(data);
-            _unitOfWork.Save();
-            return Ok();
+            try
+            {
+                _brandService.Delete(brandId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
