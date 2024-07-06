@@ -19,11 +19,11 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get(int? layerItemId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public IActionResult Get(int? layerItemId, int? layerId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var data = _layerItemService.GetAll(layerItemId, searchString, pageNumber, pageSize);
+                var data = _layerItemService.GetAll(layerItemId, layerId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)

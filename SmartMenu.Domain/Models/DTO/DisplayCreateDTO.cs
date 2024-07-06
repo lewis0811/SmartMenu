@@ -20,6 +20,6 @@ namespace SmartMenu.Domain.Models.DTO
         public double ActiveHour { get; set; }
 
         //[Url(ErrorMessage = "Display image path must be a valid URL.")] // Use UrlAttribute for URL validation
-        public string? DisplayImgPath { get; set; }
+        //public string? DisplayImgPath { get; set; }
     }
 }

@@ -14,8 +14,8 @@ namespace SmartMenu.Domain.Models
         public BoxItemType BoxItemType { get; set; }
         public string BoxColor { get; set; } = "#ffffff";
 
-        [ForeignKey(nameof(BoxId))]
-        public Box? Box { get; set; }
+        //[ForeignKey(nameof(BoxId))]
+        //public Box? Box { get; set; }
 
         [ForeignKey(nameof(FontId))]
         public Font? Font { get; set; }

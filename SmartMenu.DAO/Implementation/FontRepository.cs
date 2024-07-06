@@ -1,6 +1,7 @@
 ﻿using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
+using System.Drawing.Text;
 
 namespace SmartMenu.DAO.Implementation
 {
@@ -22,9 +23,11 @@ namespace SmartMenu.DAO.Implementation
 
         public void Add(FontCreateDTO font, string path)
         {
-            string fontName = Path.GetFileName(font.File!.FileName);
+            string fontName = font.File!.FileName;
+            //string realfontName = fontName.Split('.').First();
             string extensionName = Path.GetExtension(fontName);
-            if (extensionName != ".ttf") { throw new Exception("File must be \".ttf\" extension! "); }
+
+            if (extensionName != ".ttf" && extensionName != ".otf") { throw new Exception("File must be \".ttf\" or \".otf\" extension! "); }
 
             if (!Directory.Exists(path))
             {
@@ -37,10 +40,13 @@ namespace SmartMenu.DAO.Implementation
                 stream.Flush();
             }
 
+            PrivateFontCollection fontCollection = new();
+            fontCollection.AddFontFile(path + $"\\{fontName}");
+
             var data = new Font()
             {
-                FontName = fontName.Trim(),
-                FontPath = path
+                FontName = fontCollection.Families.First().Name,
+                FontPath = path + $"\\{fontName}"
             };
 
             _context.Fonts.Add(data);

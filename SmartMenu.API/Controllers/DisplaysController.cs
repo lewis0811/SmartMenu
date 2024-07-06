@@ -43,6 +43,23 @@ namespace SmartMenu.API.Controllers
             }
         }
 
+        [HttpGet("{displayId}/image")]
+        public IActionResult Get(int displayId)
+        {
+            try
+            {
+                var data = _displayService.GetImageById(displayId);
+                if (data == null) return BadRequest("Image fail to create");
+
+                byte[] b = System.IO.File.ReadAllBytes(data);
+                return File(b, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost]
         public IActionResult Add(DisplayCreateDTO displayCreateDTO)
         {
@@ -57,13 +74,28 @@ namespace SmartMenu.API.Controllers
             }
         }
 
-        [HttpPost("V2")]
+        //[HttpPost("V2")]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //public IActionResult AddV2(DisplayCreateDTO displayCreateDTO)
+        //{
+        //    try
+        //    {
+        //        var data = _displayService.AddDisplayV2(displayCreateDTO);
+        //        return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
+
+        [HttpPost("V3")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public IActionResult AddV2(DisplayCreateDTO displayCreateDTO)
+        public IActionResult AddV3(DisplayCreateDTO displayCreateDTO)
         {
             try
             {
-                var data = _displayService.AddDisplayV2(displayCreateDTO);
+                var data = _displayService.AddDisplayV3(displayCreateDTO);
                 return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
             }
             catch (Exception ex)
@@ -79,6 +111,23 @@ namespace SmartMenu.API.Controllers
             {
                 var data = _displayService.Update(displayId, displayUpdateDTO);
                 return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("{displayId}/image")]
+        public IActionResult UpdateContainImage(int displayId, DisplayUpdateDTO displayUpdateDTO)
+        {
+            try
+            {
+                var data = _displayService.UpdateContainImage(displayId, displayUpdateDTO);
+                if (data == null) return BadRequest("Image fail to create");
+
+                byte[] b = System.IO.File.ReadAllBytes(data);
+                return File(b, "image/jpeg");
             }
             catch (Exception ex)
             {

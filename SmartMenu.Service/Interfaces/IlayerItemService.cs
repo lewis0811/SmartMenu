@@ -12,7 +12,7 @@ namespace SmartMenu.Service.Interfaces
     {
         LayerItem AddLayerItem(LayerItemCreateDTO layerItemCreateDTO);
         void Delete(int layerItemId);
-        IEnumerable<LayerItem> GetAll(int? layerItemId, string? searchString, int pageNumber, int pageSize);
+        IEnumerable<LayerItem> GetAll(int? layerItemId, int? layerId, string? searchString, int pageNumber, int pageSize);
         LayerItem Update(int layerItemId, LayerItemUpdateDTO layerItemUpdateDTO);
     }
 }

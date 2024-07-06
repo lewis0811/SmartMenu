@@ -36,7 +36,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var path = $"{_webHostEnvironment.WebRootPath}/{SD.FontPath}";
+                var path = $"{_webHostEnvironment.WebRootPath}\\{SD.FontPath}";
                 _unitOfWork.FontRepository.Add(fontCreateDTO, path);
                 _unitOfWork.Save();
                 return CreatedAtAction(nameof(Get), fontCreateDTO.File!.FileName);

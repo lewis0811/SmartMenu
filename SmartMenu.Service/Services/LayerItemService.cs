@@ -42,10 +42,10 @@ namespace SmartMenu.Service.Services
             _unitOfWork.Save();
         }
 
-        public IEnumerable<LayerItem> GetAll(int? layerItemId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<LayerItem> GetAll(int? layerItemId, int? layerId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.LayerItemRepository.EnableQuery();
-            var result = DataQuery(data, layerItemId, searchString, pageNumber, pageSize);
+            var result = DataQuery(data, layerId, layerItemId, searchString, pageNumber, pageSize);
 
             return result;
         }
@@ -62,7 +62,7 @@ namespace SmartMenu.Service.Services
             return data;
         }
 
-        private IEnumerable<LayerItem> DataQuery(IQueryable<LayerItem> data, int? layerItemId, string? searchString, int pageNumber, int pageSize)
+        private IEnumerable<LayerItem> DataQuery(IQueryable<LayerItem> data, int? layerId, int? layerItemId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(data => data.IsDeleted == false);
 
@@ -70,6 +70,12 @@ namespace SmartMenu.Service.Services
             {
                 data = data
                     .Where(c => c.LayerItemId == layerItemId);
+            }
+
+            if (layerId != null)
+            {
+                data = data
+                    .Where(c => c.LayerId == layerId);
             }
 
             if (searchString != null)
