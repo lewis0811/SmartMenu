@@ -11,6 +11,7 @@ using System.Text;
 using Amazon.S3;
 using SmartMenu.Service.Interfaces;
 using SmartMenu.Service.Services;
+using CloudinaryDotNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +69,15 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonS3>();
+
+//// Add Cloudinary configuration
+//Account account = new Account
+//(
+//     builder.Configuration.GetValue<string>("Cloudinary:CloudName").ToString(),
+//          builder.Configuration.GetValue<string>("Cloudinary:ApiKey").ToString(),
+//               builder.Configuration.GetValue<string>("Cloudinary:ApiSecret").ToString()
+//);
+//Cloudinary cloudinary = new Cloudinary(account);
 
 // Add Entity Framework
 builder.Services.AddDbContext<SmartMenuDBContext>

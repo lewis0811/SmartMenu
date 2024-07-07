@@ -8,7 +8,6 @@ namespace SmartMenu.DAO.Implementation
     public class FontRepository : GenericRepository<Font>, IFontRepository
     {
         private readonly SmartMenuDBContext _context;
-        //private readonly IWebh
 
         public FontRepository(SmartMenuDBContext context) : base(context)
         {
@@ -45,7 +44,7 @@ namespace SmartMenu.DAO.Implementation
 
             var data = new Font()
             {
-                FontName = fontCollection.Families.First().Name,
+                FontName = fontName,
                 FontPath = path + $"\\{fontName}"
             };
 

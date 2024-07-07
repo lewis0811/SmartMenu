@@ -9,10 +9,12 @@ namespace SmartMenu.API.Controllers
     public class DisplaysController : ControllerBase
     {
         private readonly IDisplayService _displayService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public DisplaysController(IDisplayService displayService)
+        public DisplaysController(IDisplayService displayService, IWebHostEnvironment webHostEnvironment)
         {
             _displayService = displayService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
@@ -44,11 +46,29 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet("{displayId}/image")]
-        public IActionResult Get(int displayId)
+        public IActionResult GetImage(int displayId)
         {
             try
             {
                 var data = _displayService.GetImageById(displayId);
+                if (data == null) return BadRequest("Image fail to create");
+
+                byte[] b = System.IO.File.ReadAllBytes(data);
+                return File(b, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("V2/{displayId}/image")]
+        public IActionResult GetImageV2(int displayId)
+        {
+            try
+            {
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                var data = _displayService.GetImageByIdV2(displayId, tempPath);
                 if (data == null) return BadRequest("Image fail to create");
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
@@ -96,6 +116,23 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var data = _displayService.AddDisplayV3(displayCreateDTO);
+                return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("V4")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public IActionResult AddV4(DisplayCreateDTO displayCreateDTO)
+        {
+            try
+            {
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                var data = _displayService.AddDisplayV4(displayCreateDTO, tempPath);
+
                 return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
             }
             catch (Exception ex)

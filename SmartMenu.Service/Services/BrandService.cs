@@ -100,8 +100,8 @@ namespace SmartMenu.Service.Services
                 data = data
                     .Where(c =>
                         c.BrandName.ToString().Contains(searchString)
-                    || c.BrandDescription.ToString().Contains(searchString)
-                    || c.BrandImage.ToString().Contains(searchString)
+                    || c.BrandDescription!.ToString().Contains(searchString)
+                    || c.BrandImage!.ToString().Contains(searchString)
                     || c.BrandContactEmail.Contains(searchString));
             }
 

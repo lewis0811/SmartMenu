@@ -1,4 +1,5 @@
-﻿using SmartMenu.DAO.Implementation;
+﻿using CloudinaryDotNet;
+using SmartMenu.DAO.Implementation;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 using SmartMenu.Service.Services;
@@ -35,6 +36,8 @@ namespace SmartMenu.API.Ultility
             services.AddScoped<IProductSizeService, ProductSizeService>();
             services.AddScoped<IProductGroupItemService, ProductGroupItemService>();
             services.AddScoped<IProductGroupService, ProductGroupService>();
+            services.AddScoped<IFontService, FontService>();
+            services.AddScoped<ICloudinary, Cloudinary>();
             return services;
         }
     }

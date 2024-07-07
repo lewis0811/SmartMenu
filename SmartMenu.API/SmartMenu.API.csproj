@@ -12,6 +12,7 @@
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.301" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.309.7" />
+    <PackageReference Include="dotenv.net" Version="3.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.30" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.29" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.29">
@@ -23,6 +24,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\" />
+    <Folder Include="wwwroot\temp\" />
   </ItemGroup>
 
   <ItemGroup>
