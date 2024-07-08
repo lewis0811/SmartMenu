@@ -38,6 +38,7 @@ namespace SmartMenu.API.Ultility
             services.AddScoped<IProductGroupService, ProductGroupService>();
             services.AddScoped<IFontService, FontService>();
             services.AddScoped<ICloudinary, Cloudinary>();
+            services.AddScoped<IEnumService, EnumService>();
             return services;
         }
     }

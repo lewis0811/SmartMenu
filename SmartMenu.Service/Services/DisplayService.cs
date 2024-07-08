@@ -10,7 +10,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.Net;
 using Font = System.Drawing.Font;
-
+#pragma warning disable SYSLIB0014 // Type or member is obsolete
 namespace SmartMenu.Service.Services
 {
     public class DisplayService : IDisplayService
@@ -1680,11 +1680,13 @@ namespace SmartMenu.Service.Services
                     //    client.Dispose();
                     //}
 
+
                     using (var client = new WebClient())
                     {
                         client.DownloadFile(boxItemFromDB.Font!.FontPath, tempFontPath);
                         client.Dispose();
                     }
+
 
                     // Check if file exists
                     if (!File.Exists(tempFontPath))
@@ -2250,3 +2252,4 @@ namespace SmartMenu.Service.Services
         }
     }
 }
+#pragma warning restore SYSLIB0014 // Type or member is obsolete

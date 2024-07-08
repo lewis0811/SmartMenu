@@ -27,18 +27,20 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet("test")]
-        public IActionResult Get(string imgpath, int fondId)
+        public IActionResult Get(int fondId)
         {
             var font = _unitOfWork.FontRepository.Find(c => c.FontId == fondId).FirstOrDefault();
             var path = $"{_webHostEnvironment.WebRootPath}\\temp";
             var storePath = Path.Combine(path, Guid.NewGuid().ToString() + ".ttf");
 
             // Download and write file
+#pragma warning disable SYSLIB0014 // Type or member is obsolete
             using (var client = new WebClient())
             {
-                client.DownloadFile(font.FontPath, storePath);
+                client.DownloadFile(font!.FontPath, storePath);
                 client.Dispose();
             }
+#pragma warning restore SYSLIB0014 // Type or member is obsolete
 
             // Check if file exists
             if (!System.IO.File.Exists(storePath))

@@ -9,8 +9,13 @@ namespace SmartMenu.Domain.Models.DTO
         public string StoreDeviceName { get; set; } = string.Empty;
 
         [Required]
-        public DisplayType DisplayType { get; set; }
+        public int DeviceWidth { get; set; }
+        [Required]
+        public int DeviceHeight { get; set; }
 
-        public bool IsDisplay { get; set; } = false;
+        //[Required]
+        //public DisplayType DisplayType { get; set; }
+
+        //public bool IsDisplay { get; set; } = false;
     }
 }
