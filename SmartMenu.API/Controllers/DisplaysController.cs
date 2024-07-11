@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Service.Interfaces;
 
@@ -133,6 +134,7 @@ namespace SmartMenu.API.Controllers
             {
                 var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
                 var data = _displayService.AddDisplayV4(displayCreateDTO, tempPath);
+                _displayService.DeleteTempFile(tempPath);
 
                 return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
             }
@@ -147,7 +149,9 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
                 var data = _displayService.Update(displayId, displayUpdateDTO);
+                _displayService.DeleteTempFile(tempPath);
                 return Ok(data);
             }
             catch (Exception ex)
@@ -161,8 +165,10 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data = _displayService.UpdateContainImage(displayId, displayUpdateDTO);
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                var data = _displayService.UpdateContainImage(displayId, displayUpdateDTO, tempPath);
                 if (data == null) return BadRequest("Image fail to create");
+                _displayService.DeleteTempFile(tempPath);
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
                 return File(b, "image/jpeg");

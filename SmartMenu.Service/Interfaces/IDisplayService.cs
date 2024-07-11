@@ -18,7 +18,7 @@ namespace SmartMenu.Service.Interfaces
         void Delete(int displayId);
         Display AddDisplayV3(DisplayCreateDTO displayCreateDTO);
         string GetImageById(int displayId);
-        string UpdateContainImage(int displayId, DisplayUpdateDTO displayUpdateDTO);
+        string UpdateContainImage(int displayId, DisplayUpdateDTO displayUpdateDTO, string tempPath);
         Display AddDisplayV4(DisplayCreateDTO displayCreateDTO, string tempPath);
         string GetImageByIdV2(int displayId, string tempPath);
         void DeleteTempFile(string tempPath);

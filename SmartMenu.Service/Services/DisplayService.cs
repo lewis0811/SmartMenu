@@ -486,7 +486,85 @@ namespace SmartMenu.Service.Services
             _unitOfWork.DisplayRepository.Update(data);
             _unitOfWork.Save();
 
+            // Delete old displayItem
+            var displayItems = _unitOfWork.DisplayItemRepository.Find(c => c.DisplayId == data.DisplayId).ToList();
+
+            foreach (var item in displayItems)
+            {
+                _unitOfWork.DisplayItemRepository.Remove(item);
+            }
+            _unitOfWork.Save();
+
+            AddDisplayItem(template, menu, collection, data);
+
             return data;
+        }
+
+        private void AddDisplayItem(Template? template, Menu? menu, Collection? collection, Display data)
+        {
+            // Add new displayItem
+            // Adding display items
+            var productGroups = new List<ProductGroup>();
+            var boxes = new List<Box>();
+            var layers = new List<Layer>();
+            var templateWithLayer = new Template();
+
+            // GET ProductGroup List from Menu or Collection if not null
+            if (menu != null)
+            {
+                productGroups = _unitOfWork.ProductGroupRepository.GetProductGroup(null, menu.MenuId, null);
+            }
+
+            if (collection != null)
+            {
+                productGroups = _unitOfWork.ProductGroupRepository.GetProductGroup(null, null, collection.CollectionId);
+            }
+
+            // GET Box List from display's template
+            templateWithLayer = _unitOfWork.TemplateRepository.GetTemplateWithLayersAndBoxes(template.TemplateId);
+
+            if (templateWithLayer.Layers != null)
+            {
+                layers.AddRange(templateWithLayer.Layers);
+
+                foreach (var layer in layers)
+                {
+                    if (layer.Boxes != null)
+                    {
+                        boxes.AddRange(layer.Boxes);
+                    }
+                }
+
+                // Query exact box in needed
+                boxes = boxes.Where(c => c.BoxType == Domain.Models.Enum.BoxType.UseInDisplay).ToList();
+            }
+
+            // Get display items list from product groups and boxes
+            int productGroupCount = productGroups.Count;
+            int boxCount = boxes.Count;
+
+            if (boxCount < productGroupCount)
+            {
+                _unitOfWork.DisplayRepository.Remove(data);
+                _unitOfWork.Save();
+
+                throw new Exception("Not enough boxes for rendering product groups.");
+            }
+
+            // Adding display items to database
+            for (int i = 0; i < productGroupCount; i++)
+            {
+                DisplayItemCreateDTO item = new()
+                {
+                    DisplayID = data.DisplayId,
+                    BoxID = boxes[i].BoxId,
+                    ProductGroupID = productGroups[i].ProductGroupId
+                };
+
+                var itemData = _mapper.Map<DisplayItem>(item);
+                _unitOfWork.DisplayItemRepository.Add(itemData);
+                _unitOfWork.Save();
+            }
         }
 
         public void Delete(int displayId)
@@ -1360,7 +1438,7 @@ namespace SmartMenu.Service.Services
             return imgPath;
 
         }
-        public string UpdateContainImage(int displayId, DisplayUpdateDTO displayUpdateDTO)
+        public string UpdateContainImage(int displayId, DisplayUpdateDTO displayUpdateDTO, string tempPath)
         {
             Display updateDisplay = Update(displayId, displayUpdateDTO) 
                 ?? throw new Exception("Display fail to update");
@@ -1376,7 +1454,7 @@ namespace SmartMenu.Service.Services
                 .FirstOrDefault()
                 ?? throw new Exception("Display not found or deleted");
 
-            string imgPath = InitializeImage(display);
+            string imgPath = InitializeImageV2(display, tempPath);
             return imgPath;
 
         }
@@ -1412,71 +1490,7 @@ namespace SmartMenu.Service.Services
             _unitOfWork.DisplayRepository.Add(data);
             _unitOfWork.Save();
 
-            // Adding display items
-            var productGroups = new List<ProductGroup>();
-            var boxes = new List<Box>();
-            var layers = new List<Layer>();
-            var templateWithLayer = new Template();
-            var displayItems = new List<DisplayItem>();
-
-            // GET ProductGroup List from Menu or Collection if not null
-            if (menu != null)
-            {
-                productGroups = _unitOfWork.ProductGroupRepository.GetProductGroup(null, menu.MenuId, null);
-            }
-
-            if (collection != null)
-            {
-                productGroups = _unitOfWork.ProductGroupRepository.GetProductGroup(null, null, collection.CollectionId);
-            }
-
-            // GET Box List from display's template
-            templateWithLayer = _unitOfWork.TemplateRepository.GetTemplateWithLayersAndBoxes(template.TemplateId);
-
-            if (templateWithLayer.Layers != null)
-            {
-                layers.AddRange(templateWithLayer.Layers);
-
-                foreach (var layer in layers)
-                {
-                    if (layer.Boxes != null)
-                    {
-                        boxes.AddRange(layer.Boxes);
-                    }
-                }
-
-                // Query exact box in needed
-                boxes = boxes.Where(c => c.BoxType == Domain.Models.Enum.BoxType.UseInDisplay).ToList();
-            }
-
-            // Get display items list from product groups and boxes
-            int productGroupCount = productGroups.Count;
-            int boxCount = boxes.Count;
-            //var boxesToRender = boxes.Where(c => c.)
-
-            if (boxCount < productGroupCount)
-            {
-                _unitOfWork.DisplayRepository.Remove(data);
-                _unitOfWork.Save();
-
-                throw new Exception("Not enough boxes for rendering product groups.");
-            }
-
-            // Adding display items to database
-            for (int i = 0; i < productGroupCount; i++)
-            {
-                DisplayItemCreateDTO item = new()
-                {
-                    DisplayID = data.DisplayId,
-                    BoxID = boxes[i].BoxId,
-                    ProductGroupID = productGroups[i].ProductGroupId
-                };
-
-                var itemData = _mapper.Map<DisplayItem>(item);
-                _unitOfWork.DisplayItemRepository.Add(itemData);
-                _unitOfWork.Save();
-            }
-
+            AddDisplayItem(template, menu, collection, data);
             InitializeImageV2(data, tempPath);
             return data;
         }
