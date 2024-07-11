@@ -52,8 +52,17 @@ namespace SmartMenu.Service.Services
             SecurityToken token = handler.CreateToken(securityTokenDescriptor);
             string tokenString = handler.WriteToken(token);
 
+            // Get brand id for user
+            var brandStaff = _unitOfWork.BrandStaffRepository.Find(c => c.UserId == data.UserID)
+                .FirstOrDefault() ?? throw new Exception($"User id: {data.UserID} doesn't belong to any brand");
+
+            var brandId = brandStaff.BrandId;
+
             return new {
                 UserId = data.UserID, 
+                RoleId = data.Role,
+                Role = data.Role.ToString(),
+                BrandId = brandId,
                 Token = tokenString
             };
         }
