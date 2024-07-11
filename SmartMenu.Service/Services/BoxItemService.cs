@@ -31,7 +31,7 @@ namespace SmartMenu.Service.Services
             var layer = _unitOfWork.LayerRepository.Find(c => c.LayerId == box.LayerId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Layer not found or deleted");
 
-            var boxItem = _unitOfWork.BoxItemRepository.EnableQuery();
+            var existboxItem = _unitOfWork.BoxItemRepository.EnableQuery().Where(c => c.BoxId == box.BoxId && c.IsDeleted == false); ;
 
             //Validate boxItem to add
             if (layer.LayerType == LayerType.BackgroundImageLayer) throw new Exception("Background image can't have box item");
@@ -40,9 +40,7 @@ namespace SmartMenu.Service.Services
 
             if (layer.LayerType == LayerType.RenderLayer)
             {
-                boxItem = boxItem.Where(c => c.BoxId == box.BoxId && c.IsDeleted == false);
-
-                if (boxItem.Count() > 1) // there is already 2 box item in render layer
+                if (existboxItem.Count() > 1) // there is already 2 box item in render layer
                 {
                     throw new Exception("Render layer can't have more than 2 box item");
                 }
@@ -60,6 +58,26 @@ namespace SmartMenu.Service.Services
                         .FirstOrDefault();
                     if (boxItemBody != null) throw new Exception($"Box item type body already exist in box ID: {box.BoxId}"); 
                 }
+            }
+
+            if (layer.LayerType == LayerType.StaticTextLayer)
+            {
+                if (existboxItem.Any()) // there is already 1 box item in static text layer
+                {
+                    throw new Exception("Static text layer can't have more than 1 box item");
+                }
+
+                if (boxItemCreateDTO.BoxItemType == BoxItemType.Body) throw new Exception("Box item for static text layer must be header type");
+            }
+
+            if (layer.LayerType == LayerType.MenuCollectionNameLayer)
+            {
+                if (existboxItem.Any()) // there is already 1 box item in static text layer
+                {
+                    throw new Exception("Menu/Collection name layer can't have more than 1 box item");
+                }
+
+                if (boxItemCreateDTO.BoxItemType == BoxItemType.Body) throw new Exception("Box item for menu/collection name layer must be header type");
             }
 
             var data = _mapper.Map<BoxItem>(boxItemCreateDTO);
