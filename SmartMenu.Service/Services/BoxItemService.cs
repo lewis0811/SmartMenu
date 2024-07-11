@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 
@@ -27,10 +28,43 @@ namespace SmartMenu.Service.Services
             var font = _unitOfWork.FontRepository.Find(c => c.FontId == boxItemCreateDTO.FontId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Font not found or deleted");
 
-            var data = _mapper.Map<BoxItem>(boxItemCreateDTO);
+            var layer = _unitOfWork.LayerRepository.Find(c => c.LayerId == box.LayerId && c.IsDeleted == false).FirstOrDefault()
+            ?? throw new Exception("Layer not found or deleted");
 
-            _unitOfWork.BoxItemRepository.Add(data);
-            _unitOfWork.Save();
+            var boxItem = _unitOfWork.BoxItemRepository.EnableQuery();
+
+            //Validate boxItem to add
+            if (layer.LayerType == LayerType.BackgroundImageLayer) throw new Exception("Background image can't have box item");
+
+            if (layer.LayerType == LayerType.ImageLayer) throw new Exception("Image can't have box item");
+
+            if (layer.LayerType == LayerType.RenderLayer)
+            {
+                boxItem = boxItem.Where(c => c.BoxId == box.BoxId && c.IsDeleted == false);
+
+                if (boxItem.Count() > 1) // there is already 2 box item in render layer
+                {
+                    throw new Exception("Render layer can't have more than 2 box item");
+                }
+
+                if (boxItemCreateDTO.BoxItemType == BoxItemType.Header)
+                {
+                    var boxItemHeader = _unitOfWork.BoxItemRepository.Find(c => c.BoxId == box.BoxId && c.BoxItemType == BoxItemType.Header)
+                        .FirstOrDefault();
+                    if (boxItemHeader != null)  throw new Exception($"Box item type header already exist in box ID: {box.BoxId}"); 
+                }
+
+                if (boxItemCreateDTO.BoxItemType == BoxItemType.Body)
+                {
+                    var boxItemBody = _unitOfWork.BoxItemRepository.Find(c => c.BoxId == box.BoxId && c.BoxItemType == BoxItemType.Body)
+                        .FirstOrDefault();
+                    if (boxItemBody != null) throw new Exception($"Box item type body already exist in box ID: {box.BoxId}"); 
+                }
+            }
+
+            var data = _mapper.Map<BoxItem>(boxItemCreateDTO);
+                _unitOfWork.BoxItemRepository.Add(data);
+                _unitOfWork.Save();
 
             return data;
         }

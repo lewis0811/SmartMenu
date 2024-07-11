@@ -28,7 +28,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data = _productService.GetAll(categoryId, productId, searchString, pageNumber, pageSize);
+                var data = _productService.GetAll(productId, categoryId,  searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)

@@ -73,6 +73,9 @@ namespace SmartMenu.Service.Services
                 stream.Flush();
             }
 
+            // Add to font collection
+            fontCollection.AddFontFile(Path.Combine(path, fontName));
+
             // Find the specified font family
             FontFamily family = fontCollection.Families.FirstOrDefault(f => f.Name.Equals(fontCollection.Families[0].Name, StringComparison.OrdinalIgnoreCase))
                 ?? throw new Exception("Font not found!");

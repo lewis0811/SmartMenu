@@ -21,5 +21,6 @@ namespace SmartMenu.Service.Interfaces
         string UpdateContainImage(int displayId, DisplayUpdateDTO displayUpdateDTO);
         Display AddDisplayV4(DisplayCreateDTO displayCreateDTO, string tempPath);
         string GetImageByIdV2(int displayId, string tempPath);
+        void DeleteTempFile(string tempPath);
     }
 }

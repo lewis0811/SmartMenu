@@ -8,7 +8,9 @@ using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 using System.Drawing;
 using System.Drawing.Text;
+using System.IO;
 using System.Net;
+using System.Security.Principal;
 using Font = System.Drawing.Font;
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
 namespace SmartMenu.Service.Services
@@ -913,7 +915,7 @@ namespace SmartMenu.Service.Services
                     PrivateFontCollection fontCollection = new();
                     fontCollection.AddFontFile(boxItemFromDB.Font!.FontPath);
                     headerFonts.Add(new Font(fontCollection.Families[0], (int)boxItemFromDB.FontSize));
-
+                    fontCollection.Dispose();
 
                     // Add color to list
                     ColorConverter colorConverter = new();
@@ -1668,18 +1670,13 @@ namespace SmartMenu.Service.Services
                     // Get temp font path
                     var tempFontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
 
-                    // Download and write file
-                    //using (var client = new HttpClient())
-                    //{
-                    //    var response =  client.GetAsync(boxItemFromDB.Font!.FontPath).Result;
-                    //    if (response.IsSuccessStatusCode)
-                    //    {
-                    //        var content = response.Content.ReadAsByteArrayAsync().Result;
-                    //        File.WriteAllBytes(tempFontPath, content);
-                    //    }
-                    //    client.Dispose();
-                    //}
+                    // Check if folder exist
+                    if (!Directory.Exists(tempPath))
+                    {
+                        Directory.CreateDirectory(tempPath);
+                    }
 
+                    // Download and write file
 
                     using (var client = new WebClient())
                     {
@@ -1699,7 +1696,7 @@ namespace SmartMenu.Service.Services
                     fontCollection.AddFontFile(tempFontPath);
                     Font font = new Font(fontCollection.Families[0], (int)boxItemFromDB.FontSize);
                     headerFonts.Add(new Font(fontCollection.Families[0], (int)boxItemFromDB.FontSize));
-                    File.Delete(tempFontPath);
+                    fontCollection.Dispose();
 
                     // Add color to list
                     ColorConverter colorConverter = new();
@@ -1707,8 +1704,8 @@ namespace SmartMenu.Service.Services
                     headerColors.Add(color);
                 }
             }
-            if (headerFonts.Count == 0) throw new Exception("Font not found or null");
-            if (headerColors.Count == 0) throw new Exception("Color not found or null");
+            if (headerFonts.Count == 0) throw new Exception("HeaderFont not found or null");
+            if (headerColors.Count == 0) throw new Exception("HeaderColor not found or null");
 
             #endregion Initialize Fonts, Colors for headers
 
@@ -1799,6 +1796,12 @@ namespace SmartMenu.Service.Services
                     // Get temp font path
                     var tempFontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
 
+                    // Check if folder exist
+                    if (!Directory.Exists(tempPath))
+                    {
+                        Directory.CreateDirectory(tempPath);
+                    }
+
                     // Download and write file
                     using (var client = new WebClient())
                     {
@@ -1817,7 +1820,8 @@ namespace SmartMenu.Service.Services
                     PrivateFontCollection fontCollection = new();
                     fontCollection.AddFontFile(tempFontPath);
                     bodyFonts.Add(new Font(fontCollection.Families[0], (int)boxItemFromDB.FontSize));
-                    File.Delete(tempFontPath);
+                    fontCollection.Dispose();
+
 
                     // Add color to list
                     ColorConverter colorConverter = new();
@@ -1825,8 +1829,8 @@ namespace SmartMenu.Service.Services
                     bodyColors.Add(color);
                 }
             }
-            if (bodyFonts.Count == 0) throw new Exception("Font not found or null");
-            if (bodyColors.Count == 0) throw new Exception("Color not found or null");
+            if (bodyFonts.Count == 0) throw new Exception("BodyFont not found or null");
+            if (bodyColors.Count == 0) throw new Exception("BodyColor not found or null");
 
             #endregion Initialize Fonts, Colors for products
 
@@ -2192,6 +2196,12 @@ namespace SmartMenu.Service.Services
                 // Get temp font path
                 var tempFontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
 
+                // Check if folder exist
+                if (!Directory.Exists(tempPath))
+                {
+                    Directory.CreateDirectory(tempPath);
+                }
+
                 // Download and write file
                 using (var client = new WebClient())
                 {
@@ -2212,7 +2222,6 @@ namespace SmartMenu.Service.Services
                 var fontPath = $@"{font.FontPath}";
                 fontCollection.AddFontFile(tempFontPath);
                 FontFamily fontFamily = new(fontCollection.Families.FirstOrDefault()!.Name, fontCollection);
-                File.Delete(tempFontPath);
 
                 // Config color
                 ColorConverter converter = new();
@@ -2228,8 +2237,6 @@ namespace SmartMenu.Service.Services
 
                 //g.DrawRectangle(Pens.Black, boxRectTitle);
 
-                // Delete temp font file
-                System.IO.File.Delete(tempFontPath);
             }
         }
 
@@ -2247,9 +2254,32 @@ namespace SmartMenu.Service.Services
                 ?? throw new Exception("Display not found or deleted");
 
             string imgPath = InitializeImageV2(display, tempPath);
-
+            
             return imgPath;
         }
+
+        public void DeleteTempFile(string tempPath)
+        {
+            // 2. Get Temp Folder Path
+            //var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+
+            // 3. Get All Files in the Temp Folder
+            string[] files = Directory.GetFiles(tempPath);
+
+            // 4. Delete Each File
+            foreach (string file in files)
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (Exception ex) // Handle individual file deletion errors
+                {
+                    throw new Exception($"Failed to delete file: {tempPath}\n {ex.Message}");
+                }
+            }
+        }
+
     }
 }
 #pragma warning restore SYSLIB0014 // Type or member is obsolete

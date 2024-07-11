@@ -70,6 +70,7 @@ namespace SmartMenu.API.Controllers
                 var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
                 var data = _displayService.GetImageByIdV2(displayId, tempPath);
                 if (data == null) return BadRequest("Image fail to create");
+                _displayService.DeleteTempFile(tempPath);
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
                 return File(b, "image/jpeg");
@@ -184,6 +185,31 @@ namespace SmartMenu.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpDelete("temp-files")]
+        public IActionResult ClearTempFolder()
+        {
+            // 2. Get Temp Folder Path
+            var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+
+            // 3. Get All Files in the Temp Folder
+            string[] files = Directory.GetFiles(tempPath);
+
+            // 4. Delete Each File
+            foreach (string file in files)
+            {
+                try
+                {
+                    System.IO.File.Delete(file);
+                }
+                catch (Exception ex) // Handle individual file deletion errors
+                {
+                    return BadRequest($"Failed to delete file: {tempPath}\n {ex.Message}");
+                }
+            }
+
+            return Ok("Temp folder cleared successfully.");
         }
     }
 }

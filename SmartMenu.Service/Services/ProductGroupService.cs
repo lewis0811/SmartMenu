@@ -26,6 +26,12 @@ namespace SmartMenu.Service.Services
         public ProductGroup Add(ProductGroupCreateDTO productGroupCreateDTO)
         {
             var data = _mapper.Map<ProductGroup>(productGroupCreateDTO);
+            if (productGroupCreateDTO.CollectionID == 0) productGroupCreateDTO.CollectionID = null;
+            if (productGroupCreateDTO.MenuID == 0) productGroupCreateDTO.MenuID = null;
+            if (productGroupCreateDTO.CollectionID != null && productGroupCreateDTO.MenuID != null)
+            {
+                throw new Exception("Product group can't be in both menu, collection");
+            }
 
             _unitOfWork.ProductGroupRepository.Add(data);
             _unitOfWork.Save();

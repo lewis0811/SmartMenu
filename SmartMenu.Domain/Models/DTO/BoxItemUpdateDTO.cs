@@ -17,8 +17,8 @@ namespace SmartMenu.Domain.Models.DTO
         [Required(ErrorMessage = "Text format is required.")]
         public StringAlignment TextFormat { get; set; }
 
-        [Required(ErrorMessage = "Box type is required.")]
-        public BoxItemType BoxType { get; set; }
+        [Required(ErrorMessage = "Box item type is required.")]
+        public BoxItemType BoxItemType { get; set; }
 
         [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Invalid box color. Use a valid hexadecimal color code (e.g., #RRGGBB).")]
         public string BoxColor { get; set; } = "#ffffff";
