@@ -53,10 +53,12 @@ namespace SmartMenu.Service.Services
             string tokenString = handler.WriteToken(token);
 
             // Get brand id for user
+            int? brandId = null;
             var brandStaff = _unitOfWork.BrandStaffRepository.Find(c => c.UserId == data.UserID)
-                .FirstOrDefault() ?? throw new Exception($"User id: {data.UserID} doesn't belong to any brand");
+                .FirstOrDefault();
 
-            var brandId = brandStaff.BrandId;
+            if (brandStaff != null) { brandId = brandStaff.BrandId; }
+
 
             return new {
                 UserId = data.UserID, 

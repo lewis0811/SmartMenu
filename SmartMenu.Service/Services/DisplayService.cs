@@ -12,6 +12,7 @@ using System.IO;
 using System.Net;
 using System.Security.Principal;
 using Font = System.Drawing.Font;
+#pragma warning disable CA1416 // Validate platform compatibility
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
 namespace SmartMenu.Service.Services
 {
@@ -521,7 +522,7 @@ namespace SmartMenu.Service.Services
             }
 
             // GET Box List from display's template
-            templateWithLayer = _unitOfWork.TemplateRepository.GetTemplateWithLayersAndBoxes(template.TemplateId);
+            templateWithLayer = _unitOfWork.TemplateRepository.GetTemplateWithLayersAndBoxes(template!.TemplateId);
 
             if (templateWithLayer.Layers != null)
             {
@@ -1950,7 +1951,7 @@ namespace SmartMenu.Service.Services
 
                     var productFont = bodyFonts
                         .Where(c => c.Name == boxItem.Font!.FontName || c.Size == boxItem.FontSize)
-                        .FirstOrDefault();
+                        .FirstOrDefault() ?? throw new Exception("Product font fail to initialize");
 
                     var tempWidth = g.MeasureString(productGroupItem.Product!.ProductName,
                         productFont).Width;
@@ -1976,7 +1977,7 @@ namespace SmartMenu.Service.Services
 
                     var productPriceFont = bodyFonts
                         .Where(c => c.Name == boxItem.Font!.FontName || c.Size == boxItem.FontSize)
-                        .FirstOrDefault();
+                        .FirstOrDefault() ?? throw new Exception("Product price font fail to initialize");
 
                     foreach (var productSizePrice in productGroupItem.Product!.ProductSizePrices!)
                     {
@@ -2016,13 +2017,14 @@ namespace SmartMenu.Service.Services
                 BoxItem boxItemForSize = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId).FirstOrDefault()!;
 
                 // Convert the box color to a Color object
-                boxItemForSize.BoxColor = boxItemForSize.BoxColor.Split("#").Last();
-                Color sizeColor = bodyColors.Where(c => c.Name.Contains(boxItemForSize.BoxColor)).FirstOrDefault()!;
+                //boxItemForSize.BoxColor = boxItemForSize.BoxColor.Split("#").Last();
+                //Color sizeColor = bodyColors.Where(c => c.Name.Contains(boxItemForSize.BoxColor)).FirstOrDefault()!;
+                Color sizeColor = (Color) new ColorConverter().ConvertFromString(boxItemForSize.BoxColor)!;
 
                 // Get the font for the product price
                 var productSizeFont = bodyFonts
                             .Where(c => c.Name == boxItemForSize.Font!.FontName || c.Size == boxItemForSize.FontSize)
-                            .FirstOrDefault();
+                            .FirstOrDefault() ?? throw new Exception("Product size font fail to initialize");
 
                 // Intialize flag for product size
                 bool isProductSizeSRendered = false;
@@ -2038,13 +2040,13 @@ namespace SmartMenu.Service.Services
                         BoxItem boxItem = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId).FirstOrDefault()!;
 
                         // Convert the box color to a Color object
-                        boxItem.BoxColor = boxItem.BoxColor.Split("#").Last();
-                        Color color = bodyColors.Where(c => c.Name.Contains(boxItem.BoxColor)).FirstOrDefault()!;
+                        //boxItem.BoxColor = boxItem.BoxColor.Split("#").Last();
+                        Color color = (Color)new ColorConverter().ConvertFromString(boxItem.BoxColor)!;
 
                         // Get the font for the product price
                         var productPriceFont = bodyFonts
                                     .Where(c => c.Name == boxItem.Font!.FontName || c.Size == boxItem.FontSize)
-                                    .FirstOrDefault();
+                                    .FirstOrDefault() ?? throw new Exception("Product price font fail to initialize");
 
                         // Check if there is enough space to draw the product price
                         if (pointPriceSizeS.Y < rect.Bottom - BIGGEST_PRICE_STRING_HEIGHT)
@@ -2083,10 +2085,12 @@ namespace SmartMenu.Service.Services
                                 }
 
                                 // Draw the product price on the display
+
                                 g.DrawString(productSizePrice.Price.ToString(),
                                     productPriceFont,
                                     new SolidBrush(color),
                                     pointPriceSizeS);
+
 
                                 pointPriceSizeS.Y += BIGGEST_PRICE_STRING_HEIGHT;
                             }
@@ -2297,3 +2301,4 @@ namespace SmartMenu.Service.Services
     }
 }
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
+#pragma warning restore CA1416 // Validate platform compatibility

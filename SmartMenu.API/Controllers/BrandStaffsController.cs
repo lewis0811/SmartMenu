@@ -51,11 +51,11 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPut("{brandStaffId}")]
-        public ActionResult Update(int brandStaffId, BrandStaffCreateDTO brandStaffCreateDTO)
+        public ActionResult Update(int brandStaffId, BrandStaffUpdateDTO brandStaffUpdateDTO)
         {
             try
             {
-                var data = _brandStaffService.Update(brandStaffId, brandStaffCreateDTO);
+                var data = _brandStaffService.Update(brandStaffId, brandStaffUpdateDTO);
                 return Ok(data);
             }
             catch (Exception ex)

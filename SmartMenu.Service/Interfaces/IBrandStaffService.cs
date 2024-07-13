@@ -12,7 +12,7 @@ namespace SmartMenu.Service.Interfaces
     {
         IEnumerable<BrandStaff> GetAll(int? brandStaffId, int? brandId, Guid? userId, string? searchString, int pageNumber, int pageSize);
         BrandStaff Add(BrandStaffCreateDTO brandStaffCreateDTO);
-        BrandStaff Update(int brandStaffId, BrandStaffCreateDTO brandStaffCreateDTO);
+        BrandStaff Update(int brandStaffId, BrandStaffUpdateDTO brandStaffUpdateDTO);
         void Delete(int brandStaffId);
     }
 }

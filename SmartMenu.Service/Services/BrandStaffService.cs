@@ -4,11 +4,6 @@ using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartMenu.Service.Services
 {
@@ -26,6 +21,17 @@ namespace SmartMenu.Service.Services
         public BrandStaff Add(BrandStaffCreateDTO brandStaffCreateDTO)
         {
             var data = _mapper.Map<BrandStaff>(brandStaffCreateDTO);
+
+            var user = _unitOfWork.UserRepository.Find(c => c.UserID == brandStaffCreateDTO.UserId)
+                .FirstOrDefault() ?? throw new Exception($"User id: {brandStaffCreateDTO.UserId} not exist.");
+
+            var existUser = _unitOfWork.BrandStaffRepository.EnableQuery()
+                .FirstOrDefault(c => c.UserId == brandStaffCreateDTO.UserId);
+            if (existUser != null) throw new Exception($"User already define in brand id: {existUser.BrandId}");
+
+            var existUser2 = _unitOfWork.BrandStaffRepository.EnableQuery()
+                .FirstOrDefault(c => c.StoreId == brandStaffCreateDTO.StoreId);
+            if (existUser2 != null) throw new Exception($"User already define in user id: {existUser2.StoreId}");
 
             _unitOfWork.BrandStaffRepository.Add(data);
             _unitOfWork.Save();
@@ -51,17 +57,24 @@ namespace SmartMenu.Service.Services
             return result ?? Enumerable.Empty<BrandStaff>();
         }
 
-        public BrandStaff Update(int brandStaffId, BrandStaffCreateDTO brandStaffCreateDTO)
+        public BrandStaff Update(int brandStaffId, BrandStaffUpdateDTO brandStaffUpdateDTO)
         {
             var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffId == brandStaffId && c.IsDeleted == false).FirstOrDefault()
-                ?? throw new Exception("Staff not found or deleted");
+                ?? throw new Exception("BrandStaff not found or deleted");
 
-            _mapper.Map(brandStaffCreateDTO, data);
+            var user = _unitOfWork.UserRepository.Find(c => c.UserID == brandStaffUpdateDTO.UserId)
+                .FirstOrDefault() ?? throw new Exception($"User id: {brandStaffUpdateDTO.UserId} not exist.");
+
+            var store = _unitOfWork.StoreRepository.Find(c => c.StoreId == brandStaffUpdateDTO.StoreId)
+                .FirstOrDefault() ?? throw new Exception($"Store id: {brandStaffUpdateDTO.StoreId} not exist.");
+
+            _mapper.Map(brandStaffUpdateDTO, data);
             _unitOfWork.BrandStaffRepository.Update(data);
             _unitOfWork.Save();
 
             return data;
         }
+
         private IEnumerable<BrandStaff> DataQuery(IQueryable<BrandStaff> data, int? brandStaffId, int? brandId, Guid? userId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
@@ -81,7 +94,6 @@ namespace SmartMenu.Service.Services
                 data = data
                     .Where(c => c.UserId == userId);
             }
-
 
             return PaginatedList<BrandStaff>.Create(data, pageNumber, pageSize);
         }

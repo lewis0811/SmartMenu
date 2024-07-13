@@ -2,9 +2,8 @@
 
 namespace SmartMenu.Domain.Models.DTO
 {
-    public class BrandStaffCreateDTO
+    public class BrandStaffUpdateDTO
     {
-        public int BrandId { get; set; }
         [Required]
         public Guid UserId { get; set; }
 

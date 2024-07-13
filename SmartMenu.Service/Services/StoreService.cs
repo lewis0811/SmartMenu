@@ -57,6 +57,16 @@ namespace SmartMenu.Service.Services
             return result ?? Enumerable.Empty<Store>();
         }
 
+        public IEnumerable<Store> GetStoreWithStaffs(int? storeId, int? brandId, string? searchString, int pageNumber, int pageSize)
+        {
+            var data = _unitOfWork.StoreRepository.EnableQuery();
+            data = data.Include(c => c.Staffs);
+
+            var result = DataQuery(data, storeId, brandId, searchString, pageNumber, pageSize);
+
+            return result ?? Enumerable.Empty<Store>();
+        }
+
         public IEnumerable<Store> GetStoreWithMenus(int? storeId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.StoreRepository.EnableQuery();
