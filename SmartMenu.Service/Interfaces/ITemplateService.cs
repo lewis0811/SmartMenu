@@ -11,8 +11,8 @@ namespace SmartMenu.Service.Interfaces
 {
     public interface ITemplateService
     {
-        IEnumerable<Template> GetAll(int? templateId, string? searchString, int pageNumber, int pageSize);
-        IEnumerable<Template> GetAllWithLayers(int? templateId, string? searchString, int pageNumber, int pageSize);
+        IEnumerable<Template> GetAll(int? templateId, int? brandId, string? searchString, int pageNumber, int pageSize);
+        IEnumerable<Template> GetAllWithLayers(int? templateId, int? brandId, string? searchString, int pageNumber, int pageSize);
         Template Add(TemplateCreateDTO templateCreateDTO);
         Template Update(int templateId, TemplateUpdateDTO templateUpdateDTO);
         void Delete(int templateId);

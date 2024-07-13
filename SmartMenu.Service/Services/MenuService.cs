@@ -26,7 +26,7 @@ namespace SmartMenu.Service.Services
         public Menu Add(MenuCreateDTO menuCreateDTO)
         {
             var br = _unitOfWork.BrandRepository
-                .Find(c => c.BrandId == menuCreateDTO.BrandID && c.IsDeleted == false)
+                .Find(c => c.BrandId == menuCreateDTO.BrandId && c.IsDeleted == false)
                 .FirstOrDefault()
                 ?? throw new Exception("Brand not found or deleted");
 

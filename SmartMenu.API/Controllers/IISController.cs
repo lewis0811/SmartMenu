@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.Net;
 using System.Security.Principal;
-
+#pragma warning disable SYSLIB0014 // Type or member is obsolete
 namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
@@ -95,11 +95,13 @@ namespace SmartMenu.API.Controllers
                 //var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
                 var tempPath = "D:\\Temp";
                 var tempFontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
+
                 using (var client = new WebClient())
                 {
                     client.DownloadFile("https://res.cloudinary.com/dchov8fes/raw/upload/v1720345198/fonts/Kollektif.ttf", tempFontPath);
                     client.Dispose();
                 }
+
 
                 // Check if file exists
                 if (!System.IO.File.Exists(tempFontPath))
@@ -187,3 +189,5 @@ namespace SmartMenu.API.Controllers
         }
     }
 }
+
+#pragma warning restore SYSLIB0014 // Type or member is obsolete

@@ -52,12 +52,18 @@ namespace SmartMenu.Service.Services
             SecurityToken token = handler.CreateToken(securityTokenDescriptor);
             string tokenString = handler.WriteToken(token);
 
-            // Get brand id for user
+            // Get brand & staff id for user
             int? brandId = null;
+            int? storeId = null;
+            int? staffId = null;
             var brandStaff = _unitOfWork.BrandStaffRepository.Find(c => c.UserId == data.UserID)
                 .FirstOrDefault();
 
-            if (brandStaff != null) { brandId = brandStaff.BrandId; }
+            if (brandStaff != null) { 
+                brandId = brandStaff.BrandId;
+                staffId = brandStaff.BrandStaffId;
+                storeId = brandStaff.StoreId;
+            }
 
 
             return new {
@@ -65,6 +71,8 @@ namespace SmartMenu.Service.Services
                 RoleId = data.Role,
                 Role = data.Role.ToString(),
                 BrandId = brandId,
+                BrandStaffId = staffId,
+                StoreId = storeId,
                 Token = tokenString
             };
         }

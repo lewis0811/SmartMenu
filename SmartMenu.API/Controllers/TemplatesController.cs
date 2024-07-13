@@ -20,11 +20,11 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult Get(int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? templateId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var data = _templateService.GetAll(templateId, searchString, pageNumber, pageSize);
+                var data = _templateService.GetAll(templateId, brandId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)
@@ -34,11 +34,11 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet("Layers")]
-        public ActionResult GetLayers(int? templateId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult GetLayers(int? templateId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var data = _templateService.GetAllWithLayers(templateId, searchString, pageNumber, pageSize);
+                var data = _templateService.GetAllWithLayers(templateId,  brandId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)

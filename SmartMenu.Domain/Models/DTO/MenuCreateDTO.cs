@@ -4,7 +4,7 @@ namespace SmartMenu.Domain.Models.DTO
 {
     public class MenuCreateDTO
     {
-        public int BrandID { get; set; }
+        public int BrandId { get; set; }
 
         [Required]
         public string MenuName { get; set; } = string.Empty;

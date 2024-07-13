@@ -1584,8 +1584,9 @@ namespace SmartMenu.Service.Services
             #endregion Get display items from display
 
             #region Get boxes from display items
-            // CONTINUE HERE -> IMAGE RENDER
             List<Box> boxes = new();
+            Box menu_collection_name_box = new ();
+
             foreach (var item in displayItems)
             {
                 boxes.Add(_unitOfWork.BoxRepository
@@ -1595,6 +1596,18 @@ namespace SmartMenu.Service.Services
                 );
             }
             if (boxes.Count == 0) throw new Exception("Box not found or null");
+
+            // Check if have MenuCollectionNameLayer
+            Layer? menuCollectionNameLayer = initializeTemplate.Layers.Where(c => c.LayerType == LayerType.MenuCollectionNameLayer).FirstOrDefault();
+
+            // If have 
+            if (menuCollectionNameLayer != null)
+            {
+                menu_collection_name_box = menuCollectionNameLayer.Boxes!.FirstOrDefault()!;
+                Rectangle menu_collection_rect = 
+                    new Rectangle((int)menu_collection_name_box.BoxPositionX, (int)menu_collection_name_box.BoxPositionY, (int)menu_collection_name_box.BoxWidth, (int)menu_collection_name_box.BoxHeight);
+                g.DrawRectangle(Pens.Red, menu_collection_rect);
+            }
 
             #endregion Get boxes from display items
 
@@ -1619,6 +1632,76 @@ namespace SmartMenu.Service.Services
 
             #endregion Draw rectangles from boxes
 
+            /*
+             *  3.1. Draw static text
+             */
+
+            /*
+             *  3.2. Draw menu/collection name
+             */
+
+            #region Initialize PointF for menu/collection name
+            PointF menu_Collection_Name_Point = new ((int)menu_collection_name_box.BoxPositionX, (int) menu_collection_name_box.BoxPositionY);
+            #endregion
+
+            #region Initialize Fonts, Colors for menu/collection name
+            var menu_Collection_Name_fontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
+
+            var menuFont = menu_collection_name_box.BoxItems!.FirstOrDefault()!.Font!;
+
+            // Check if folder exist
+            if (!Directory.Exists(tempPath))
+            {
+                Directory.CreateDirectory(tempPath);
+            }
+
+            // Download and write file
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(menuFont.FontPath, menu_Collection_Name_fontPath);
+                client.Dispose();
+            }
+
+
+            // Check if file exists
+            if (!File.Exists(menu_Collection_Name_fontPath))
+            {
+                throw new FileNotFoundException();
+            }
+
+            // Add font 
+            Font menu_Collection_Name_Font;
+            using (PrivateFontCollection fontCollection = new())
+            {
+                fontCollection.AddFontFile(menu_Collection_Name_fontPath);
+                menu_Collection_Name_Font = new (fontCollection.Families[0], (int)menu_collection_name_box.BoxItems!.FirstOrDefault()!.FontSize);
+                fontCollection.Dispose();
+            }
+
+            // Add color 
+            ColorConverter menu_Collection_Name_colorConverter = new();
+            Color menu_Collection_Name_Color = (Color)menu_Collection_Name_colorConverter.ConvertFromString(menu_collection_name_box.BoxItems!.FirstOrDefault()!.BoxColor)!;
+            #endregion
+
+            #region Draw name from menu/collection
+            if (menu != null)
+            {
+                g.DrawString(menu.MenuName,
+                    menu_Collection_Name_Font,
+                    new SolidBrush(menu_Collection_Name_Color),
+                    menu_Collection_Name_Point
+                    );
+            }
+            if (collection != null)
+            {
+                g.DrawString(collection.CollectionName,
+                    menu_Collection_Name_Font,
+                    new SolidBrush(menu_Collection_Name_Color),
+                    menu_Collection_Name_Point
+                    );
+            }
+            #endregion
             /*
              * 4. Draw header from productgroup
              */
@@ -1903,8 +1986,6 @@ namespace SmartMenu.Service.Services
             }
 
             #endregion Draw products within the display area
-
-
 
             /*
              * 6. Draw product prices from product size prices

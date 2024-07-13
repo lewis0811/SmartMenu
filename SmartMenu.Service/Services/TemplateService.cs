@@ -42,15 +42,15 @@ namespace SmartMenu.Service.Services
             _unitOfWork.Save();
         }
 
-        public IEnumerable<Template> GetAll(int? templateId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Template> GetAll(int? templateId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.TemplateRepository.EnableQuery();
-            var result = DataQuery(data, templateId, searchString, pageNumber, pageSize);
+            var result = DataQuery(data, templateId, brandId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<Template>();
         }
 
-        public IEnumerable<Template> GetAllWithLayers(int? templateId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Template> GetAllWithLayers(int? templateId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.TemplateRepository.EnableQuery();
             data = data.Include(c => c.Layers)!
@@ -59,7 +59,7 @@ namespace SmartMenu.Service.Services
                 .Include(c => c.Layers)!
                 .ThenInclude(c => c.LayerItem);
 
-            var result = DataQuery(data, templateId, searchString, pageNumber, pageSize);
+            var result = DataQuery(data, templateId, brandId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<Template>();
         }
@@ -77,13 +77,19 @@ namespace SmartMenu.Service.Services
             return data;
         }
 
-        private IEnumerable<Template> DataQuery(IQueryable<Template> data, int? templateId, string? searchString, int pageNumber, int pageSize)
+        private IEnumerable<Template> DataQuery(IQueryable<Template> data, int? templateId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
             if (templateId != null)
             {
                 data = data
                     .Where(c => c.TemplateId == templateId);
+            }
+
+            if (brandId != null)
+            {
+                data = data
+                    .Where(c => c.BrandId == brandId);
             }
 
             if (searchString != null)
