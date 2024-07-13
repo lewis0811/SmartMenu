@@ -11,7 +11,7 @@ namespace SmartMenu.Domain.Models
         [ForeignKey(nameof(MenuId))]
         public Menu? Menu { get; set; }
 
-        [ForeignKey(nameof(StoreId))]
-        public Store? Store { get; set; }
+        //[ForeignKey(nameof(StoreId))]
+        //public Store? Store { get; set; }
     }
 }

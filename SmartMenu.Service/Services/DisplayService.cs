@@ -1213,9 +1213,9 @@ namespace SmartMenu.Service.Services
                         .FirstOrDefault();
 
                     var tempWidth = g.MeasureString(productGroupItem.Product!.ProductName,
-                        productFont).Width;
+                        productFont!).Width;
 
-                    if (tempWidth >= g.MeasureString(BIGGEST_PRODUCT_STRING, productFont).Width)
+                    if (tempWidth >= g.MeasureString(BIGGEST_PRODUCT_STRING, productFont!).Width)
                     {
                         BIGGEST_PRODUCT_STRING = productGroupItem.Product!.ProductName;
                         BIGGEST_PRODUCT_STRING_WIDTH = tempWidth;
@@ -1241,15 +1241,15 @@ namespace SmartMenu.Service.Services
                     foreach (var productSizePrice in productGroupItem.Product!.ProductSizePrices!)
                     {
                         var tempHeight = g.MeasureString(productSizePrice.Price.ToString(),
-                            productPriceFont);
+                            productPriceFont!);
 
-                        if (tempHeight.Height >= g.MeasureString(BIGGEST_PRICE_STRING, productPriceFont).Height)
+                        if (tempHeight.Height >= g.MeasureString(BIGGEST_PRICE_STRING, productPriceFont!).Height)
                         {
                             BIGGEST_PRICE_STRING = productSizePrice.Price.ToString();
                             BIGGEST_PRICE_STRING_HEIGHT = tempHeight.Height;
                         }
 
-                        if (tempHeight.Width >= g.MeasureString(BIGGEST_PRICE_STRING, productPriceFont).Width)
+                        if (tempHeight.Width >= g.MeasureString(BIGGEST_PRICE_STRING, productPriceFont!).Width)
                         {
                             BIGGEST_PRICE_STRING = productSizePrice.Price.ToString();
                             BIGGEST_PRICE_STRING_WIDTH = tempHeight.Width;
@@ -1316,7 +1316,7 @@ namespace SmartMenu.Service.Services
 
                                 // Draw the product price on the display
                                 g.DrawString(productSizePrice.Price.ToString(),
-                                    productPriceFont,
+                                    productPriceFont!,
                                     new SolidBrush(color),
                                     pointPriceSizeS);
 
@@ -1333,7 +1333,7 @@ namespace SmartMenu.Service.Services
                                     pointSizeS.X += BIGGEST_PRICE_STRING_WIDTH /4;
 
                                     g.DrawString(ProductSizeType.S.ToString(),
-                                        productSizeFont,
+                                        productSizeFont!,
                                         new SolidBrush(sizeColor),
                                         pointSizeS
                                         );
@@ -1344,7 +1344,7 @@ namespace SmartMenu.Service.Services
 
                                 // Draw the product price on the display
                                 g.DrawString(productSizePrice.Price.ToString(),
-                                    productPriceFont,
+                                    productPriceFont!,
                                     new SolidBrush(color),
                                     pointPriceSizeS);
 
@@ -1361,7 +1361,7 @@ namespace SmartMenu.Service.Services
                                     pointSizeM.X += BIGGEST_PRICE_STRING_WIDTH / 4;
 
                                     g.DrawString(ProductSizeType.M.ToString(),
-                                        productSizeFont,
+                                        productSizeFont!,
                                         new SolidBrush(sizeColor),
                                         pointSizeM
                                         );
@@ -1370,7 +1370,7 @@ namespace SmartMenu.Service.Services
 
                                 // Draw the product price on the display
                                 g.DrawString(productSizePrice.Price.ToString(),
-                                    productPriceFont,
+                                    productPriceFont!,
                                     new SolidBrush(color),
                                     pointPriceSizeM);
 
@@ -1387,7 +1387,7 @@ namespace SmartMenu.Service.Services
                                     pointSizeL.X += BIGGEST_PRICE_STRING_WIDTH / 4;
 
                                     g.DrawString(ProductSizeType.L.ToString(),
-                                        productSizeFont,
+                                        productSizeFont!,
                                         new SolidBrush(sizeColor),
                                         pointSizeL
                                         );
@@ -1396,7 +1396,7 @@ namespace SmartMenu.Service.Services
 
                                 // Draw the product price on the display
                                 g.DrawString(productSizePrice.Price.ToString(),
-                                    productPriceFont,
+                                    productPriceFont!,
                                     new SolidBrush(color),
                                     pointPriceSizeL);
 
@@ -1506,6 +1506,8 @@ namespace SmartMenu.Service.Services
             // Get template resolutions
             var templateResolution = _unitOfWork.TemplateRepository
                 .EnableQuery()
+                .Include(c => c.Layers!)
+                .ThenInclude(c => c.LayerItem)
                 .Include(c => c.Layers!)
                 .ThenInclude(c => c.Boxes!)
                 .ThenInclude(c => c.BoxItems!)
@@ -1635,6 +1637,74 @@ namespace SmartMenu.Service.Services
             /*
              *  3.1. Draw static text
              */
+
+            #region Get box from layer type static
+            var static_Text_Layer = initializeTemplate.Layers.FirstOrDefault(c => c.LayerType == LayerType.StaticTextLayer);
+
+            // If static_Text_Layer found
+            if (static_Text_Layer != null)
+            {
+                var static_Text_Box = static_Text_Layer.Boxes!.FirstOrDefault() ?? throw new Exception("static_Text_Box not found in static_Text_Layer");
+                
+                #region Initialize Pointf for static text
+                PointF static_Text_PointF = new((int)(static_Text_Box.BoxPositionX), (int)static_Text_Box.BoxPositionY);
+                Rectangle static_Text_Rect = new ((int)static_Text_Box.BoxPositionX, (int)static_Text_Box.BoxPositionY, (int)static_Text_Box.BoxWidth, (int)static_Text_Box.BoxHeight);
+                #endregion
+
+                #region Initialize Fonts, Colors for static text
+                var static_Text_fontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
+                var static_Text_FontDB = static_Text_Box.BoxItems!.FirstOrDefault()!.Font ?? throw new Exception("static_Text_FontDB not found in static_Text_Box");
+
+                // Check if folder exist
+                if (!Directory.Exists(tempPath))
+                {
+                    Directory.CreateDirectory(tempPath);
+                }
+
+                // Download and write file
+
+                using (var client = new WebClient())
+                {
+                    client.DownloadFile(static_Text_FontDB.FontPath, static_Text_fontPath);
+                    client.Dispose();
+                }
+
+
+                // Check if file exists
+                if (!File.Exists(static_Text_fontPath))
+                {
+                    throw new FileNotFoundException();
+                }
+
+                // Add font 
+                Font static_Text_Font;
+                using (PrivateFontCollection fontCollection = new())
+                {
+                    fontCollection.AddFontFile(static_Text_fontPath);
+                    static_Text_Font = new(fontCollection.Families[0], (int)static_Text_Box.BoxItems!.FirstOrDefault()!.FontSize);
+                    fontCollection.Dispose();
+                }
+
+                // Add color 
+                ColorConverter static_Text_ColorConverter = new();
+                Color static_Text_Color = (Color)static_Text_ColorConverter.ConvertFromString(static_Text_Box.BoxItems!.FirstOrDefault()!.BoxColor)!;
+                #endregion
+
+                #region Draw static text from layer item
+                // Get layeritem from static text layer
+                var static_Text_LayerItem = _unitOfWork.LayerItemRepository.Find(c => c.LayerId == static_Text_Layer.LayerId).FirstOrDefault() 
+                    ?? throw new Exception("static_Text_LayerItem not found in static_Text_Layer");
+
+                // Draw string
+                g.DrawString(static_Text_LayerItem.LayerItemValue,
+                    static_Text_Font,
+                    new SolidBrush(static_Text_Color),
+                    static_Text_PointF
+                    );
+                g.DrawRectangle(new Pen(Color.Red), static_Text_Rect);
+                #endregion
+            }
+            #endregion
 
             /*
              *  3.2. Draw menu/collection name

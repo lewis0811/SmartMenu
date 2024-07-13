@@ -4,6 +4,7 @@ using System.Drawing.Text;
 using System.Net;
 using System.Security.Principal;
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
+#pragma warning disable CA1416 // Validate platform compatibility
 namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
@@ -127,7 +128,9 @@ namespace SmartMenu.API.Controllers
                         else
                         {
                             // Log the error
+
                             WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent();
+
                             throw new Exception($"Fail to delete temp font file. Error msg: {ex.Message}\n Current user: {currentIdentity.Name}");
                         }
                     }
@@ -191,3 +194,4 @@ namespace SmartMenu.API.Controllers
 }
 
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
+#pragma warning restore CA1416 // Validate platform compatibility
