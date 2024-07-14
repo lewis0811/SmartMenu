@@ -50,9 +50,16 @@ namespace SmartMenu.API.Controllers
         [HttpPost]
         public IActionResult Add(TemplateCreateDTO templateCreateDTO)
         {
-            var data = _templateService.Add(templateCreateDTO);
+            try
+            {
+                var data = _templateService.Add(templateCreateDTO);
 
-            return CreatedAtAction(nameof(Get), data);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{templateId}")]

@@ -59,7 +59,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Menu> GetMenuWithProductGroup(int? menuId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.MenuRepository.EnableQuery();
-            data = data.Include(c => c.ProductGroups);
+            data = data.Include(c => c.ProductGroups!.Where(c => c.IsDeleted == false));
 
             var result = DataQuery(data, menuId, brandId, searchString, pageNumber, pageSize);
 

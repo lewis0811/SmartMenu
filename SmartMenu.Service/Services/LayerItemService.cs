@@ -2,6 +2,7 @@
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 
@@ -22,6 +23,13 @@ namespace SmartMenu.Service.Services
         {
             var layer = _unitOfWork.LayerRepository.Find(c => c.LayerId == layerItemCreateDTO.LayerID && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Layer not found or deleted");
+
+            var existedLayerItem = _unitOfWork.LayerItemRepository.Find(c => c.LayerId == layer.LayerId && c.IsDeleted == false).FirstOrDefault();
+            if (existedLayerItem != null) throw new Exception($"Layer ID: {layer.LayerId} already have layer item");
+            
+            if (layer.LayerType == LayerType.RenderLayer) throw new Exception("Render layer can't have layer item");
+            if (layer.LayerType == LayerType.MenuCollectionNameLayer) throw new Exception("MenuCollectionName layer can't have layer item");
+
 
             var data = _mapper.Map<LayerItem>(layerItemCreateDTO);
 

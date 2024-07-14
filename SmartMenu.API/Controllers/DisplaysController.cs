@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Service.Interfaces;
+using System.Diagnostics;
 
 namespace SmartMenu.API.Controllers
 {
@@ -68,7 +70,8 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\Temp";
+                _displayService.DeleteTempFile(tempPath);
                 var data = _displayService.GetImageByIdV2(displayId, tempPath);
                 if (data == null) return BadRequest("Image fail to create");
                 _displayService.DeleteTempFile(tempPath);
@@ -78,7 +81,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest($"{ex.Message}");
             }
         }
 
@@ -132,7 +135,10 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                GC.Collect();
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\Temp";
+                _displayService.DeleteTempFile(tempPath);
+
                 var data = _displayService.AddDisplayV4(displayCreateDTO, tempPath);
                 _displayService.DeleteTempFile(tempPath);
 
@@ -149,9 +155,12 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\Temp";
+                _displayService.DeleteTempFile(tempPath);
+
                 var data = _displayService.Update(displayId, displayUpdateDTO);
                 _displayService.DeleteTempFile(tempPath);
+
                 return Ok(data);
             }
             catch (Exception ex)
@@ -165,7 +174,9 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\Temp";
+                _displayService.DeleteTempFile(tempPath);
+
                 var data = _displayService.UpdateContainImage(displayId, displayUpdateDTO, tempPath);
                 if (data == null) return BadRequest("Image fail to create");
                 _displayService.DeleteTempFile(tempPath);
@@ -198,6 +209,12 @@ namespace SmartMenu.API.Controllers
         {
             // 2. Get Temp Folder Path
             var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+
+            // Check if folder exist
+            if (!Directory.Exists(tempPath))
+            {
+                Directory.CreateDirectory(tempPath);
+            }
 
             // 3. Get All Files in the Temp Folder
             string[] files = Directory.GetFiles(tempPath);

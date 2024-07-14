@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 
@@ -12,6 +13,7 @@ namespace SmartMenu.Service.Services
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private Domain.Models.Layer tempLayer = new();
 
         public BoxService(IMapper mapper, IUnitOfWork unitOfWork)
         {
@@ -74,7 +76,31 @@ namespace SmartMenu.Service.Services
                 .FirstOrDefault()
                 ?? throw new Exception("Layer not found or deleted");
 
+            var existedBox = _unitOfWork.BoxRepository.Find(c => c.LayerId == boxCreateDTO.LayerId).FirstOrDefault();
+            if (existedBox != null) throw new Exception($"Layer ID: {layer.LayerId} already have box ID: {existedBox.BoxId}");
+
+            if (layer.LayerType == LayerType.BackgroundImageLayer) throw new Exception("BackgroundImageLayer can't have box ");
+
+            if (layer.LayerType == LayerType.ImageLayer && boxCreateDTO.BoxType != BoxType.UseInTemplate) 
+                throw new Exception($"Layer ID: {layer.LayerId} must have BoxType.UseInTemplate");
+            
+            if (layer.LayerType == LayerType.RenderLayer && boxCreateDTO.BoxType != BoxType.UseInDisplay)
+                throw new Exception($"Layer ID: {layer.LayerId} must have BoxType.UseInDisplay");
+            
+            if (layer.LayerType == LayerType.StaticTextLayer && boxCreateDTO.BoxType != BoxType.UseInTemplate)
+                throw new Exception($"Layer ID: {layer.LayerId} must have BoxType.UseInTemplate");
+            
+            if (layer.LayerType == LayerType.MenuCollectionNameLayer && boxCreateDTO.BoxType != BoxType.UseInDisplay)
+                throw new Exception($"Layer ID: {layer.LayerId} must have BoxType.UseInDisplay");
+
+
             var data = _mapper.Map<Box>(boxCreateDTO);
+
+            var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == layer.TemplateId && c.IsDeleted == false).FirstOrDefault()!;
+            if (data.BoxPositionX > template.TemplateWidth || data.BoxPositionY > template.TemplateHeight)
+            {
+                throw new Exception("Box position must be in template resolution");
+            }
 
             _unitOfWork.BoxRepository.Add(data);
             _unitOfWork.Save();
@@ -87,7 +113,17 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxId && c.IsDeleted == false).FirstOrDefault()
                 ?? throw new Exception("Box not found or deleted");
 
+            tempLayer = _unitOfWork.LayerRepository.Find(c => c.LayerId == data.LayerId && c.IsDeleted == false).FirstOrDefault()
+                ?? throw new Exception("Layer not found or deleted");
+
+            var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == tempLayer.TemplateId && c.IsDeleted == false).FirstOrDefault()!;
+            if (data.BoxPositionX > template.TemplateWidth || data.BoxPositionY > template.TemplateHeight)
+            {
+                throw new Exception("Box position must be in template resolution");
+            }
+
             _mapper.Map(boxUpdateDTO, data);
+
             _unitOfWork.BoxRepository.Update(data);
             _unitOfWork.Save();
 

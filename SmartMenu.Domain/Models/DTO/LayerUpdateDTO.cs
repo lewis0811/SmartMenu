@@ -7,4 +7,4 @@ namespace SmartMenu.Domain.Models.DTO
         [Required]
         public string LayerName { get; set; } = string.Empty;
     }
-}
+}       

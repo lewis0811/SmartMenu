@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 
@@ -87,6 +88,22 @@ namespace SmartMenu.Service.Services
         {
             var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == layerCreateDTO.TemplateID && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Template not found or deleted");
+
+            if (layerCreateDTO.LayerType == LayerType.BackgroundImageLayer)
+            {
+                var existedLayer = _unitOfWork.LayerRepository
+                    .Find(c => c.TemplateId == template.TemplateId && c.LayerType == LayerType.BackgroundImageLayer && c.IsDeleted == false)
+                    .FirstOrDefault();
+                if (existedLayer != null) throw new Exception($"BackgroundImageLayer already exist in template ID: {template.TemplateId}");
+            }
+
+            if (layerCreateDTO.LayerType == LayerType.MenuCollectionNameLayer) 
+            {
+                var existedLayer = _unitOfWork.LayerRepository
+              .Find(c => c.TemplateId == template.TemplateId && c.LayerType == LayerType.MenuCollectionNameLayer && c.IsDeleted == false)
+              .FirstOrDefault();
+                if (existedLayer != null) throw new Exception($"MenuCollectionNameLayer already exist in template ID: {template.TemplateId}");
+            }
 
             var data = _mapper.Map<Layer>(layerCreateDTO);
 
