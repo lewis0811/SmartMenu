@@ -70,8 +70,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\Temp";
-                _displayService.DeleteTempFile(tempPath);
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
                 var data = _displayService.GetImageByIdV2(displayId, tempPath);
                 if (data == null) return BadRequest("Image fail to create");
                 _displayService.DeleteTempFile(tempPath);
@@ -135,9 +134,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                GC.Collect();
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\Temp";
-                _displayService.DeleteTempFile(tempPath);
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
 
                 var data = _displayService.AddDisplayV4(displayCreateDTO, tempPath);
                 _displayService.DeleteTempFile(tempPath);
@@ -155,8 +152,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\Temp";
-                _displayService.DeleteTempFile(tempPath);
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
 
                 var data = _displayService.Update(displayId, displayUpdateDTO);
                 _displayService.DeleteTempFile(tempPath);
@@ -174,8 +170,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\Temp";
-                _displayService.DeleteTempFile(tempPath);
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
 
                 var data = _displayService.UpdateContainImage(displayId, displayUpdateDTO, tempPath);
                 if (data == null) return BadRequest("Image fail to create");

@@ -523,12 +523,12 @@ namespace SmartMenu.Service.Services
                 // GET ProductGroup List from Menu or Collection if not null
                 if (menu != null)
                 {
-                    productGroups = _unitOfWork.ProductGroupRepository.GetProductGroup(null, menu.MenuId, null);
+                    productGroups = _unitOfWork.ProductGroupRepository.Find(c => c.MenuId == menu.MenuId && c.IsDeleted == false).ToList();
                 }
 
                 if (collection != null)
                 {
-                    productGroups = _unitOfWork.ProductGroupRepository.GetProductGroup(null, null, collection.CollectionId);
+                    productGroups = _unitOfWork.ProductGroupRepository.Find(c => c.CollectionId == collection.CollectionId && c.IsDeleted == false).ToList();
                 }
 
                 // GET Box List from display's template
@@ -547,7 +547,7 @@ namespace SmartMenu.Service.Services
                     }
 
                     // Query exact box in needed
-                    boxes = boxes.Where(c => c.BoxType == Domain.Models.Enum.BoxType.UseInDisplay).ToList();
+                    boxes = boxes.Where(c => c.BoxType == Domain.Models.Enum.BoxType.UseInDisplay && c.IsDeleted == false).ToList();
                 }
 
                 // Get display items list from product groups and boxes
@@ -1709,7 +1709,7 @@ namespace SmartMenu.Service.Services
                     Rectangle static_Text_Rect = new((int)static_Text_Box.BoxPositionX, (int)static_Text_Box.BoxPositionY, (int)static_Text_Box.BoxWidth, (int)static_Text_Box.BoxHeight);
                     #endregion
 
-                    #region Initialize Fonts, Colors for static text
+                    #region Initialize Fonts+, Colors for static text
                     var static_Text_FontDB = static_Text_Box.BoxItems!.FirstOrDefault()!.Font ?? throw new Exception("static_Text_FontDB not found in static_Text_Box");
 
                     // Add font 

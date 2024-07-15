@@ -14,11 +14,15 @@ namespace SmartMenu.Domain.Models
         [Required]
         public string ProductGroupName { get; set; } = string.Empty;
 
-        //[ForeignKey(nameof(MenuId))]
-        //public Menu? Menu { get; set; }
+        public bool HaveNormalPrice { get; set; }
 
-        //[ForeignKey(nameof(CollectionId))]
-        //public Collection? Collection { get; set; }
+        //
+        [ForeignKey(nameof(MenuId))]
+        public Menu? Menu { get; set; }
+
+        [ForeignKey(nameof(CollectionId))]
+        public Collection? Collection { get; set; }
+        //
 
         public ICollection<ProductGroupItem>? ProductGroupItems { get; set; }
     }
