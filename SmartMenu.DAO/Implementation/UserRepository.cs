@@ -31,14 +31,14 @@ namespace SmartMenu.DAO.Implementation
             return user;
         }
 
-        private IEnumerable<User> DataQuery(IQueryable<User> data, Guid? userId, string? searchString, int pageNumber, int pageSize)
+        private static IEnumerable<User> DataQuery(IQueryable<User> data, Guid? userId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
    
             if (userId != null)
             {
                 data = data
-                    .Where(c => c.UserID.ToString() == userId.ToString());
+                    .Where(c => c.UserId.ToString() == userId.ToString());
             }
 
             if (searchString != null)

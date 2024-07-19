@@ -5,11 +5,6 @@ using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartMenu.Service.Services
 {
@@ -23,6 +18,7 @@ namespace SmartMenu.Service.Services
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
+
         public Menu Add(MenuCreateDTO menuCreateDTO)
         {
             var br = _unitOfWork.BrandRepository
@@ -77,6 +73,7 @@ namespace SmartMenu.Service.Services
 
             return data;
         }
+
         private IEnumerable<Menu> DataQuery(IQueryable<Menu> data, int? menuId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);

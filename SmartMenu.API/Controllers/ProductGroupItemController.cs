@@ -50,19 +50,19 @@ namespace SmartMenu.API.Controllers
             }
         }
 
-        [HttpPut("{productGroupItemId}")]
-        public IActionResult Update(int productGroupItemId, ProductGroupItemCreateDTO productGroupItemCreateDTO)
-        {
-            try
-            {
-                var data = _productGroupItemService.Update(productGroupItemId, productGroupItemCreateDTO);
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //[HttpPut("{productGroupItemId}")]
+        //public IActionResult Update(int productGroupItemId, ProductGroupItemCreateDTO productGroupItemCreateDTO)
+        //{
+        //    try
+        //    {
+        //        var data = _productGroupItemService.Update(productGroupItemId, productGroupItemCreateDTO);
+        //        return Ok(data);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
 
         [HttpDelete("{productGroupItemId}")]
         public IActionResult Delete(int productGroupItemId)

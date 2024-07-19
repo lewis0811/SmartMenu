@@ -23,7 +23,7 @@ namespace SmartMenu.Service.Services
             var data = _mapper.Map<BrandStaff>(brandStaffCreateDTO);
             if (data.StoreId == 0) data.StoreId = null;
 
-            var user = _unitOfWork.UserRepository.Find(c => c.UserID == brandStaffCreateDTO.UserId)
+            var user = _unitOfWork.UserRepository.Find(c => c.UserId == brandStaffCreateDTO.UserId)
                 .FirstOrDefault() ?? throw new Exception($"User id: {brandStaffCreateDTO.UserId} not exist.");
 
             var existUser = _unitOfWork.BrandStaffRepository.EnableQuery()
@@ -63,7 +63,7 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffId == brandStaffId && c.IsDeleted == false).FirstOrDefault()
                 ?? throw new Exception("BrandStaff not found or deleted");
 
-            var user = _unitOfWork.UserRepository.Find(c => c.UserID == brandStaffUpdateDTO.UserId)
+            var user = _unitOfWork.UserRepository.Find(c => c.UserId == brandStaffUpdateDTO.UserId)
                 .FirstOrDefault() ?? throw new Exception($"User id: {brandStaffUpdateDTO.UserId} not exist.");
 
             var store = _unitOfWork.StoreRepository.Find(c => c.StoreId == brandStaffUpdateDTO.StoreId)

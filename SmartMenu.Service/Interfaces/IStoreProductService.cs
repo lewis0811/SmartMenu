@@ -14,5 +14,7 @@ namespace SmartMenu.Service.Interfaces
         StoreProduct Add(StoreProductCreateDTO storeProductCreateDTO);
         StoreProduct Update(int storeProductId, StoreProductUpdateDTO storeProductUpdateDTO);
         void Delete(int storeProductId);
+        IEnumerable<StoreProduct> GetWithProductSizePrices(int? storeProductId, int? storeId, int? productId, string? searchString, int pageNumber, int pageSize);
+        List<StoreProduct> AddV2(StoreProductCreateDTO_V2 storeProductCreateDTO);
     }
 }

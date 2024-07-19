@@ -16,5 +16,6 @@ namespace SmartMenu.Service.Interfaces
         Template Add(TemplateCreateDTO templateCreateDTO);
         Template Update(int templateId, TemplateUpdateDTO templateUpdateDTO);
         void Delete(int templateId);
+        object Update(int templateId, string templateImgPath);
     }
 }

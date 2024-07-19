@@ -43,10 +43,10 @@ namespace SmartMenu.Service.Services
             _unitOfWork.Save();
         }
 
-        public IEnumerable<Category> GetAll(int? categoryId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Category> GetAll(int? categoryId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.CategoryRepository.EnableQuery();
-            var result = DataQuery(data, categoryId, searchString, pageNumber, pageSize);
+            var result = DataQuery(data, categoryId, brandId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<Category>();
         }
@@ -62,13 +62,18 @@ namespace SmartMenu.Service.Services
 
             return data;
         }
-        private IEnumerable<Category> DataQuery(IQueryable<Category> data, int? categoryId, string? searchString, int pageNumber, int pageSize)
+        private IEnumerable<Category> DataQuery(IQueryable<Category> data, int? categoryId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
             if (categoryId != null)
             {
                 data = data
                     .Where(c => c.CategoryId == categoryId);
+            }
+
+            if (brandId != null) { 
+                data = data
+                    .Where(c => c.BrandId == brandId);
             }
 
             if (searchString != null)

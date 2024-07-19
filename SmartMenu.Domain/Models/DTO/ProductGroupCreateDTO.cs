@@ -12,5 +12,7 @@ namespace SmartMenu.Domain.Models.DTO
 
         [Range(1, int.MaxValue)]
         public int ProductGroupMaxCapacity { get; set; }
+
+        public bool HaveNormalPrice { get; set; }
     }
 }

@@ -29,7 +29,7 @@ namespace SmartMenu.DAO
             StoreProducts = Set<StoreProduct>();
             Templates = Set<Template>();
             Users = Set<User>();
-            ProductSizes = Set<ProductSize>();
+            //ProductSizes = Set<ProductSize>();
             ProductSizePrices = Set<ProductSizePrice>();
             BoxItems = Set<BoxItem>();
         }

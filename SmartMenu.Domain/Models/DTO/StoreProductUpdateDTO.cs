@@ -8,6 +8,6 @@ namespace SmartMenu.Domain.Models.DTO
 {
     public class StoreProductUpdateDTO
     {
-        public bool IsEnabled { get; set; } = true;
+        public bool IsAvailable { get; set; } = true;
     }
 }

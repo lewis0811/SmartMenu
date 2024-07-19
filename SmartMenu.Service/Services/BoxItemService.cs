@@ -143,8 +143,8 @@ namespace SmartMenu.Service.Services
 
             if (searchString != null)
             {
-                data = data.Where(c => c.TextFormat.ToString() == searchString
-                || c.FontSize.ToString() == searchString
+                data = data.Where(c =>
+                c.FontSize.ToString() == searchString
                 || c.BoxColor == searchString
                 || c.BoxItemType.ToString() == searchString
                 );

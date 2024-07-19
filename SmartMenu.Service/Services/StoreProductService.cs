@@ -1,14 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartMenu.Service.Services
 {
@@ -22,6 +18,7 @@ namespace SmartMenu.Service.Services
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
+
         public StoreProduct Add(StoreProductCreateDTO storeProductCreateDTO)
         {
             var st = _unitOfWork.StoreRepository
@@ -42,6 +39,47 @@ namespace SmartMenu.Service.Services
             return data;
         }
 
+        public List<StoreProduct> AddV2(StoreProductCreateDTO_V2 storeProductCreateDTO)
+        {
+            var st = _unitOfWork.StoreRepository
+                .Find(c => c.StoreId == storeProductCreateDTO.StoreId && c.IsDeleted == false)
+                .FirstOrDefault()
+                ?? throw new Exception("Store not found or deleted");
+
+            var category = _unitOfWork.CategoryRepository
+                .EnableQuery()
+                .Include(c => c.Products)
+                .Where(c => c.CategoryId == storeProductCreateDTO.CategoryId && c.IsDeleted == false && c.Products!.Count() > 0)
+                .FirstOrDefault() ?? throw new Exception("Category not found or deleted or there's no product in this category");
+
+            var existedStoreProducts = _unitOfWork.StoreProductRepository
+                .Find(c => c.StoreId == storeProductCreateDTO.StoreId && c.IsDeleted == false)
+                .ToList();
+
+            var storeProducts = new List<StoreProduct>();
+
+            foreach (var product in category.Products!)
+            {
+                if (existedStoreProducts.Any(c => c.ProductId == product.ProductId)) continue;
+
+                var sp = new StoreProduct
+                {
+                    StoreId = storeProductCreateDTO.StoreId,
+                    ProductId = product.ProductId,
+                    IsAvailable = true,
+                    IsDeleted = false,
+                };
+                storeProducts.Add(sp);
+            };
+
+            if (storeProducts.Count == 0) throw new Exception($"Products in category ID: {storeProductCreateDTO.CategoryId} have been added before.");
+
+            _unitOfWork.StoreProductRepository.AddRange(storeProducts);
+            _unitOfWork.Save();
+
+            return storeProducts;
+        }
+
         public void Delete(int storeProductId)
         {
             var data = _unitOfWork.StoreProductRepository.Find(c => c.StoreProductId == storeProductId && c.IsDeleted == false).FirstOrDefault()
@@ -60,6 +98,17 @@ namespace SmartMenu.Service.Services
             return result ?? Enumerable.Empty<StoreProduct>();
         }
 
+        public IEnumerable<StoreProduct> GetWithProductSizePrices(int? storeProductId, int? storeId, int? productId, string? searchString, int pageNumber, int pageSize)
+        {
+            var data = _unitOfWork.StoreProductRepository.EnableQuery()
+                .Include(c => c.Product!)
+                .ThenInclude(c => c.ProductSizePrices);
+                
+            var result = DataQuery(data, storeProductId, storeId, productId, searchString, pageNumber, pageSize);
+
+            return result ?? Enumerable.Empty<StoreProduct>();
+        }
+
         public StoreProduct Update(int storeProductId, StoreProductUpdateDTO storeProductUpdateDTO)
         {
             var data = _unitOfWork.StoreProductRepository.Find(c => c.StoreProductId == storeProductId && c.IsDeleted == false).FirstOrDefault()
@@ -71,6 +120,7 @@ namespace SmartMenu.Service.Services
 
             return data;
         }
+
         private IEnumerable<StoreProduct> DataQuery(IQueryable<StoreProduct> data, int? storeProductId, int? storeId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
@@ -78,6 +128,18 @@ namespace SmartMenu.Service.Services
             {
                 data = data
                     .Where(c => c.StoreProductId == storeProductId);
+            }
+
+            if(storeId != null)
+            {
+                data = data
+                    .Where(c => c.StoreId == storeId);
+            }
+
+            if (productId != null)
+            {
+                data = data
+                    .Where(c => c.ProductId == productId);
             }
 
             if (searchString != null)

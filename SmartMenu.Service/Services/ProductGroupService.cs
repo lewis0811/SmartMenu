@@ -5,11 +5,6 @@ using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartMenu.Service.Services
 {
@@ -23,15 +18,16 @@ namespace SmartMenu.Service.Services
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
+
         public ProductGroup Add(ProductGroupCreateDTO productGroupCreateDTO)
         {
-            var data = _mapper.Map<ProductGroup>(productGroupCreateDTO);
             if (productGroupCreateDTO.CollectionID == 0) productGroupCreateDTO.CollectionID = null;
             if (productGroupCreateDTO.MenuID == 0) productGroupCreateDTO.MenuID = null;
             if (productGroupCreateDTO.CollectionID != null && productGroupCreateDTO.MenuID != null)
             {
                 throw new Exception("Product group can't be in both menu, collection");
             }
+            var data = _mapper.Map<ProductGroup>(productGroupCreateDTO);
 
             _unitOfWork.ProductGroupRepository.Add(data);
             _unitOfWork.Save();
@@ -72,12 +68,22 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.ProductGroupRepository.Find(c => c.ProductGroupId == productGroupId && c.IsDeleted == false).FirstOrDefault()
                 ?? throw new Exception("Product group not found or deleted");
 
+            if(productGroupUpdateDTO.HaveNormalPrice != data.HaveNormalPrice)
+            {
+                var productGroupItems = _unitOfWork.ProductGroupItemRepository
+                    .Find(c => c.ProductGroupId == productGroupId)
+                    .ToList();
+                _unitOfWork.ProductGroupItemRepository.RemoveRange(productGroupItems);
+                _unitOfWork.Save();
+            }
+
             _mapper.Map(productGroupUpdateDTO, data);
             _unitOfWork.ProductGroupRepository.Update(data);
             _unitOfWork.Save();
 
             return data;
         }
+
         private IEnumerable<ProductGroup> DataQuery(IQueryable<ProductGroup> data, int? productGroupId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);

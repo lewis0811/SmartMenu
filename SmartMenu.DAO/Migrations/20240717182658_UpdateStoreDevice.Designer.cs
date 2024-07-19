@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartMenu.DAO;
 
@@ -11,9 +12,10 @@ using SmartMenu.DAO;
 namespace SmartMenu.DAO.Migrations
 {
     [DbContext(typeof(SmartMenuDBContext))]
-    partial class SmartMenuDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240717182658_UpdateStoreDevice")]
+    partial class UpdateStoreDevice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -704,7 +706,7 @@ namespace SmartMenu.DAO.Migrations
 
             modelBuilder.Entity("SmartMenu.Domain.Models.User", b =>
                 {
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("UserID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -726,7 +728,7 @@ namespace SmartMenu.DAO.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UserId");
+                    b.HasKey("UserID");
 
                     b.ToTable("Users");
                 });
@@ -797,7 +799,7 @@ namespace SmartMenu.DAO.Migrations
                         .WithMany()
                         .HasForeignKey("MenuId");
 
-                    b.HasOne("SmartMenu.Domain.Models.StoreDevice", null)
+                    b.HasOne("SmartMenu.Domain.Models.StoreDevice", "StoreDevice")
                         .WithMany("Displays")
                         .HasForeignKey("StoreDeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -812,6 +814,8 @@ namespace SmartMenu.DAO.Migrations
                     b.Navigation("Collection");
 
                     b.Navigation("Menu");
+
+                    b.Navigation("StoreDevice");
 
                     b.Navigation("Template");
                 });
@@ -956,13 +960,15 @@ namespace SmartMenu.DAO.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartMenu.Domain.Models.Store", null)
-                        .WithMany("StoreProducts")
+                    b.HasOne("SmartMenu.Domain.Models.Store", "Store")
+                        .WithMany()
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Product");
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.Box", b =>
@@ -1023,8 +1029,6 @@ namespace SmartMenu.DAO.Migrations
                     b.Navigation("StoreCollections");
 
                     b.Navigation("StoreMenus");
-
-                    b.Navigation("StoreProducts");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.StoreDevice", b =>

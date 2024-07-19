@@ -5,6 +5,7 @@ using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartMenu.Service.Services
 {
@@ -22,7 +23,7 @@ namespace SmartMenu.Service.Services
         public Template Add(TemplateCreateDTO templateCreateDTO)
         {
             var brand = _unitOfWork.BrandRepository.Find(c => c.BrandId == templateCreateDTO.BrandId && c.IsDeleted == false).FirstOrDefault()
-            ?? throw new Exception ("Brand not found or deleted");
+            ?? throw new Exception("Brand not found or deleted");
 
             var data = _mapper.Map<Template>(templateCreateDTO);
             _unitOfWork.TemplateRepository.Add(data);
@@ -67,10 +68,22 @@ namespace SmartMenu.Service.Services
         public Template Update(int templateId, TemplateUpdateDTO templateUpdateDTO)
         {
             var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault()
-            ?? throw new Exception ("Template not found or deleted");
+            ?? throw new Exception("Template not found or deleted");
 
             _mapper.Map(templateUpdateDTO, data);
 
+            _unitOfWork.TemplateRepository.Update(data);
+            _unitOfWork.Save();
+
+            return data;
+        }
+
+        public object Update(int templateId,[Url] string templateImgPath)
+        {
+            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault()
+                ?? throw new Exception("Template not found or deleted");
+
+            data.TemplateImgPath = templateImgPath;
             _unitOfWork.TemplateRepository.Update(data);
             _unitOfWork.Save();
 

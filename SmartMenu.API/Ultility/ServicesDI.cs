@@ -27,6 +27,7 @@ namespace SmartMenu.API.Ultility
             services.AddScoped<IStoreCollectionService, StoreCollectionService>();
             services.AddScoped<IStoreMenuService, StoreMenuService>();
             services.AddScoped<IStoreProductService, StoreProductService>();
+            services.AddScoped<IStoreDeviceService, StoreDeviceService>();
             services.AddScoped<IMenuService, MenuService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ICollectionService, CollectionService>();

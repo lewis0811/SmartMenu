@@ -77,6 +77,21 @@ namespace SmartMenu.API.Controllers
             }
         }
 
+        [HttpPut("{templateId}/image")]
+        public IActionResult Update(int templateId, string TemplateImgPath)
+        {
+            try
+            {
+                var data = _templateService.Update(templateId, TemplateImgPath);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpDelete("{templateId}")]
         public IActionResult Delete(int templateId)
         {

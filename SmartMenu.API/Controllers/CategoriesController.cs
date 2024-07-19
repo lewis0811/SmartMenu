@@ -24,11 +24,11 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult Get(int? categoryId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        public ActionResult Get(int? categoryId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var data = _categoryService.GetAll(categoryId, searchString, pageNumber, pageSize);
+                var data = _categoryService.GetAll(categoryId, brandId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)

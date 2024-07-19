@@ -13,8 +13,8 @@ namespace SmartMenu.Domain.Models
         //public double? EndingHour { get; set; } // optional
         public string? DisplayImgPath { get; set; }
 
-        [ForeignKey(nameof(StoreDeviceId))]
-        public StoreDevice? StoreDevice { get; set; }
+        //[ForeignKey(nameof(StoreDeviceId))]
+        //public StoreDevice? StoreDevice { get; set; }
 
         [ForeignKey(nameof(MenuId))]
         public Menu? Menu { get; set; }

@@ -25,11 +25,25 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult Get(int? storeProductId, int? productId, int? storeId,string? searchString, int pageSize = 1, int pageNumber = 10)
+        public ActionResult Get(int? storeProductId, int? productId, int? storeId,string? searchString, int pageSize = 10, int pageNumber = 1)
         {
             try
             {
                 var data = _storeProductService.GetAll(storeProductId, storeId, productId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("productsizeprices")]
+        public ActionResult GetWithProductSizePrices(int? storeProductId, int? productId, int? storeId, string? searchString, int pageSize = 10, int pageNumber = 1)
+        {
+            try
+            {
+                var data = _storeProductService.GetWithProductSizePrices(storeProductId, storeId, productId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)
@@ -44,6 +58,20 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var data = _storeProductService.Add(storeProductCreateDTO);
+                return CreatedAtAction(nameof(Get), data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("v2")]
+        public ActionResult AddV2(StoreProductCreateDTO_V2 storeProductCreateDTO)
+        {
+            try
+            {
+                var data = _storeProductService.AddV2(storeProductCreateDTO);
                 return CreatedAtAction(nameof(Get), data);
             }
             catch (Exception ex)

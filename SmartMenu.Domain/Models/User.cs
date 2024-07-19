@@ -5,7 +5,7 @@ namespace SmartMenu.Domain.Models
 {
     public class User : BaseModel
     {
-        public Guid UserID { get; set; } = new Guid();
+        public Guid UserId { get; set; } = new Guid();
 
         [Required]
         public string UserName { get; set; } = string.Empty;

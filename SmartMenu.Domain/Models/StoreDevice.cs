@@ -14,6 +14,7 @@ namespace SmartMenu.Domain.Models
 
         public float DeviceWidth { get; set; } = 0;
         public float DeviceHeight { get; set; } = 0;
+        public bool IsApproved { get; set; } = false;
 
         //[ForeignKey(nameof(StoreId))]
         //public Store? Store { get; set; }

@@ -40,7 +40,7 @@ namespace SmartMenu.Service.Services
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim("Id", data.UserID.ToString()),
+                    new Claim("Id", data.UserId.ToString()),
                     new Claim("Username", data.UserName),
                     new Claim(ClaimTypes.Email, data.Email),
                     new Claim(ClaimTypes.Role, Enum.GetName(typeof(Role),role)!.ToString())
@@ -56,7 +56,7 @@ namespace SmartMenu.Service.Services
             int? brandId = null;
             int? storeId = null;
             int? staffId = null;
-            var brandStaff = _unitOfWork.BrandStaffRepository.Find(c => c.UserId == data.UserID)
+            var brandStaff = _unitOfWork.BrandStaffRepository.Find(c => c.UserId == data.UserId)
                 .FirstOrDefault();
 
             if (brandStaff != null) { 
@@ -67,7 +67,7 @@ namespace SmartMenu.Service.Services
 
 
             return new {
-                UserId = data.UserID, 
+                UserId = data.UserId, 
                 RoleId = data.Role,
                 Role = data.Role.ToString(),
                 BrandId = brandId,

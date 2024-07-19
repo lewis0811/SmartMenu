@@ -10,7 +10,7 @@ namespace SmartMenu.Domain.Models
         public int BoxId { get; set; }
         public int FontId { get; set; }
         public double FontSize { get; set; }
-        public StringAlignment TextFormat { get; set; }
+        //public StringAlignment TextFormat { get; set; }
         public BoxItemType BoxItemType { get; set; }
         public string BoxColor { get; set; } = "#ffffff";
 

@@ -54,7 +54,7 @@ namespace SmartMenu.DAO.Implementation
 
         public void RemoveRange(IEnumerable<T> entities)
         {
-            throw new NotImplementedException();
+            _context.Set<T>().RemoveRange(entities);
         }
     }
 }

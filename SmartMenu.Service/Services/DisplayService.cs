@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Azure.Storage.Blobs.Models;
+using CloudinaryDotNet;
 using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
@@ -13,9 +13,6 @@ using System.Drawing.Text;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
-using static Azure.Core.HttpHeader;
-using static System.Net.Mime.MediaTypeNames;
 using Font = System.Drawing.Font;
 #pragma warning disable CA1416 // Validate platform compatibility
 
@@ -25,9 +22,7 @@ namespace SmartMenu.Service.Services
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-
-        [DllImport("gdi32.dll", EntryPoint = "RemoveFontResourceExA", CharSet = CharSet.Unicode)]
-        public static extern bool RemoveFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
+        private static readonly Dictionary<string, Font> fontCache = new();
 
         public DisplayService(IMapper mapper, IUnitOfWork unitOfWork)
         {
@@ -117,7 +112,7 @@ namespace SmartMenu.Service.Services
             // Adding display items
             var productGroups = new List<ProductGroup>();
             var boxes = new List<Box>();
-            var layers = new List<Layer>();
+            var layers = new List<SmartMenu.Domain.Models.Layer>();
             var templateWithLayer = new Template();
             var displayItems = new List<DisplayItem>();
 
@@ -314,9 +309,7 @@ namespace SmartMenu.Service.Services
                         g.DrawString(displayItem.ProductGroup!.ProductGroupName.ToUpper()
                         , headerFont
                         , new SolidBrush(headerColor)
-                        , headerPosition
-                        , new StringFormat() { Alignment = boxItem.TextFormat }
-                        );
+                        , headerPosition);
                     }
 
                     /* Check if the box item is of type Body */
@@ -517,7 +510,7 @@ namespace SmartMenu.Service.Services
                 // Adding display items
                 var productGroups = new List<ProductGroup>();
                 var boxes = new List<Box>();
-                var layers = new List<Layer>();
+                var layers = new List<SmartMenu.Domain.Models.Layer>();
                 var templateWithLayer = new Template();
 
                 // GET ProductGroup List from Menu or Collection if not null
@@ -650,7 +643,7 @@ namespace SmartMenu.Service.Services
             return templateResolution;
         }
 
-        private static void DrawImageLayer(Menu? menu, Collection? collection, Bitmap b, Graphics g, Layer layer)
+        private static void DrawImageLayer(Menu? menu, Collection? collection, Bitmap b, Graphics g, SmartMenu.Domain.Models.Layer layer)
         {
             // Draw background
             if (layer.LayerType == LayerType.BackgroundImageLayer)
@@ -753,7 +746,7 @@ namespace SmartMenu.Service.Services
             // Adding display items
             var productGroups = new List<ProductGroup>();
             var boxes = new List<Box>();
-            var layers = new List<Layer>();
+            var layers = new List<SmartMenu.Domain.Models.Layer>();
             var templateWithLayer = new Template();
             var displayItems = new List<DisplayItem>();
 
@@ -1553,14 +1546,12 @@ namespace SmartMenu.Service.Services
 
         private string InitializeImageV2(Display data, string tempPath)
         {
+            
             try
             {
-                /*
-                     * 0. Initialize display
-                     */
 
-                #region Initialize Template
-                // Get template resolutions
+                #region 0. Initialize Template
+                // 1. Get template resolutions
                 var templateResolution = _unitOfWork.TemplateRepository
                     .EnableQuery()
                     .Include(c => c.Layers!)
@@ -1575,358 +1566,319 @@ namespace SmartMenu.Service.Services
 
                 if (templateResolution.Layers == null) throw new Exception("Template has no layers");
 
-                // Get device resolutions
+                // 2. Get device resolutions
                 var storeDeviceResolution = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == data.StoreDeviceId && c.IsDeleted == false).FirstOrDefault()
                     ?? throw new Exception("Store device not found or deleted");
 
-                // Initialize template
+                // 3. Get store's products
+                var device = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == data.StoreDeviceId && c.IsDeleted == false)
+                    .FirstOrDefault() ?? throw new Exception("Device not found or deleted");
+
+                var storeProductDict = _unitOfWork.StoreRepository
+                    .EnableQuery()
+                    .SelectMany(s => s.StoreProducts)
+                    .Where(c => c.StoreId == device.StoreId && c.IsDeleted == false && c.IsAvailable == true)
+                    .ToDictionary(c => c.ProductId);
+
+                // 3. Initialize template
                 var initializeTemplate = GetInitializeTemplate(templateResolution, storeDeviceResolution);
                 if (initializeTemplate.Layers == null) throw new Exception("Template has no layers");
                 #endregion
 
-                /*
-                 * 1. Initialize image bitmap
-                 */
+                #region 1. Initialize image bitmap
 
-                #region Get template from display
+                // 1. Get template from display
 
                 Template template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == data.TemplateId).FirstOrDefault()
                     ?? throw new Exception("Template not found");
 
-                #endregion Get template from display
 
-                #region Generate bitmap
+                // 2. Generate bitmap
 
                 Bitmap b = new((int)initializeTemplate.TemplateWidth, (int)initializeTemplate.TemplateHeight);
                 using Graphics g = Graphics.FromImage(b);
 
-                #endregion Generate bitmap
-
-                /*
-                 * 2. Draw image layer
-                 */
-
-                #region Initialize menu, collection
-                var menu = new Menu();
-                if (data.MenuId != null)
-                {
-                    menu = _unitOfWork.MenuRepository.Find(c => c.MenuId == data.MenuId && c.IsDeleted == false).FirstOrDefault();
-                }
-                else { menu = null; }
-
-                var collection = new Collection();
-                if (data.CollectionId != null)
-                {
-                    collection = _unitOfWork.CollectionRepository.Find(c => c.CollectionId == data.CollectionId && c.IsDeleted == false).FirstOrDefault();
-                }
-                else { collection = null; }
                 #endregion
 
-                #region Draw image from template layers
-                foreach (var layer in initializeTemplate!.Layers!)
-                {
-                    DrawImageLayerV2(menu, collection, b, g, layer, tempPath);
-                }
+                #region 2. Draw image layer
+
+                // 1. Initialize menu, collection
+                var menu = (data.MenuId != 0)
+                    ? _unitOfWork.MenuRepository
+                        .Find(c => c.MenuId == data.MenuId && !c.IsDeleted)
+                        .FirstOrDefault()
+                    : null;
+
+                var collection = (data.CollectionId != 0)
+                    ? _unitOfWork.CollectionRepository
+                        .Find(c => c.CollectionId == data.CollectionId && !c.IsDeleted)
+                        .FirstOrDefault()
+                    : null;
+
+                // 2. Draw image from template layers
+
+                //foreach (var layer in initializeTemplate!.Layers!)
+                //{
+                //    DrawImageLayerV2(b, g, layer!, tempPath);
+                //}
+
+                DrawImageLayerV2(b, g, initializeTemplate!.Layers!, tempPath);
                 #endregion
-
-                /*
-                 * 3. Draw display box from display item
-                 */
-
-                #region Get display items from display
+                
+                #region 3. Draw display box from display item
+                // 1. Get display items from display
 
                 List<DisplayItem> displayItems = _unitOfWork.DisplayItemRepository
                     .Find(c => c.DisplayId == data.DisplayId)
                     .ToList();
                 if (displayItems.Count == 0) throw new Exception("Display items not found or null");
 
-                #endregion Get display items from display
 
-                #region Get boxes from display items
-                List<Box> boxes = new();
-                Box menu_collection_name_box = new();
-
-                foreach (var item in displayItems)
-                {
-                    boxes.Add(_unitOfWork.BoxRepository
-                        .Find(c => c.BoxId == item.BoxId)
-                        .FirstOrDefault()
-                        ?? throw new Exception("Box not found or null")
-                    );
-                }
+                // 2. Get boxes from display items
+                List<Box> boxes = _unitOfWork.BoxRepository
+                    .Find(c => displayItems.Select(d => d.BoxId).Contains(c.BoxId) && c.IsDeleted == false)
+                    .ToList();
                 if (boxes.Count == 0) throw new Exception("Box not found or null");
 
-                // Check if have MenuCollectionNameLayer
-                Layer? menuCollectionNameLayer = initializeTemplate.Layers.Where(c => c.LayerType == LayerType.MenuCollectionNameLayer).FirstOrDefault();
 
-                // If have 
-                if (menuCollectionNameLayer != null)
-                {
-                    menu_collection_name_box = menuCollectionNameLayer.Boxes!.FirstOrDefault()!;
-                    Rectangle menu_collection_rect =
-                        new Rectangle((int)menu_collection_name_box.BoxPositionX, (int)menu_collection_name_box.BoxPositionY, (int)menu_collection_name_box.BoxWidth, (int)menu_collection_name_box.BoxHeight);
-                    g.DrawRectangle(Pens.Red, menu_collection_rect);
-                }
-
-                #endregion Get boxes from display items
-
-                #region Initialize rectangle from boxes
-
-                List<Rectangle> rects = new();
-                foreach (var item in boxes)
-                {
-                    Rectangle rect = new((int)item.BoxPositionX, (int)item.BoxPositionY, (int)item.BoxWidth, (int)item.BoxHeight);
-                    rects.Add(rect);
-                }
+                // 3.  Initialize rectangle from boxes
+                List<Rectangle> rects = boxes
+                    .Select(c => new Rectangle() { X = (int)c.BoxPositionX, Y = (int)c.BoxPositionY, Width = (int)c.BoxWidth, Height = (int)c.BoxHeight })
+                    .ToList();
                 if (rects.Count == 0) throw new Exception("Rectangle fail to initialize");
 
-                #endregion Initialize rectangle from boxes
 
-                #region Draw rectangles from boxes
-
+                // 4. Draw rectangles from boxes
                 foreach (var rect in rects)
                 {
                     g.DrawRectangle(Pens.Red, rect);
                 }
-
-                #endregion Draw rectangles from boxes
-
-                /*
-                 *  3.1. Draw static text
-                 */
-
-                #region Get box from layer type static
-                var static_Text_Layer = initializeTemplate.Layers.FirstOrDefault(c => c.LayerType == LayerType.StaticTextLayer);
                 #endregion
 
-                // If static_Text_Layer found
+                #region 3.1. Draw static text
+                
+                // 0. Get box from layer type static
+                var static_Text_Layer = initializeTemplate.Layers.FirstOrDefault(c => c.LayerType == LayerType.StaticTextLayer);
+                
+                // 1. If static_Text_Layer found
                 if (static_Text_Layer != null)
                 {
                     var static_Text_Box = static_Text_Layer.Boxes!.FirstOrDefault() ?? throw new Exception("static_Text_Box not found in static_Text_Layer");
 
-                    #region Initialize Pointf for static text
+
+                    // 2.  Initialize Pointf for static text
                     PointF static_Text_PointF = new((int)(static_Text_Box.BoxPositionX), (int)static_Text_Box.BoxPositionY);
                     Rectangle static_Text_Rect = new((int)static_Text_Box.BoxPositionX, (int)static_Text_Box.BoxPositionY, (int)static_Text_Box.BoxWidth, (int)static_Text_Box.BoxHeight);
-                    #endregion
 
-                    #region Initialize Fonts+, Colors for static text
+
+                    // 3.  Initialize Fonts+, Colors for static text
                     var static_Text_FontDB = static_Text_Box.BoxItems!.FirstOrDefault()!.Font ?? throw new Exception("static_Text_FontDB not found in static_Text_Box");
 
-                    // Add font 
                     Font static_Text_Font = InitializeFont(tempPath, static_Text_Box.BoxItems!.FirstOrDefault()!);
 
-                    // Add color 
                     ColorConverter static_Text_ColorConverter = new();
                     Color static_Text_Color = (Color)static_Text_ColorConverter.ConvertFromString(static_Text_Box.BoxItems!.FirstOrDefault()!.BoxColor)!;
-                    #endregion
 
-                    #region Draw static text from layer item
-                    // Get layeritem from static text layer
+
+                    // 4.  Draw static text from layer item
                     var static_Text_LayerItem = _unitOfWork.LayerItemRepository.Find(c => c.LayerId == static_Text_Layer.LayerId).FirstOrDefault()
                         ?? throw new Exception("static_Text_LayerItem not found in static_Text_Layer");
 
-                    // Draw string
-                    g.DrawString(static_Text_LayerItem.LayerItemValue,
-                        static_Text_Font,
-                        new SolidBrush(static_Text_Color),
-                        static_Text_PointF
+                    Rectangle rect = new(
+                        (int)static_Text_Box.BoxPositionX,
+                        (int)static_Text_Box.BoxPositionY,
+                        (int)static_Text_Box.BoxWidth,
+                        (int)static_Text_Box.BoxHeight
                         );
-                    static_Text_Font.Dispose();
 
-                    g.DrawRectangle(new Pen(Color.Red), static_Text_Rect);
+                    SizeF static_Text_StringSize = g.MeasureString(static_Text_LayerItem.LayerItemValue, static_Text_Font);
 
-                    #endregion
+                    if (static_Text_PointF.Y < rect.Bottom - static_Text_StringSize.Height &&
+                        static_Text_PointF.X + static_Text_StringSize.Width < rect.Right)
+                    {
+                        g.DrawString(static_Text_LayerItem.LayerItemValue,
+                                static_Text_Font,
+                                new SolidBrush(static_Text_Color),
+                                static_Text_PointF
+                                );
+                            g.DrawRectangle(new Pen(Color.Red), static_Text_Rect);
+                    }
+
                 }
+                #endregion
 
-                /*
-                 *  3.2. Draw menu/collection name
-                 */
+                #region 3.2 Draw menu/collection name
+                SmartMenu.Domain.Models.Layer? menuCollectionNameLayer = initializeTemplate.Layers.Where(c => c.LayerType == LayerType.MenuCollectionNameLayer).FirstOrDefault();
+
                 if (menuCollectionNameLayer != null)
                 {
-                    #region Initialize PointF for menu/collection name
+                    // 0. Initialize rect, box for menu/collection name
+                    Box menu_collection_name_box = menuCollectionNameLayer.Boxes!.FirstOrDefault()!;
+
+                    Rectangle menu_collection_rect =
+                        new ((int)menu_collection_name_box.BoxPositionX, (int)menu_collection_name_box.BoxPositionY, (int)menu_collection_name_box.BoxWidth, (int)menu_collection_name_box.BoxHeight);
+
+                    // 1.  Initialize PointF for menu/collection name
                     PointF menu_Collection_Name_Point = new((int)menu_collection_name_box.BoxPositionX, (int)menu_collection_name_box.BoxPositionY);
-                    #endregion
 
-                    #region Initialize Fonts, Colors for menu/collection name
-
-                    // Add font 
+                    // 2. Initialize Fonts, Colors for menu/collection name
                     Font menu_Collection_Name_Font = InitializeFont(tempPath, menu_collection_name_box.BoxItems!.FirstOrDefault()!);
 
-                    // Add color 
                     ColorConverter menu_Collection_Name_colorConverter = new();
                     Color menu_Collection_Name_Color = (Color)menu_Collection_Name_colorConverter.ConvertFromString(menu_collection_name_box.BoxItems!.FirstOrDefault()!.BoxColor)!;
-                    #endregion
 
-                    #region Draw name from menu/collection
+                    // 3.  Intialize rectangle and stringSize for measuaring
+                    Rectangle rect = new(
+                        (int)menu_collection_name_box.BoxPositionX, 
+                        (int)menu_collection_name_box.BoxPositionY,
+                        (int)menu_collection_name_box.BoxWidth,
+                        (int)menu_collection_name_box.BoxHeight
+                        );
+
+                    SizeF menu_collection_stringsize = new();
                     if (menu != null)
                     {
-                        g.DrawString(menu.MenuName,
-                            menu_Collection_Name_Font,
-                            new SolidBrush(menu_Collection_Name_Color),
-                            menu_Collection_Name_Point
-                            );
-                    }
+                        menu_collection_stringsize = g.MeasureString(menu.MenuName, menu_Collection_Name_Font);
+                    } 
                     if (collection != null)
                     {
-                        g.DrawString(collection.CollectionName,
-                            menu_Collection_Name_Font,
-                            new SolidBrush(menu_Collection_Name_Color),
-                            menu_Collection_Name_Point
-                            );
+                        menu_collection_stringsize = g.MeasureString(collection.CollectionName, menu_Collection_Name_Font);
                     }
-                    #endregion
+
+                    // 4. Draw name from menu/collection
+                    if (menu_Collection_Name_Point.Y < rect.Bottom - menu_collection_stringsize.Height &&
+                        menu_Collection_Name_Point.X + menu_collection_stringsize.Width < rect.Right)
+                    {
+
+                        var textToDraw = (menu != null) ? menu.MenuName : collection!.CollectionName;
+                        if (!string.IsNullOrEmpty(textToDraw))
+                        {
+                            g.DrawString(textToDraw,
+                                         menu_Collection_Name_Font,
+                                         new SolidBrush(menu_Collection_Name_Color),
+                                         menu_Collection_Name_Point);
+
+                            g.DrawRectangle(Pens.Red, menu_collection_rect);
+                        }
+                    }
                 }
+                #endregion
+
+                #region 4. Draw header from productgroup
+
+                // 1. Efficient Product Group Retrieval:
+
+                //var productGroupDict = _unitOfWork.ProductGroupRepository
+                //    .Find(c => displayItems.Select(item => item.ProductGroupId).Contains(c.ProductGroupId))
+                //    .ToDictionary(pg => pg.ProductGroupId);
+
+                //var productGroups = displayItems
+                //    .Select(item => productGroupDict.TryGetValue(item.ProductGroupId, out var pg) ? pg : throw new Exception("Product group not found or null"))
+                //    .ToList();
+
+                var productGroups = _unitOfWork.ProductGroupRepository
+                    .EnableQuery()
+                    .Include(c => c.ProductGroupItems!)
+                    .ThenInclude(c => c.Product)
+                    .Where(c => displayItems.Select(item => item.ProductGroupId).Contains(c.ProductGroupId))
+                    .ToList();
 
 
-                /*
-                 * 4. Draw header from productgroup
-                 */
+                // 2. Header Point Initialization =
+                var headerPoints = boxes
+                    .Select(item => new PointF((int)item.BoxPositionX, (int)item.BoxPositionY)) // Creating PointF objects
+                    .ToList();
 
-                #region Get product group from display item
-
-                List<ProductGroup> productGroups = new();
-
-                foreach (var item in displayItems)
-                {
-                    productGroups.Add(_unitOfWork.ProductGroupRepository
-                        .Find(c => c.ProductGroupId == item.ProductGroupId)
-                        .FirstOrDefault()
-                        ?? throw new Exception("Product group not found or null")
-                    );
-                }
-                if (productGroups.Count == 0) throw new Exception("Product group not found or null");
-
-                #endregion Get product group from display item
-
-                #region Initialize PointF for headers
-
-                List<PointF> headerPoints = new();
-
-                // Get postion x,y from boxes in step 2
-                foreach (var item in boxes)
-                {
-                    PointF point = new((int)item.BoxPositionX, (int)item.BoxPositionY);
-                    headerPoints.Add(point);
-                }
                 if (headerPoints.Count == 0) throw new Exception("Header point fail to initialize");
 
-                #endregion Initialize PointF for headers
 
-                #region Initialize Fonts, Colors for headers
+                // 3. Combined BoxItem Retrieval and Filtering:
+                var headerBoxItems = _unitOfWork.BoxItemRepository
+                    .EnableQuery()
+                    .Include(c => c.Font)
+                    .Where(c => boxes.Select(b => b.BoxId).Contains(c.BoxId) && c.BoxItemType == BoxItemType.Header)
+                    .ToList();
 
-                List<Font> headerFonts = new();
-                List<Color> headerColors = new();
+                if (headerBoxItems.Count == 0) throw new Exception("Box items not found or null");
 
-                // Get box items from boxes
-                List<BoxItem> boxItems = new();
+                // 4. Streamlined Font and Color Initialization:
+                var headerFonts = new List<Font>();
+                var headerColors = new List<Color>();
 
-                foreach (var item in boxes)
+                foreach (var item in headerBoxItems)
                 {
-                    boxItems.AddRange(_unitOfWork.BoxItemRepository
-                        .Find(c => c.BoxId == item.BoxId)
-                        .ToList()
-                    );
-                }
-                if (boxItems.Count == 0) throw new Exception("Box items not found or null");
+                    
+                    // Add font (assuming InitializeFont is already optimized)
+                    headerFonts.Add(InitializeFont(tempPath, item));
 
-                // Get fonts from box items
-                foreach (var item in boxItems)
-                {
-                    if (item.BoxItemType == BoxItemType.Header)
-                    {
-                        var boxItemFromDB = _unitOfWork.BoxItemRepository
-                            .EnableQuery()
-                            .Include(c => c.Font)
-                            .Where(c => c.BoxId == item.BoxId && c.BoxItemType == item.BoxItemType)
-                            .FirstOrDefault()
-                            ?? throw new Exception("Box item not found or deleted");
-
-                        // Add font
-                        Font font = InitializeFont(tempPath, boxItemFromDB);
-                        headerFonts.Add(font);
-
-                        // Add color to list    
-                        ColorConverter colorConverter = new();
-                        Color color = (Color)colorConverter.ConvertFromString(boxItemFromDB.BoxColor)!;
-                        headerColors.Add(color);
-                    }
-                }
-                if (headerFonts.Count == 0) throw new Exception("HeaderFont not found or null");
-                if (headerColors.Count == 0) throw new Exception("HeaderColor not found or null");
-
-                #endregion Initialize Fonts, Colors for headers
-
-                #region Draw header from product group
-
-                foreach (var productGroup in productGroups)
-                {
-                    g.DrawString(productGroup.ProductGroupName,
-                        headerFonts[productGroups.IndexOf(productGroup)],
-                        new SolidBrush(headerColors[productGroups.IndexOf(productGroup)]),
-                        headerPoints[productGroups.IndexOf(productGroup)]
-                        );
+                    // Add color
+                    headerColors.Add((Color)new ColorConverter().ConvertFromString(item.BoxColor)!); // Assume not null
                 }
 
-                #endregion Draw header from product group
 
-                /*
-                 * 5. Draw product name from productgroup
-                 */
+                // 5. Drawing Headers (Using the Initialized headerPoints):
+                                foreach (var item in headerBoxItems)
+                {
+                    
+                    // Add font (assuming InitializeFont is already optimized)
+                    headerFonts.Add(InitializeFont(tempPath, item));
 
-                #region Get product from menu / collection in display
+                    // Add color
+                    headerColors.Add((Color)new ColorConverter().ConvertFromString(item.BoxColor)!); // Assume not null
+                }
+
+                for (int i = 0; i < productGroups.Count; i++)
+                {
+                    g.DrawString(productGroups[i].ProductGroupName,
+                        headerFonts[i],
+                        new SolidBrush(headerColors[i]),
+                        headerPoints[i]);
+                }
+
+                #endregion
+
+                #region 5. Draw product name from store's productgroups
+                
+                // 1. Get product from menu / collection in display
 
                 // Initialize padding constants
-                const int heightPadding = 100;
+                const int heightPadding = 70;
 
-                // Initialize product group item
-                List<ProductGroupItem> productGroupItems = new();
+                //var products = productGroups
+                //    .SelectMany(pg => _unitOfWork.ProductGroupItemRepository
+                //        .Find(pgi => pgi.ProductGroupId == pg.ProductGroupId)
+                //        .Select(pgi => _unitOfWork.ProductRepository
+                //            .Find(p => p.ProductId == pgi.ProductId)
+                //            .FirstOrDefault()
+                //        )
+                //    )
+                //    .Where(p => p != null)
+                //    .ToList();
 
-                // Get product group items from product groups
-                foreach (var productGroup in productGroups)
-                {
-                    productGroupItems.AddRange(_unitOfWork.ProductGroupItemRepository
-                        .Find(c => c.ProductGroupId == productGroup.ProductGroupId)
-                        .ToList()
-                    );
-                }
-                if (productGroupItems.Count == 0) throw new Exception("Product group item not found or null");
+                //if (products.Count == 0)
+                //    throw new Exception("No products found in the selected product groups.");
 
-                // Get product from product group items
-                List<Product> products = new();
-                foreach (var productGroupItem in productGroupItems)
-                {
-                    products.Add(_unitOfWork.ProductRepository
-                        .Find(c => c.ProductId == productGroupItem.ProductId)
-                        .FirstOrDefault()
-                        ?? throw new Exception("Product not found or null")
-                    );
-                }
-                if (products.Count == 0) throw new Exception("Product not found or null");
+                // 2. Initialize PointF for products
 
-                #endregion Get product from menu / collection in display
+                var productPoints = boxes
+                    .Select(box => new PointF((int)box.BoxPositionX, (int)box.BoxPositionY + heightPadding))
+                    .ToList();
 
-                #region Initialize PointF for products
+                if (productPoints.Count == 0)
+                    throw new Exception("Product point initialization failed.");
 
-                List<PointF> productPoints = new();
-
-                // Get postion x,y from boxes in step 2
-                foreach (var item in boxes)
-                {
-                    PointF point = new((int)item.BoxPositionX, (int)item.BoxPositionY + heightPadding);
-                    productPoints.Add(point);
-                }
-                if (productPoints.Count == 0) throw new Exception("Product point fail to initialize");
-
-                #endregion Initialize PointF for products
-
-                #region Initialize Fonts, Colors for products
+                // 3. Initialize Fonts, Colors for products
 
                 List<Font> bodyFonts = new();
                 List<Color> bodyColors = new();
+                var bodyFontsDictionary = new Dictionary<int, Font>();
 
                 // Get box items from boxes from step 3
-                List<BoxItem> bodyBoxItems = new();
-                bodyBoxItems = boxItems;
+                List<BoxItem> bodyBoxItems = _unitOfWork.BoxItemRepository
+                    .EnableQuery()
+                    .Include(c => c.Font)
+                    .Where(c => boxes.Select(b => b.BoxId).Contains(c.BoxId) && c.BoxItemType == BoxItemType.Body)
+                    .ToList();
 
                 // Get fonts from box items
                 foreach (var item in bodyBoxItems)
@@ -1943,6 +1895,7 @@ namespace SmartMenu.Service.Services
                         // Add Font
                         Font bodyFont = InitializeFont(tempPath, boxItemFromDB);
                         bodyFonts.Add(bodyFont);
+                        bodyFontsDictionary.Add(item.BoxId, bodyFont);
 
                         // Add color to list
                         ColorConverter colorConverter = new();
@@ -1953,17 +1906,19 @@ namespace SmartMenu.Service.Services
                 if (bodyFonts.Count == 0) throw new Exception("BodyFont not found or null");
                 if (bodyColors.Count == 0) throw new Exception("BodyColor not found or null");
 
-                #endregion Initialize Fonts, Colors for products
 
-                #region Get biggest string size from products
+                // 4. Get biggest string size from products
 
-                string biggestString = "";
-                float biggestStringWidth = 0f;
-                SizeF biggestStringSize = new();
-
+                //string biggestString = "";
+                //SizeF biggestStringSize = new();
+                Dictionary<string, SizeF> biggestStringSizes = new();
                 foreach (var productGroup in productGroups)
                 {
-                    foreach (var productGroupItem in productGroup.ProductGroupItems!)
+                    string biggestString = "";
+                    SizeF biggestStringSize = new ();
+                    float biggestStringWidth = 0f;
+
+                    foreach (var productGroupItem in  productGroup.ProductGroupItems!)
                     {
                         var tempWidth = g.MeasureString(productGroupItem.Product!.ProductName, bodyFonts[productGroups.IndexOf(productGroup)]).Width;
 
@@ -1974,11 +1929,12 @@ namespace SmartMenu.Service.Services
                             biggestStringSize = g.MeasureString(biggestString, bodyFonts[productGroups.IndexOf(productGroup)]);
                         }
                     }
+
+                    biggestStringSizes.Add(productGroup.ProductGroupId.ToString(), biggestStringSize);
                 }
+                 
 
-                #endregion Get biggest string size from products
-
-                #region Draw products within the display area
+                // 5. Draw products within the display area
 
                 foreach (var productGroup in productGroups)
                 {
@@ -1990,10 +1946,13 @@ namespace SmartMenu.Service.Services
 
                     foreach (var productGroupItem in productGroup.ProductGroupItems!)
                     {
+                        // Check if product is in store
+                        if (!storeProductDict.ContainsKey(productGroupItem.ProductId)) continue;
+
                         // Check if the product can fit in the remaining display area
-                        if (productPoint.Y < rect.Bottom - biggestStringSize.Height)
+                        if (productPoint.Y < rect.Bottom - biggestStringSizes[productGroup.ProductGroupId.ToString()].Height)
                         {
-                            if (productPoint.X + biggestStringSize.Width < rect.Right)
+                            if (productPoint.X + biggestStringSizes[productGroup.ProductGroupId.ToString()].Width < rect.Right)
                             {
                                 // Draw the product name on the display
                                 g.DrawString(productGroupItem.Product!.ProductName,
@@ -2003,26 +1962,24 @@ namespace SmartMenu.Service.Services
                             }
 
                             // Update the Y position for the next product
-                            productPoint.Y += biggestStringSize.Height; // Borrow biggestStringSize from "Get biggest string size from products" region
+                            productPoint.Y += biggestStringSizes[productGroup.ProductGroupId.ToString()].Height; // Borrow biggestStringSize from "Get biggest string size from products" region
                         }
                     }
                 }
-
-                #endregion Draw products within the display area
+                #endregion
 
                 /*
                  * 6. Draw product prices from product size prices
                  */
 
-
                 #region Draw products price within the display area
 
-                // Intialize padding constants
+                // 1. Intialize padding constants
                 const int widthPaddingS = 10;
-                const int priceHeightPadding = 100;
-                const int sizeHeightPadding = 60;
+                const int priceHeightPadding = 70;
+                const int sizeHeightPadding = 40;
 
-                // get display items
+                // 2. Get display items
                 List<DisplayItem> displayItemsFromDB = _unitOfWork.DisplayItemRepository.EnableQuery()
                     .Where(c => c.DisplayId == data.DisplayId)
                     .Include(c => c.ProductGroup!)
@@ -2038,53 +1995,43 @@ namespace SmartMenu.Service.Services
                 foreach (var displayItem in displayItemsFromDB)
                 {
                     Box box = _unitOfWork.BoxRepository.Find(c => c.BoxId == displayItem.BoxId).FirstOrDefault()
-                        ?? throw new Exception("Box not found or deleted");
+                    ?? throw new Exception("Box not found or deleted");
+                    // 3. Get the rectangle for the displayItem
+                    var rect = rects[displayItems.IndexOf(displayItem)];
+                    //
 
-                    // Get the rectangle for the displayItem
-                    var rect = rects[displayItems.IndexOf(displayItem)];
-                    //
-
-                    // Find the biggest product string width
-                    string BIGGEST_PRODUCT_STRING = "";
+                    // 4. Find the biggest product string width
+                    string BIGGEST_PRODUCT_STRING = "";
                     float BIGGEST_PRODUCT_STRING_WIDTH = 0f;
-                    bool flagInitProductFont = false;
-                    Font productFont = new(FontFamily.GenericMonospace, 1);
+                    
+                    BoxItem biggest_product_boxItem = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId).FirstOrDefault()!;
+                    Font productFont = productFont = InitializeFont(tempPath, biggest_product_boxItem);
 
                     foreach (var productGroupItem in displayItem.ProductGroup!.ProductGroupItems!)
                     {
-                        BoxItem boxItem = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId).FirstOrDefault()!;
-
-                        //Get font for  productFont
-
-                        if (flagInitProductFont == false)
-                        {
-                            productFont= InitializeFont(tempPath, boxItem);
-                            flagInitProductFont = true;
-                        }
 
                         var tempWidth = g.MeasureString(productGroupItem.Product!.ProductName,
-                            productFont).Width;
-
+                        productFont).Width;
                         if (tempWidth >= g.MeasureString(BIGGEST_PRODUCT_STRING, productFont).Width)
                         {
                             BIGGEST_PRODUCT_STRING = productGroupItem.Product!.ProductName;
                             BIGGEST_PRODUCT_STRING_WIDTH = tempWidth;
                         }
                     }
+                    if (BIGGEST_PRODUCT_STRING == "") throw new Exception("BIGGEST_PRODUCT_STRING fail to initialize");
 
-                    if (BIGGEST_PRODUCT_STRING == "") throw new Exception("BIGGEST_PRODUCT_STRING fail to initialize");
                     //
 
-                    // Find the biggest price string height, width
+                    // 5.  Find the biggest price string height, width
                     string BIGGEST_PRICE_STRING = "";
                     float BIGGEST_PRICE_STRING_HEIGHT = 0f;
                     float BIGGEST_PRICE_STRING_WIDTH = 0f;
 
                     bool flagInitProductPrice = false;
-                    Font productPriceWidthFont = new Font(FontFamily.GenericSerif, 1);
+                    Font productPriceWidthFont = new (FontFamily.GenericSerif, 1);
                     foreach (var productGroupItem in displayItem.ProductGroup!.ProductGroupItems!)
                     {
-                        BoxItem boxItem = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId).FirstOrDefault()!;
+                        BoxItem boxItem = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId && c.IsDeleted == false).FirstOrDefault()!;
 
                         //Get font for  productpriceFOnt
                         if (flagInitProductPrice == false)
@@ -2115,7 +2062,7 @@ namespace SmartMenu.Service.Services
                     if (BIGGEST_PRICE_STRING == "") throw new Exception("BIGGEST_PRICE_STRING fail to initialize");
                     //
 
-                    // Initialize Pointf for product size, prices based on biggest product string width; product size
+                    // 6. Initialize Pointf for product size, prices based on biggest product string width; product size
                     PointF pointPriceSizeS = new(box.BoxPositionX + BIGGEST_PRODUCT_STRING_WIDTH + widthPaddingS, box.BoxPositionY + priceHeightPadding);
                     PointF pointPriceSizeM = new(pointPriceSizeS.X + BIGGEST_PRICE_STRING_WIDTH, box.BoxPositionY + priceHeightPadding);
                     PointF pointPriceSizeL = new(pointPriceSizeS.X + BIGGEST_PRICE_STRING_WIDTH * 2, box.BoxPositionY + priceHeightPadding);
@@ -2125,27 +2072,32 @@ namespace SmartMenu.Service.Services
                     PointF pointSizeL = new(pointSizeS.X + BIGGEST_PRICE_STRING_WIDTH * 2, box.BoxPositionY + sizeHeightPadding);
                     // 
 
-                    // Draw size of product 
 
-                    // Get the BoxItem for the product price
+                    // 7. Get the BoxItem for the product price
                     BoxItem boxItemForSize = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId).FirstOrDefault()!;
 
-                    // Convert the box color to a Color object
+                    // 8. Convert the box color to a Color object
                     Color sizeColor = (Color)new ColorConverter().ConvertFromString(boxItemForSize.BoxColor)!;
 
-                    // Get the font for the product size
+                    // 9. Get the font for the product size
                     Font productSizeFont = InitializeFont(tempPath, boxItemForSize);
 
-                    // Intialize flag for product size
+                    // 10. Intialize flag for product size
                     bool isProductSizeSRendered = false;
                     bool isProductSizeMRendered = false;
                     bool isProductSizeLRendered = false;
 
                     bool flagInitProductSizePrice = false;
                     Font productPriceFont = new Font(FontFamily.GenericSerif, 1);
-                    // Draw product prices & size
+                    
+                    
+                    // 11. Draw product prices & size
                     foreach (var productGroupItem in displayItem.ProductGroup!.ProductGroupItems!)
                     {
+                        // 11.1. Check if product is in store
+                        if (!storeProductDict.ContainsKey(productGroupItem.ProductId)) continue;
+
+                        // 11.2. Draw price if have product in store
                         foreach (var productSizePrice in productGroupItem.Product!.ProductSizePrices!)
                         {
                             // Get the BoxItem for the product price
@@ -2195,7 +2147,6 @@ namespace SmartMenu.Service.Services
                                             );
                                         isProductSizeSRendered = true;
 
-
                                     }
 
                                     // Draw the product price on the display
@@ -2205,10 +2156,13 @@ namespace SmartMenu.Service.Services
                                         new SolidBrush(color),
                                         pointPriceSizeS);
 
-
                                     pointPriceSizeS.Y += BIGGEST_PRICE_STRING_HEIGHT;
                                 }
 
+                            }
+
+                            if (pointPriceSizeM.Y < rect.Bottom - BIGGEST_PRICE_STRING_HEIGHT)
+                            {
                                 // Draw price for product size M
                                 if (productSizePrice.ProductSizeType == ProductSizeType.M && pointPriceSizeM.X + BIGGEST_PRICE_STRING_WIDTH < rect.Right)
                                 {
@@ -2235,6 +2189,10 @@ namespace SmartMenu.Service.Services
                                     pointPriceSizeM.Y += BIGGEST_PRICE_STRING_HEIGHT;
                                 }
 
+                            }
+
+                            if (pointPriceSizeL.Y < rect.Bottom - BIGGEST_PRICE_STRING_HEIGHT)
+                            {
                                 // Draw price for product size L
                                 if (productSizePrice.ProductSizeType == ProductSizeType.L && pointPriceSizeL.X + BIGGEST_PRICE_STRING_WIDTH < rect.Right)
                                 {
@@ -2261,14 +2219,11 @@ namespace SmartMenu.Service.Services
                                     pointPriceSizeL.Y += BIGGEST_PRICE_STRING_HEIGHT;
                                 }
                             }
-                            //
                         }
                     }
                 }
 
                 #endregion Draw products price within the display area
-
-
 
                 /*
                 * FINALLY: Save image
@@ -2286,11 +2241,35 @@ namespace SmartMenu.Service.Services
             }
         }
 
-        private static Font InitializeFont(string tempPath, BoxItem boxItem)
+        private static void DrawImageLayerV2(Bitmap b, Graphics g, ICollection<SmartMenu.Domain.Models.Layer> layers, string tempPath)
         {
-            Font tempFont;
+            foreach (var layer in layers)
+            {
+                if (layer.LayerType == LayerType.BackgroundImageLayer && !layer.IsDeleted)
+                {
+                    using var image = InitializeImage(tempPath, layer.LayerItem!);
+                    g.DrawImage(image, 0, 0, b.Width, b.Height);
+                }
+
+                //else if (layer.LayerType == LayerType.ImageLayer && !layer.IsDeleted)
+                //{
+                //    var box = layer.Boxes!.FirstOrDefault()
+                //               ?? throw new Exception($"Layer ID: {layer.LayerId} have no box!");
+                //    var rect = new Rectangle((int)box.BoxPositionX, (int)box.BoxPositionY, (int)box.BoxWidth, (int)box.BoxHeight);
+
+                //    using var image = System.Drawing.Image.FromFile(layer.LayerItem!.LayerItemValue)
+                //                        ?? throw new Exception($"Image not found: {layer.LayerItem.LayerItemValue}");
+                //    g.DrawRectangle(Pens.Black, rect);
+                //    g.DrawImage(image, rect);
+                //}
+            }
+        }
+
+        private static System.Drawing.Image InitializeImage(string tempPath, LayerItem layerItem)
+        {
+            System.Drawing.Image tempImage;
             // Get temp font path
-            var tempFontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
+            var tempFontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".png");
 
             // Check if folder exist
             if (!Directory.Exists(tempPath))
@@ -2301,7 +2280,7 @@ namespace SmartMenu.Service.Services
             // Download and write file
             using (var client = new WebClient())
             {
-                client.DownloadFile(boxItem.Font!.FontPath, tempFontPath);
+                client.DownloadFile(layerItem.LayerItemValue, tempFontPath);
                 client.Dispose();
             }
 
@@ -2310,14 +2289,52 @@ namespace SmartMenu.Service.Services
             {
                 throw new FileNotFoundException();
             }
+                
+            // Add Image
+            var imageBytes = File.ReadAllBytes(tempFontPath);
+            MemoryStream ms = new (imageBytes);
+            tempImage = System.Drawing.Image.FromStream(ms);
+
+            return tempImage;
+        }
+
+        private static Font InitializeFont(string tempPath, BoxItem boxItem)
+        {
+            // 0. Caching for Reuse
+            if (fontCache != null)
+            {
+                if (fontCache.TryGetValue(boxItem.Font!.FontPath, out var cachedFont))
+                {
+                    return new Font(cachedFont.FontFamily, (float)boxItem.FontSize);
+                }
+            }
 
 
-            // Add font to list
-            //PrivateFontCollection fontCollectionProductPrice = new();
-            //fontCollectionProductPrice.AddFontFile(tempFontPathProductPrice);
-            //productPriceFont = new Font(fontCollectionProductPrice.Families[0], (int)boxItem.FontSize);
-            //fontCollectionProductPrice.Dispose();
-            using (PrivateFontCollection fontCollection = new PrivateFontCollection())
+            Font tempFont;
+            // 1. Get temp font path
+            var tempFontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
+
+            // 2. Check if folder exist
+            if (!Directory.Exists(tempPath))
+            {
+                Directory.CreateDirectory(tempPath);
+            }
+
+            // 3. Download and write file
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(boxItem.Font!.FontPath, tempFontPath);
+                client.Dispose();
+            }
+
+            // 4. Check if file exists
+            if (!File.Exists(tempFontPath))
+            {
+                throw new FileNotFoundException();
+            }
+
+            // 5. Add Font
+            using (PrivateFontCollection fontCollection = new ())
             {
                 var fontByte = File.ReadAllBytes(tempFontPath);
                 var pinned = GCHandle.Alloc(fontByte, GCHandleType.Pinned);
@@ -2328,111 +2345,38 @@ namespace SmartMenu.Service.Services
                 tempFont = new Font(fontFamily, (float)boxItem.FontSize);
             }
 
+            fontCache[boxItem.Font!.FontPath] = tempFont;
             return tempFont;
         }
 
-        private static void DrawImageLayerV2(Menu? menu, Collection? collection, Bitmap b, Graphics g, Layer layer, string tempPath)
+        private static void DrawImageLayerV2(Bitmap b, Graphics g, SmartMenu.Domain.Models.Layer layer, string tempPath)
         {
             try
             {
-                //// Draw background
-                //if (layer.LayerType == LayerType.BackgroundImageLayer)
-                //{
-                //    var image = System.Drawing.Image.FromFile(layer.LayerItem!.LayerItemValue);
-                //    g.DrawImage(image, 0, 0, b.Width, b.Height);
-                //}
-
-                g.Clear(Color.DarkGray);
-
-
-                // Draw image
-                //if (layer.LayerType == LayerType.ImageLayer)
-                //{
-                //    foreach (var box in layer.Boxes!)
-                //    {
-                //        var rectf = new RectangleF(box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
-                //        var rect = new Rectangle((int)box.BoxPositionX, (int)box.BoxPositionY, (int)box.BoxWidth, (int)box.BoxHeight);
-
-                //        // Lưu ý lỗi file hình : Out of memory tên phía sau bắt đầu "....-10212.jpg"
-                //        var image = Image.FromFile(layer.LayerItem!.LayerItemValue)
-                //            ?? throw new Exception($"Image not found: {layer.LayerItem.LayerItemValue}");
-
-                //        g.DrawRectangle(Pens.Black, rect);
-                //        g.DrawImage(image, rectf);
-                //    }
-                //}
-
-                // Draw title
-                if (layer.LayerType == LayerType.MenuCollectionNameLayer)
+                // 1. Draw background
+                if (layer.LayerType == LayerType.BackgroundImageLayer)
                 {
-                    var box = layer.Boxes!.FirstOrDefault() ?? throw new Exception("Box not found in draw title layer");
-
-                    RectangleF boxRectTitleF = new(box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
-                    Rectangle boxRectTitle = new((int)box.BoxPositionX, (int)box.BoxPositionY, (int)box.BoxWidth, (int)box.BoxHeight);
-                    // Get name
-                    string name = "";
-                    if (menu != null) name = menu.MenuName;
-                    if (collection != null) name = collection.CollectionName;
-
-                    // Get BoxItem
-                    BoxItem boxItem = box.BoxItems!.FirstOrDefault()
-                        ?? throw new Exception("Box Item not found in draw title layer");
-
-                    // Get Font
-                    Domain.Models.Font font = boxItem.Font
-                        ?? throw new Exception("Font not found in draw title layer");
-
-                    // Get temp font path
-                    var tempFontPath = Path.Combine(tempPath, Guid.NewGuid().ToString() + ".ttf");
-
-                    // Check if folder exist
-                    if (!Directory.Exists(tempPath))
-                    {
-                        Directory.CreateDirectory(tempPath);
-                    }
-
-                    // Download and write file
-                    using (var client = new WebClient())
-                    {
-                        client.DownloadFile(font!.FontPath, tempFontPath);
-                        client.Dispose();
-                    }
-
-                    // Check if file exists
-                    if (!File.Exists(tempFontPath))
-                    {
-                        throw new FileNotFoundException();
-                    }
-
-
-                    // Config font
-                    Font menuFont;
-                    using (PrivateFontCollection fontCollection = new PrivateFontCollection())
-                    {
-                        var fontByte = File.ReadAllBytes(tempFontPath);
-                        var pinned = GCHandle.Alloc(fontByte, GCHandleType.Pinned);
-                        var pointer = pinned.AddrOfPinnedObject();
-                        fontCollection.AddMemoryFont(pointer, fontByte.Length);
-                        pinned.Free();
-                        FontFamily fontFamily = fontCollection.Families[0];
-                        menuFont = new Font(fontFamily, (float)box.BoxItems.First().FontSize);
-                    }
-
-                    // Config color
-                    ColorConverter converter = new();
-                    Color color = (Color)converter.ConvertFromString(boxItem.BoxColor)!;
-
-                    // Draw menu name
-                    //g.DrawString(name
-                    //    , new System.Drawing.Font(fontFamily, (float)box.BoxItems!.First().FontSize, FontStyle.Bold)
-                    //    , new SolidBrush(Color.Black)
-                    //    , boxRectTitleF
-                    //    , new StringFormat() { Alignment = boxItem.TextFormat }
-                    //    );
-
-                    //g.DrawRectangle(Pens.Black, boxRectTitle);
-
+                    //var image = System.Drawing.Image.FromFile(layer.LayerItem!.LayerItemValue);
+                    var image = InitializeImage(tempPath, layer.LayerItem!);
+                    g.DrawImage(image, 0, 0, b.Width, b.Height);
                 }
+
+
+                // 2. Draw image
+                if (layer.LayerType == LayerType.ImageLayer)
+                {
+                    var image = System.Drawing.Image.FromFile(layer.LayerItem!.LayerItemValue)
+                                 ?? throw new Exception($"Image not found: {layer.LayerItem.LayerItemValue}");
+
+                    var box = layer.Boxes!.FirstOrDefault() ?? throw new Exception($"Layer ID: {layer.LayerId} have no box!");
+                    var rect = new Rectangle((int)box.BoxPositionX, (int)box.BoxPositionY, (int)box.BoxWidth, (int)box.BoxHeight);
+
+                    g.DrawRectangle(Pens.Black, rect);
+                    g.DrawImage(image, rect);
+                    
+                    image.Dispose(); 
+                }
+
             }
             catch (Exception ex)
             {

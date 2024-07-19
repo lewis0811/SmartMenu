@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
@@ -24,6 +25,37 @@ namespace SmartMenu.Service.Services
         }
         public ProductGroupItem Add(ProductGroupItemCreateDTO productGroupItemCreateDTO)
         {
+            var productGroup = _unitOfWork.ProductGroupRepository
+                .Find(c => c.ProductGroupId == productGroupItemCreateDTO.ProductGroupId && c.IsDeleted == false)
+                .FirstOrDefault() ?? throw new Exception($"Product group ID: {productGroupItemCreateDTO.ProductGroupId} not found or deleted");
+
+            var product = _unitOfWork.ProductRepository
+                .EnableQuery()
+                .Include(c => c.ProductSizePrices)
+                .Where(c => c.ProductId == productGroupItemCreateDTO.ProductId && c.IsDeleted == false)
+                .FirstOrDefault() ?? throw new Exception($"Product ID: {productGroupItemCreateDTO.ProductId} not found or deleted");
+
+            if (product.ProductSizePrices!.Count == 0) throw new Exception($"Product ID: {product.ProductId} haven't initialize price ");
+
+            var productSizeType = product.ProductSizePrices.FirstOrDefault()!.ProductSizeType;
+
+            if (productGroup.HaveNormalPrice && productSizeType  != Domain.Models.Enum.ProductSizeType.Normal)
+            {
+                throw new Exception($"This product ID: {product.ProductId} have a price based on size of product " +
+                    $"\nSo it not match with product group ID: {productGroup.ProductGroupId} that is defined as having a normal price ");
+            } 
+
+            if (!productGroup.HaveNormalPrice && productSizeType == Domain.Models.Enum.ProductSizeType.Normal)
+            {
+                throw new Exception($"This product ID: {product.ProductId} have a normal price" +
+                    $"\nSo it not match with product group ID: {productGroup.ProductGroupId} that is defined as having a price based on size of product");
+            }
+
+            var existProductInProductGroupItem = _unitOfWork.ProductGroupItemRepository
+                .Find(c => c.ProductId == productGroupItemCreateDTO.ProductId && c.ProductGroupId == productGroupItemCreateDTO.ProductGroupId)
+                .Any();
+            if (existProductInProductGroupItem) throw new Exception($"Product ID: {productGroupItemCreateDTO.ProductId} already exist in the product group ID: {productGroupItemCreateDTO.ProductGroupId}");
+
             var data = _mapper.Map<ProductGroupItem>(productGroupItemCreateDTO);
 
             _unitOfWork.ProductGroupItemRepository.Add(data);
@@ -37,8 +69,10 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.ProductGroupItemRepository.Find(c => c.ProductGroupItemId == productGroupItemId && c.IsDeleted == false).FirstOrDefault()
            ?? throw new Exception("Group item not found or deleted");
 
-            data.IsDeleted = true;
-            _unitOfWork.ProductGroupItemRepository.Update(data);
+            //data.IsDeleted = true;
+            //_unitOfWork.ProductGroupItemRepository.Update(data);
+
+            _unitOfWork.ProductGroupItemRepository.Remove(data);
             _unitOfWork.Save();
         }
 
