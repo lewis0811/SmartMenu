@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
@@ -54,7 +55,10 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<StoreMenu> GetAll(int? storeMenuId, int? storeId, int? menuId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _unitOfWork.StoreMenuRepository.EnableQuery();
+            var data = _unitOfWork.StoreMenuRepository.EnableQuery()
+                .Include(c => c.Menu)
+                .Where(c => !c.Menu!.IsDeleted);
+
             var result = DataQuery(data, storeMenuId, storeId, menuId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<StoreMenu>();

@@ -10,6 +10,7 @@ using SmartMenu.DAO;
 using AutoMapper;
 using SmartMenu.Domain.Repository;
 using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 
 namespace SmartMenu.Service.Services
 {
@@ -78,7 +79,10 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<StoreCollection> GetAll(int? storeCollectionId, int? storeId, int? collectionId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _unitOfWork.StoreCollectionRepository.EnableQuery();
+            var data = _unitOfWork.StoreCollectionRepository.EnableQuery()
+                .Include(c => c.Collection)
+                .Where(c => !c.Collection!.IsDeleted);
+
             var result = DataQuery(data, storeCollectionId, storeId, collectionId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<StoreCollection>();

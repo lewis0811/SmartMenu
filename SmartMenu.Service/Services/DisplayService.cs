@@ -1167,7 +1167,7 @@ namespace SmartMenu.Service.Services
             using (var client = new WebClient())
             {
                 client.DownloadFile(boxItem.Font!.FontPath, tempFontPath);
-                client.Dispose();
+                //client.Dispose();
             }
 
             // 4. Check if file exists
