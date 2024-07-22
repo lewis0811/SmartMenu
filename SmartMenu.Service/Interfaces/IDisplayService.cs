@@ -17,7 +17,7 @@ namespace SmartMenu.Service.Interfaces
 
         Display AddDisplay(DisplayCreateDTO displayCreateDTO);
 
-        Display AddDisplayV4(DisplayCreateDTO displayCreateDTO, string tempPath);
+        Task<Display> AddDisplayV4Async(DisplayCreateDTO displayCreateDTO, string tempPath);
 
         //Display AddDisplayV2(DisplayCreateDTO displayCreateDTO);
         Task<string> UpdateContainImageAsync(int displayId, DisplayUpdateDTO displayUpdateDTO, string tempPath);

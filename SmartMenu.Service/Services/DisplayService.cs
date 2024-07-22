@@ -60,8 +60,8 @@ namespace SmartMenu.Service.Services
         {
             var templateWidth = templateResolution.TemplateWidth;
             var templateHeight = templateResolution.TemplateHeight;
-            float deviceWidth = 0;
-            float deviceHeight = 0;
+            float deviceWidth;
+            float deviceHeight;
             if (templateResolution.TemplateType == TemplateType.Horizontal)
             {
                 deviceWidth = storeDeviceResolution.DeviceHeight;
@@ -97,10 +97,10 @@ namespace SmartMenu.Service.Services
         }
         public async Task<string> GetImageByTimeAsync(int deviceId, string tempPath)
         {
-            var device = _unitOfWork.StoreDeviceRepository
+            var device =  await _unitOfWork.StoreDeviceRepository
                 .EnableQuery()
                 .Include(c => c.Displays)
-                .FirstOrDefault(c => c.StoreDeviceId == deviceId && c.IsDeleted == false)
+                .FirstOrDefaultAsync(c => c.StoreDeviceId == deviceId && c.IsDeleted == false)
                 ?? throw new Exception("Device not found or deleted");
 
             if (device.Displays!.Count == 0) throw new Exception("Device has no display");
@@ -112,21 +112,22 @@ namespace SmartMenu.Service.Services
             Display display = new ();
 
 
-            display = _unitOfWork.DisplayRepository
+            display = await _unitOfWork.DisplayRepository
                 .EnableQuery()
-                .Where(c => c.StoreDeviceId == device.StoreDeviceId && c.IsDeleted == false && c.ActiveHour < floatHour)
-                .Include(c => c.Menu!)
+                .Where(c => c.StoreDeviceId == device.StoreDeviceId && !c.IsDeleted && c.ActiveHour < floatHour)
+                .Include(c => c.Menu)
                 .Include(c => c.Collection!)
                 .Include(c => c.Template!)
-                .ThenInclude(c => c.Layers!)
+                .ThenInclude(c => c.Layers!.Where(c => c.IsDeleted == false))
                 .ThenInclude(c => c.LayerItem)
-                .Include(c => c.DisplayItems)
+                .Include(c => c.DisplayItems!.Where(c => c.IsDeleted == false))
                 .OrderByDescending(c => c.ActiveHour)
-                .FirstOrDefault()!;
+                .FirstOrDefaultAsync()! ?? new Display();
 
-            if (display == null)
+            // If null then mean there's no display that have activeHour < recent hour
+            if(display.Template == null)
             {
-                display = _unitOfWork.DisplayRepository
+                display = await _unitOfWork.DisplayRepository
                     .EnableQuery()
                     .Where(c => c.StoreDeviceId == device.StoreDeviceId && c.IsDeleted == false && c.ActiveHour > floatHour)
                     .Include(c => c.Menu!)
@@ -136,7 +137,7 @@ namespace SmartMenu.Service.Services
                     .ThenInclude(c => c.LayerItem)
                     .Include(c => c.DisplayItems)
                     .OrderByDescending(c => c.ActiveHour)
-                    .FirstOrDefault()!;
+                    .FirstOrDefaultAsync()! ?? throw new Exception("Fail to get display");
             }
 
             var result = await GetImageByIdAsync(display, tempPath);
@@ -151,7 +152,7 @@ namespace SmartMenu.Service.Services
         {
             try
             {
-                Display display = _unitOfWork.DisplayRepository.EnableQuery()
+                Display display = await _unitOfWork.DisplayRepository.EnableQuery()
                         .Where(c => c.DisplayId == displayId && c.IsDeleted == false)
                         .Include(c => c.Menu!)
                         .Include(c => c.Collection!)
@@ -159,7 +160,7 @@ namespace SmartMenu.Service.Services
                         .ThenInclude(c => c.Layers!)
                         .ThenInclude(c => c.LayerItem)
                         .Include(c => c.DisplayItems)
-                        .FirstOrDefault()
+                        .FirstOrDefaultAsync()
                         ?? throw new Exception("Display not found or deleted");
 
                 string imgPath = await InitializeImageV2Async(display, tempPath);
@@ -192,7 +193,7 @@ namespace SmartMenu.Service.Services
 
             return data;
         }
-         public Display AddDisplayV4(DisplayCreateDTO displayCreateDTO, string tempPath)
+         public async Task<Display> AddDisplayV4Async(DisplayCreateDTO displayCreateDTO, string tempPath)
         {
                 if (displayCreateDTO.MenuId == 0) displayCreateDTO.MenuId = null;
                 if (displayCreateDTO.CollectionId == 0) displayCreateDTO.CollectionId = null;
@@ -257,7 +258,7 @@ namespace SmartMenu.Service.Services
                 _unitOfWork.Save();
 
                 AddDisplayItem(template, menu, collection, data);
-                InitializeImageV2Async(data, tempPath);
+                await InitializeImageV2Async(data, tempPath);
                 return data;
 
         }    
@@ -339,7 +340,7 @@ namespace SmartMenu.Service.Services
 
                 #region 0. Initialize Template
                 // 1. Get template resolutions
-                var templateResolution = _unitOfWork.TemplateRepository
+                var templateResolution = await _unitOfWork.TemplateRepository
                     .EnableQuery()
                     .Include(c => c.Layers!)
                     .ThenInclude(c => c.LayerItem)
@@ -348,7 +349,7 @@ namespace SmartMenu.Service.Services
                     .ThenInclude(c => c.BoxItems!)
                     .ThenInclude(c => c.Font)
                     .Where(c => c.TemplateId == data.TemplateId && c.IsDeleted == false)
-                    .FirstOrDefault()
+                    .FirstOrDefaultAsync()
                     ?? throw new Exception("Template not found or deleted");
 
                 if (templateResolution.Layers == null) throw new Exception("Template has no layers");
@@ -357,18 +358,18 @@ namespace SmartMenu.Service.Services
                  Dictionary<string, Font> fontCache = new();
 
                 // 2. Get device resolutions
-                var storeDeviceResolution = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == data.StoreDeviceId && c.IsDeleted == false).FirstOrDefault()
-                    ?? throw new Exception("Store device not found or deleted");
+                var storeDeviceResolution = await _unitOfWork.StoreDeviceRepository.FindObjectAsync(c => c.StoreDeviceId == data.StoreDeviceId && c.IsDeleted == false)
+                ?? throw new Exception("Store device not found or deleted");
 
                 // 2.1. Get store's products
-                var device = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == data.StoreDeviceId && c.IsDeleted == false)
-                    .FirstOrDefault() ?? throw new Exception("Device not found or deleted");
+                var device = await _unitOfWork.StoreDeviceRepository.FindObjectAsync(c => c.StoreDeviceId == data.StoreDeviceId && c.IsDeleted == false)
+                    ?? throw new Exception("Device not found or deleted");
 
-                var storeProductDict = _unitOfWork.StoreRepository
+                var storeProductDict = await _unitOfWork.StoreRepository
                     .EnableQuery()
                     .SelectMany(s => s.StoreProducts)
                     .Where(c => c.StoreId == device.StoreId && c.IsDeleted == false && c.IsAvailable == true)
-                    .ToDictionary(c => c.ProductId);
+                    .ToDictionaryAsync(c => c.ProductId);
 
                 // 2.2 Get store's productGroups
                 //var storeProductGroupDict = _unitOfWork.ProductGroupRepository
@@ -386,7 +387,7 @@ namespace SmartMenu.Service.Services
 
                 // 1. Get template from display
 
-                Template template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == data.TemplateId).FirstOrDefault()
+                Template template = await _unitOfWork.TemplateRepository.FindObjectAsync(c => c.TemplateId == data.TemplateId)
                     ?? throw new Exception("Template not found");
 
 
@@ -401,23 +402,21 @@ namespace SmartMenu.Service.Services
 
                 // 1. Initialize menu, collection
                 var menu = (data.MenuId != 0)
-                    ? _unitOfWork.MenuRepository
-                        .Find(c => c.MenuId == data.MenuId && !c.IsDeleted)
-                        .FirstOrDefault()
+                    ? await _unitOfWork.MenuRepository
+                        .FindObjectAsync(c => c.MenuId == data.MenuId && !c.IsDeleted)
                     : null;
 
                 var collection = (data.CollectionId != 0)
-                    ? _unitOfWork.CollectionRepository
-                        .Find(c => c.CollectionId == data.CollectionId && !c.IsDeleted)
-                        .FirstOrDefault()
-                    : null;
+                    ? await _unitOfWork.CollectionRepository
+                        .FindObjectAsync(c => c.CollectionId == data.CollectionId && !c.IsDeleted)
+                        : null;
 
             // 2. Draw image from template layers
 
             await DrawImageLayerV2Async(b, g, initializeTemplate!.Layers!, tempPath);
             #endregion
 
-            #region 3. Draw display box from display item
+                #region 3. Draw display box from display item
             // 1. Get display items from display
 
             List<DisplayItem> displayItems = _unitOfWork.DisplayItemRepository
@@ -569,12 +568,12 @@ namespace SmartMenu.Service.Services
                 //    .Select(item => productGroupDict.TryGetValue(item.ProductGroupId, out var pg) ? pg : throw new Exception("Product group not found or null"))
                 //    .ToList();
 
-                var productGroups = _unitOfWork.ProductGroupRepository
+                var productGroups = await _unitOfWork.ProductGroupRepository
                     .EnableQuery()
                     .Include(c => c.ProductGroupItems!)
                     .ThenInclude(c => c.Product)
                     .Where(c => displayItems.Select(item => item.ProductGroupId).Contains(c.ProductGroupId))
-                    .ToList();
+                    .ToListAsync();
 
 
                 // 2. Header Point Initialization =
@@ -586,11 +585,11 @@ namespace SmartMenu.Service.Services
 
 
                 // 3. Combined BoxItem Retrieval and Filtering:
-                var headerBoxItems = _unitOfWork.BoxItemRepository
+                var headerBoxItems = await _unitOfWork.BoxItemRepository
                     .EnableQuery()
                     .Include(c => c.Font)
                     .Where(c => boxes.Select(b => b.BoxId).Contains(c.BoxId) && c.BoxItemType == BoxItemType.Header)
-                    .ToList();
+                    .ToListAsync();
 
                 if (headerBoxItems.Count == 0) throw new Exception("Box items not found or null");
 
@@ -668,22 +667,22 @@ namespace SmartMenu.Service.Services
                 var bodyFontsDictionary = new Dictionary<int, Font>();
 
                 // Get box items from boxes from step 3
-                List<BoxItem> bodyBoxItems = _unitOfWork.BoxItemRepository
+                List<BoxItem> bodyBoxItems = await _unitOfWork.BoxItemRepository
                     .EnableQuery()
                     .Include(c => c.Font)
                     .Where(c => boxes.Select(b => b.BoxId).Contains(c.BoxId) && c.BoxItemType == BoxItemType.Body)
-                    .ToList();
+                    .ToListAsync();
 
                 // Get fonts from box items
                 foreach (var item in bodyBoxItems)
                 {
                     if (item.BoxItemType == BoxItemType.Body)
                     {
-                        var boxItemFromDB = _unitOfWork.BoxItemRepository
+                        var boxItemFromDB = await _unitOfWork.BoxItemRepository
                             .EnableQuery()
                             .Include(c => c.Font)
                             .Where(c => c.BoxId == item.BoxId && c.BoxItemType == item.BoxItemType)
-                            .FirstOrDefault()
+                            .FirstOrDefaultAsync()
                             ?? throw new Exception("Box item not found or deleted");
 
                         // Add Font
@@ -787,7 +786,7 @@ namespace SmartMenu.Service.Services
                 const int sizeHeightPadding = 40;
 
                 // 2. Get display items
-                List<DisplayItem> displayItemsFromDB = _unitOfWork.DisplayItemRepository.EnableQuery()
+                List<DisplayItem> displayItemsFromDB = await _unitOfWork.DisplayItemRepository.EnableQuery()
                     .Where(c => c.DisplayId == data.DisplayId)
                     .Include(c => c.ProductGroup!)
                     .ThenInclude(c => c.ProductGroupItems!)
@@ -797,7 +796,7 @@ namespace SmartMenu.Service.Services
                     .Include(c => c.Box!)
                     .ThenInclude(c => c.BoxItems!)
                     .ThenInclude(c => c.Font)
-                    .ToList();
+                    .ToListAsync();
 
                 foreach (var displayItem in displayItemsFromDB)
                 {
@@ -811,7 +810,10 @@ namespace SmartMenu.Service.Services
                     string BIGGEST_PRODUCT_STRING = "";
                     float BIGGEST_PRODUCT_STRING_WIDTH = 0f;
                     
-                    BoxItem biggest_product_boxItem = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId).FirstOrDefault()!;
+                    BoxItem biggest_product_boxItem = displayItem.Box!.BoxItems!
+                    .Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId)
+                    .FirstOrDefault()!;
+
                     Font productFont = productFont = InitializeFont(tempPath, biggest_product_boxItem, fontCache);
 
                     foreach (var productGroupItem in displayItem.ProductGroup!.ProductGroupItems!)
@@ -838,7 +840,9 @@ namespace SmartMenu.Service.Services
                     Font productPriceWidthFont = new (FontFamily.GenericSerif, 1);
                     foreach (var productGroupItem in displayItem.ProductGroup!.ProductGroupItems!)
                     {
-                        BoxItem boxItem = displayItem.Box!.BoxItems!.Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId && c.IsDeleted == false).FirstOrDefault()!;
+                        BoxItem boxItem = displayItem.Box!.BoxItems!
+                            .Where(c => c.BoxItemType == BoxItemType.Body && c.BoxId == box.BoxId && c.IsDeleted == false)
+                            .FirstOrDefault()!;
 
                         //Get font for  productpriceFOnt
                         if (flagInitProductPrice == false)
@@ -895,7 +899,7 @@ namespace SmartMenu.Service.Services
                     bool isProductSizeLRendered = false;
 
                     bool flagInitProductSizePrice = false;
-                    Font productPriceFont = new Font(FontFamily.GenericSerif, 1);
+                    Font productPriceFont = new (FontFamily.GenericSerif, 1);
                     
                     
                     // 11. Draw product prices & size
@@ -1120,6 +1124,7 @@ namespace SmartMenu.Service.Services
             using (var client = new WebClient())
             {
                 await client.DownloadFileTaskAsync(layerItem.LayerItemValue, tempFontPath); // Asynchronous download
+                client.Dispose();
             }
 
             if (!File.Exists(tempFontPath))
@@ -1131,6 +1136,7 @@ namespace SmartMenu.Service.Services
             using (MemoryStream ms = new(imageBytes))
             {
                 tempImage = System.Drawing.Image.FromStream(ms);
+                await ms.DisposeAsync();
             }
 
             return tempImage;
@@ -1595,7 +1601,7 @@ namespace SmartMenu.Service.Services
             Display updateDisplay = Update(displayId, displayUpdateDTO) 
                 ?? throw new Exception("Display fail to update");
 
-            Display display = _unitOfWork.DisplayRepository.EnableQuery()
+            Display display = await _unitOfWork.DisplayRepository.EnableQuery()
                 .Where(c => c.DisplayId == displayId && c.IsDeleted == false)
                 .Include(c => c.Menu!)
                 .Include(c => c.Collection!)
@@ -1603,7 +1609,7 @@ namespace SmartMenu.Service.Services
                 .ThenInclude(c => c.Layers!)
                 .ThenInclude(c => c.LayerItem)
                 .Include(c => c.DisplayItems)
-                .FirstOrDefault()
+                .FirstOrDefaultAsync()
                 ?? throw new Exception("Display not found or deleted");
 
             string imgPath = await InitializeImageV2Async(display, tempPath);

@@ -1,4 +1,5 @@
-﻿using SmartMenu.Domain.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Repository;
 
 namespace SmartMenu.DAO.Implementation
@@ -30,6 +31,18 @@ namespace SmartMenu.DAO.Implementation
         public IEnumerable<T> Find(System.Linq.Expressions.Expression<Func<T, bool>> predicate)
         {
             return _context.Set<T>().Where(predicate);
+        }
+
+        public async Task<T> FindObjectAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate)
+        {
+#pragma warning disable CS8603 // Possible null reference return.
+            return await _context.Set<T>().Where(predicate).FirstOrDefaultAsync();
+#pragma warning restore CS8603 // Possible null reference return.
+        }
+
+        public async Task<IEnumerable<T>> FindListAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>().Where(predicate).ToListAsync();
         }
 
         public IEnumerable<T> GetAll()

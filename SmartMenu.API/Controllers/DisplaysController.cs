@@ -150,13 +150,13 @@ namespace SmartMenu.API.Controllers
 
         [HttpPost("V4")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public IActionResult AddV4(DisplayCreateDTO displayCreateDTO)
+        public async Task<IActionResult> AddV4Async(DisplayCreateDTO displayCreateDTO)
         {
             try
             {
                 var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
 
-                var data = _displayService.AddDisplayV4(displayCreateDTO, tempPath);
+                var data = await _displayService.AddDisplayV4Async(displayCreateDTO, tempPath);
                 _displayService.DeleteTempFile(tempPath);
 
                 return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });

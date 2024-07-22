@@ -9,7 +9,8 @@ namespace SmartMenu.Domain.Repository
         IEnumerable<T> GetAll();
 
         IEnumerable<T> Find(Expression<Func<T, bool>> predicate);
-
+        Task<T> FindObjectAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate);
+        Task<IEnumerable<T>> FindListAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate);
         IQueryable<T> EnableQuery();
 
         void Add(T entity);
