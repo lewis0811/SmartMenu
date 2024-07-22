@@ -13,5 +13,6 @@ namespace SmartMenu.Service.Interfaces
         object GetLayerType();
         object GetProductSizeType();
         object GetRoleType();
+        object GetTemplateType();
     }
 }

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Service.Interfaces;
@@ -52,5 +54,6 @@ namespace SmartMenu.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
     }
 }

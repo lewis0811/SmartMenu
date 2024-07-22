@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SmartMenu.Domain.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
@@ -15,7 +16,9 @@ namespace SmartMenu.Domain.Models
 
         public float TemplateWidth { get; set; }
         public float TemplateHeight { get; set; }
+        public TemplateType TemplateType { get; set; }
         public string? TemplateImgPath { get; set; }
+
 
         //[ForeignKey(nameof(BrandId))]
         //public Brand? Brand { get; set; }

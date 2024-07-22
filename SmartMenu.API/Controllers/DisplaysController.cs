@@ -48,13 +48,33 @@ namespace SmartMenu.API.Controllers
             }
         }
 
-        [HttpGet("{displayId}/image")]
-        public IActionResult GetImage(int displayId)
+        //[HttpGet("{displayId}/image")]
+        //public IActionResult GetImage(int displayId)
+        //{
+        //    try
+        //    {
+        //        var data = _displayService.GetImageById(displayId);
+        //        if (data == null) return BadRequest("Image fail to create");
+
+        //        byte[] b = System.IO.File.ReadAllBytes(data);
+        //        return File(b, "image/jpeg");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
+
+        [HttpGet("V1/{deviceId}/image")]
+        public async Task<IActionResult> GetImageAsync(int deviceId)
         {
             try
             {
-                var data = _displayService.GetImageById(displayId);
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+
+                var data = await _displayService.GetImageByTimeAsync(deviceId, tempPath);
                 if (data == null) return BadRequest("Image fail to create");
+                _displayService.DeleteTempFile(tempPath);
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
                 return File(b, "image/jpeg");
@@ -66,12 +86,12 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet("V2/{displayId}/image")]
-        public IActionResult GetImageV2(int displayId)
+        public async Task<IActionResult> GetImageV2Async(int displayId)
         {
             try
             {
                 var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
-                var data = _displayService.GetImageByIdV2(displayId, tempPath);
+                var data = await _displayService.GetImageByIdV2Async(displayId, tempPath);
                 if (data == null) return BadRequest("Image fail to create");
                 _displayService.DeleteTempFile(tempPath);
 
@@ -113,20 +133,20 @@ namespace SmartMenu.API.Controllers
         //    }
         //}
 
-        [HttpPost("V3")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public IActionResult AddV3(DisplayCreateDTO displayCreateDTO)
-        {
-            try
-            {
-                var data = _displayService.AddDisplayV3(displayCreateDTO);
-                return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //[HttpPost("V3")]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //public IActionResult AddV3(DisplayCreateDTO displayCreateDTO)
+        //{
+        //    try
+        //    {
+        //        var data = _displayService.AddDisplayV3(displayCreateDTO);
+        //        return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
 
         [HttpPost("V4")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -143,7 +163,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new {error = ex.Message});
             }
         }
 
@@ -158,26 +178,6 @@ namespace SmartMenu.API.Controllers
                 _displayService.DeleteTempFile(tempPath);
 
                 return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpPut("{displayId}/image")]
-        public IActionResult UpdateContainImage(int displayId, DisplayUpdateDTO displayUpdateDTO)
-        {
-            try
-            {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
-
-                var data = _displayService.UpdateContainImage(displayId, displayUpdateDTO, tempPath);
-                if (data == null) return BadRequest("Image fail to create");
-                _displayService.DeleteTempFile(tempPath);
-
-                byte[] b = System.IO.File.ReadAllBytes(data);
-                return File(b, "image/jpeg");
             }
             catch (Exception ex)
             {

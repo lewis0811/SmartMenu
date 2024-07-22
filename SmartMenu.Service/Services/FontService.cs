@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Configuration;
+#pragma warning disable CA1416 // Validate platform compatibility
 
 namespace SmartMenu.Service.Services
 {
@@ -55,8 +56,14 @@ namespace SmartMenu.Service.Services
 
         public void Add(FontCreateDTO fontCreateDTO, string path)
         {
+
             PrivateFontCollection fontCollection = new();
             string fontName = fontCreateDTO.File!.FileName;
+            string fontNameCheck = fontName.Split('.')[0];
+
+            var existFont = _unitOfWork.FontRepository.Find(c => c.FontName == fontNameCheck).FirstOrDefault();
+            if (existFont != null) throw new Exception($"Font: `{fontNameCheck}` already exist ");
+
             //string realfontName = fontName.Split('.').First();
             string extensionName = Path.GetExtension(fontName);
 
@@ -77,8 +84,10 @@ namespace SmartMenu.Service.Services
             fontCollection.AddFontFile(Path.Combine(path, fontName));
 
             // Find the specified font family
+
             FontFamily family = fontCollection.Families.FirstOrDefault(f => f.Name.Equals(fontCollection.Families[0].Name, StringComparison.OrdinalIgnoreCase))
                 ?? throw new Exception("Font not found!");
+
 
             // Check if the font family was found and supports regular style
             bool isSupport = family.IsStyleAvailable(FontStyle.Regular);
@@ -103,7 +112,7 @@ namespace SmartMenu.Service.Services
 
             var data = new Domain.Models.Font()
             {
-                FontName = fontCollection.Families.First().Name,
+                FontName = fontName.Split('.')[0],
                 //FontPath = path + $"\\{fontName}"
                 FontPath = uploadResult.SecureUrl.ToString()
             };
@@ -113,3 +122,4 @@ namespace SmartMenu.Service.Services
         }
     }
 }
+#pragma warning restore CA1416 // Validate platform compatibility

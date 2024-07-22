@@ -1,4 +1,5 @@
-﻿using SmartMenu.Domain.Models.Enum;
+﻿using SmartMenu.Domain.Models;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Service.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -73,6 +74,19 @@ namespace SmartMenu.Service.Services
             }
 
             return roleTypes;
+        }
+
+        public object GetTemplateType()
+        {
+            List<object> templateTypes = new();
+
+            foreach (TemplateType item in Enum.GetValues(typeof(TemplateType)))
+            {
+
+                templateTypes.Add(new { value = item, name = item.ToString() });
+            }
+
+            return templateTypes;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SmartMenu.Domain.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartMenu.Domain.Models.DTO
 {
@@ -19,6 +20,8 @@ namespace SmartMenu.Domain.Models.DTO
 
         [Range(40f, 3125f, ErrorMessage = "Template Height must be between 40 and 3125f.")] // Example range constraint
         public float TemplateHeight { get; set; }
+
+        public TemplateType TemplateType { get; set; }
 
         [Required(ErrorMessage = "Template image path is required.")]
         [Url(ErrorMessage = "Template image path must be a valid URL.")] // Use UrlAttribute for URL validation

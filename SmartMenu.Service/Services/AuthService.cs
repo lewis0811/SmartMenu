@@ -25,6 +25,13 @@ namespace SmartMenu.Service.Services
             secretKey = configuration["ApiSettings:Secret"];
         }
 
+        public User Find(string gmail)
+        {
+            var data  = _unitOfWork.UserRepository.Find(c => c.Email == gmail && c.IsDeleted == false)
+                .FirstOrDefault() ?? throw new Exception("User not found or deleted");
+            return data;
+        }
+
         public object Login(UserLoginDTO userLoginDTO)
         {
             var data = _unitOfWork.UserRepository.Login(userLoginDTO);

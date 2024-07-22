@@ -37,7 +37,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
+// Add Email config
+//var emailConfig = builder.Configuration
+//    .GetSection("EmailConfiguration")
+//    .Get<EmailConfiguration>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

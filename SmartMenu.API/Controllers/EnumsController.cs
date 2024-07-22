@@ -50,5 +50,12 @@ namespace SmartMenu.API.Controllers
             var enums = _enumService.GetRoleType();
             return Ok(enums);
         }
+
+        [HttpGet("TemplateType")]
+        public IActionResult GetTemplateType()
+        {
+            var enums = _enumService.GetTemplateType();
+            return Ok(enums);
+        }
     }
 }
