@@ -53,7 +53,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Collection> GetCollectionWithProductGroup(int? collectionId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var data = _unitOfWork.CollectionRepository.EnableQuery();
-            data = data.Include(c => c.ProductGroups);
+            data = data.Include(c => c.ProductGroups!.Where(c => c.IsDeleted == false));
 
             var result = DataQuery(data, collectionId, brandId, searchString, pageNumber, pageSize);
 
