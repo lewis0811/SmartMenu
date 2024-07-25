@@ -34,7 +34,7 @@ namespace SmartMenu.API.Ultility
             services.AddScoped<IBrandStaffService, BrandStaffService>();
             services.AddScoped<IProductSizePriceService, ProductSizePriceService>();
             services.AddScoped<IProductService, ProductService>();
-            services.AddScoped<IProductSizeService, ProductSizeService>();
+            //services.AddScoped<IProductSizeService, ProductSizeService>();
             services.AddScoped<IProductGroupItemService, ProductGroupItemService>();
             services.AddScoped<IProductGroupService, ProductGroupService>();
             services.AddScoped<IFontService, FontService>();
