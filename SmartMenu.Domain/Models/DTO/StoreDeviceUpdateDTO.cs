@@ -12,12 +12,9 @@ namespace SmartMenu.Domain.Models.DTO
         public int DeviceWidth { get; set; }
         [Required]
         public int DeviceHeight { get; set; }
+        public RatioType RatioType { get; set; }
 
         public bool IsApproved { get; set; } = false;
 
-        //[Required]
-        //public DisplayType DisplayType { get; set; }
-
-        //public bool IsDisplay { get; set; } = false;
     }
 }

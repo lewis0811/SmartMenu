@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartMenu.DAO;
 
@@ -11,9 +12,10 @@ using SmartMenu.DAO;
 namespace SmartMenu.DAO.Migrations
 {
     [DbContext(typeof(SmartMenuDBContext))]
-    partial class SmartMenuDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240725093836_UpdateStoreMenuCollection")]
+    partial class UpdateStoreMenuCollection
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -542,7 +544,6 @@ namespace SmartMenu.DAO.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("StoreCode")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StoreContactEmail")
@@ -558,7 +559,6 @@ namespace SmartMenu.DAO.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StoreName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("StoreStatus")

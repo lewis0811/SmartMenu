@@ -12,6 +12,7 @@ namespace SmartMenu.Domain.Models
         public string MenuName { get; set; } = string.Empty;
 
         public string? MenuDescription { get; set; } 
+        public string? MenuBackgroundImgPath { get; set; }
 
         //[ForeignKey(nameof(BrandId))]
         //public Brand? Brand { get; set; }

@@ -26,17 +26,40 @@ namespace SmartMenu.Service.Services
         }
         public Store Add(StoreCreateDTO storeCreateDTO)
         {
-            var layer = _unitOfWork.BrandRepository
-                .Find(c => c.BrandId == storeCreateDTO.BrandID && c.IsDeleted == false)
+            var brand = _unitOfWork.BrandRepository
+                .EnableQuery()
+                .Include(c => c.Stores)
+                .Where(c => c.BrandId == storeCreateDTO.BrandID && c.IsDeleted == false)
                 .FirstOrDefault()
                 ?? throw new Exception("Brand not found or deleted");
 
             var data = _mapper.Map<Store>(storeCreateDTO);
+            data.StoreCode = InitializeStoreCode(brand);
 
             _unitOfWork.StoreRepository.Add(data);
             _unitOfWork.Save();
 
             return data;
+        }
+
+        private static string InitializeStoreCode(Brand brand)
+        {
+            string tempCode = "";
+            
+            var words = brand.BrandName.Split(' ');
+            if (words.Length > 0)
+            {
+                foreach (var word in words)
+                {
+                    tempCode += word.Take(1).FirstOrDefault().ToString().ToUpper();
+                }
+            } else
+            {
+                tempCode = brand.BrandName.Take(1).FirstOrDefault().ToString().ToUpper();
+            }
+
+            var nextStoreNumber = brand.Stores!.Count + 1;
+            return tempCode + nextStoreNumber.ToString("D3");
         }
 
         public void Delete(int storeId)
@@ -119,6 +142,7 @@ namespace SmartMenu.Service.Services
                 data = data
                     .Where(c =>
                         c.StoreLocation.ToString().Contains(searchString)
+                    || c.StoreCode.ToString().Contains(searchString)
                     || c.StoreContactEmail.ToString().Contains(searchString)
                     || c.StoreContactNumber.ToString().Contains(searchString));
             }

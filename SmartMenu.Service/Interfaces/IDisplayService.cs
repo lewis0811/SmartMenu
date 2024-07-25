@@ -27,6 +27,7 @@ namespace SmartMenu.Service.Interfaces
         void Delete(int displayId);
 
         void DeleteTempFile(string tempPath);
+        Task<string> GetImageByIdV3Async(int displayId, string tempPath);
 
         //Display AddDisplayV3(DisplayCreateDTO displayCreateDTO);
     }

@@ -10,6 +10,6 @@ namespace SmartMenu.Domain.Models.DTO
         public string MenuName { get; set; } = string.Empty;
 
         public string MenuDescription { get; set; } = string.Empty;
-
+        public string? MenuBackgroundImgPath { get; set; }
     }
 }

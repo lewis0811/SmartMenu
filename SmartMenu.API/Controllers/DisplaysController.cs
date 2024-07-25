@@ -104,6 +104,25 @@ namespace SmartMenu.API.Controllers
             }
         }
 
+        [HttpGet("V3/{displayId}/image")]
+        public async Task<IActionResult> GetImageV3Async(int displayId)
+        {
+            try
+            {
+                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                var data = await _displayService.GetImageByIdV3Async(displayId, tempPath);
+                if (data == null) return BadRequest("Image fail to create");
+                _displayService.DeleteTempFile(tempPath);
+
+                byte[] b = System.IO.File.ReadAllBytes(data);
+                return File(b, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message}");
+            }
+        }
+
         [HttpPost]
         public IActionResult Add(DisplayCreateDTO displayCreateDTO)
         {

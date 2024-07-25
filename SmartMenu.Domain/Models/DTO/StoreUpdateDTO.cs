@@ -4,6 +4,7 @@ namespace SmartMenu.Domain.Models.DTO
 {
     public class StoreUpdateDTO
     {
+        public string? StoreName { get; set; }
         [Required]
         public string StoreLocation { get; set; } = string.Empty;
 
@@ -14,5 +15,6 @@ namespace SmartMenu.Domain.Models.DTO
         [Phone]
         [Required]
         public string StoreContactNumber { get; set; } = string.Empty;
+        public bool StoreStatus { get; set; }
     }
 }

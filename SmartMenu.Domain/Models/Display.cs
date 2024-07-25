@@ -10,11 +10,10 @@ namespace SmartMenu.Domain.Models
         public int? CollectionId { get; set; }
         public int TemplateId { get; set; }
         public double ActiveHour { get; set; }
-        //public double? EndingHour { get; set; } // optional
         public string? DisplayImgPath { get; set; }
 
-        //[ForeignKey(nameof(StoreDeviceId))]
-        //public StoreDevice? StoreDevice { get; set; }
+        [ForeignKey(nameof(StoreDeviceId))]
+        public StoreDevice? StoreDevice { get; set; }
 
         [ForeignKey(nameof(MenuId))]
         public Menu? Menu { get; set; }

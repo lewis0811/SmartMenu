@@ -12,6 +12,6 @@ namespace SmartMenu.Domain.Models.DTO
 
         public float DeviceWidth { get; set; } = 0;
         public float DeviceHeight { get; set; } = 0;
-
+        public RatioType RatioType { get; set; }
     }
 }

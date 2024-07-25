@@ -9,6 +9,12 @@ namespace SmartMenu.Domain.Models
         public int BrandId { get; set; }
 
         [Required]
+        public string StoreCode { get; set; } = string.Empty;
+
+        [Required]
+        public string StoreName { get; set; } = string.Empty;
+
+        [Required]
         public string StoreLocation { get; set; } = string.Empty;
 
         [Required]
@@ -19,6 +25,7 @@ namespace SmartMenu.Domain.Models
         [Required]
         public string StoreContactNumber { get; set; } = string.Empty;
 
+        public bool StoreStatus { get; set; }
         //[ForeignKey(nameof(BrandId))]
         //public Brand? Brand { get; set; }
 
