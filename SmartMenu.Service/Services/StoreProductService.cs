@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 
@@ -92,7 +93,8 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<StoreProduct> GetAll(int? storeProductId, int? storeId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _unitOfWork.StoreProductRepository.EnableQuery();
+            var data = _unitOfWork.StoreProductRepository.EnableQuery()
+                .Include(c => c.Product);
             var result = DataQuery(data, storeProductId, storeId, productId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<StoreProduct>();
@@ -146,8 +148,25 @@ namespace SmartMenu.Service.Services
             if (searchString != null)
             {
                 searchString = searchString.Trim();
+
+                if (data.Any(c => c.Product!.ProductSizePrices != null))
+                {
+                    if (Enum.TryParse(typeof(ProductSizeType), searchString, out var result))
+                    {
+                        data = data
+                            .Where(c => c.Product!.ProductSizePrices!.Any(d => d.ProductSizeType.Equals(result)));
+                    }
+
+                    if (double.TryParse(searchString, out double resuslt))
+                    {
+                        data = data
+                            .Where(c => c.Product!.ProductSizePrices!.Any(d => d.Price.Equals(resuslt)));
+                    }
+                }
+
                 data = data
-                    .Where(c => c.Product!.ProductName.Contains(searchString));
+                    .Where(c => c.Product!.ProductName.Contains(searchString)
+                    || c.Product.ProductDescription!.Contains(searchString));
             }
 
             return PaginatedList<StoreProduct>.Create(data, pageNumber, pageSize);

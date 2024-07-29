@@ -44,6 +44,12 @@ namespace SmartMenu.Service.Services
                     .Where(c => c.CollectionId == collectionId);
             }
 
+            if (searchString != null)
+            {
+                data = data
+                    .Where(c => c.Collection!.CollectionName.Contains(searchString)
+                    || c.Collection.CollectionDescription!.Contains(searchString));
+            }
 
             return PaginatedList<StoreCollection>.Create(data, pageNumber, pageSize);
         }

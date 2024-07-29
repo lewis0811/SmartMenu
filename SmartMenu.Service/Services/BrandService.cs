@@ -99,10 +99,9 @@ namespace SmartMenu.Service.Services
                 searchString = searchString.Trim();
                 data = data
                     .Where(c =>
-                        c.BrandName.ToString().Contains(searchString)
-                    || c.BrandDescription!.ToString().Contains(searchString)
-                    || c.BrandImage!.ToString().Contains(searchString)
-                    || c.BrandContactEmail.Contains(searchString));
+                        c.BrandName.Contains(searchString)
+                        || c.BrandDescription!.Contains(searchString)
+                        || c.BrandContactEmail.Contains(searchString));
             }
 
             return PaginatedList<Brand>.Create(data, pageNumber, pageSize);

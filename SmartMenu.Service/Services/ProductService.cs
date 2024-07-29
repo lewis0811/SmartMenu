@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 using System;
@@ -44,7 +46,8 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<Product> GetAll(int? productId, int? categoryId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _unitOfWork.ProductRepository.EnableQuery();
+            var data = _unitOfWork.ProductRepository.EnableQuery()
+                .Include(c => c.ProductSizePrices);
             var result = DataQuery(data, productId, categoryId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<Product>();
@@ -79,6 +82,17 @@ namespace SmartMenu.Service.Services
             if (searchString != null)
             {
                 searchString = searchString.Trim();
+                if(Enum.TryParse(typeof(ProductSizeType), searchString, out var result))
+                {
+                    data = data
+                        .Where(c => c.ProductSizePrices!.Any(d => d.ProductSizeType.Equals(result)));
+                }
+
+                if (double.TryParse(searchString, out double resuslt))
+                {
+                    data = data.Where(c => c.ProductSizePrices!.Any(d => d.Price.Equals(resuslt)));
+                }
+
                 data = data
                     .Where(c => c.ProductName.Contains(searchString)
                     || c.ProductDescription!.Contains(searchString));

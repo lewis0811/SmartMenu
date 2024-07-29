@@ -1142,7 +1142,7 @@ namespace SmartMenu.Service.Services
             return tempImage;
         }
 
-        private Font InitializeFont(string tempPath, BoxItem boxItem, Dictionary<string, Font> fontCache)
+        private static Font InitializeFont(string tempPath, BoxItem boxItem, Dictionary<string, Font> fontCache)
         {
             // 0. Caching for Reuse
             if (fontCache.Count != 0)
@@ -3577,7 +3577,6 @@ namespace SmartMenu.Service.Services
 
             return PaginatedList<Display>.Create(data, pageNumber, pageSize);
         }
-
 
     }
 }

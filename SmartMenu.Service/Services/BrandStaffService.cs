@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
@@ -52,7 +53,8 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<BrandStaff> GetAll(int? brandStaffId, int? brandId, Guid? userId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _unitOfWork.BrandStaffRepository.EnableQuery();
+            var data = _unitOfWork.BrandStaffRepository.EnableQuery()
+                .Include(c => c.User);
             var result = DataQuery(data, brandStaffId, brandId, userId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<BrandStaff>();
@@ -94,6 +96,13 @@ namespace SmartMenu.Service.Services
             {
                 data = data
                     .Where(c => c.UserId == userId);
+            }
+
+            if (searchString != null) {
+                searchString = searchString.Trim();
+                data = data
+                    .Where(c => c.User!.Email.Contains(searchString)
+                    || c.User.UserName.Contains(searchString));
             }
 
             return PaginatedList<BrandStaff>.Create(data, pageNumber, pageSize);

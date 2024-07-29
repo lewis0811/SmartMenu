@@ -1,4 +1,4 @@
-﻿namespace SmartMenu.Domain.Models.Enum
+﻿    namespace SmartMenu.Domain.Models.Enum
 {
     public enum BoxItemType
     {

@@ -94,10 +94,14 @@ namespace SmartMenu.Service.Services
 
             if (searchString != null)
             {
+                if (float.TryParse(searchString, out var value))
+                {
+                    data = data
+                        .Where(c => c.DeviceWidth.ToString().Equals(searchString)
+                        || c.DeviceHeight.ToString().Equals(searchString));
+                }
                 data = data
-                    .Where(c => c.DeviceWidth.ToString().Equals(searchString)
-                    || c.DeviceHeight.ToString().Equals(searchString)
-                    || c.StoreDeviceName.Equals(searchString)
+                    .Where(c => c.StoreDeviceName.Equals(searchString)
                     );
             }
             return PaginatedList<StoreDevice>.Create(data, pageNumber, pageSize);

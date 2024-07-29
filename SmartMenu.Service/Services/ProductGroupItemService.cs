@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 using System;
@@ -78,7 +79,9 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<ProductGroupItem> GetAll(int? productGroupItemId, int? productGroupId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _unitOfWork.ProductGroupItemRepository.EnableQuery();
+            var data = _unitOfWork.ProductGroupItemRepository.EnableQuery()
+                .Include(c => c.Product)
+                    .ThenInclude(c => c!.ProductSizePrices);
             var result = DataQuery(data, productGroupItemId, productGroupId, productId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<ProductGroupItem>();
@@ -117,11 +120,22 @@ namespace SmartMenu.Service.Services
 
             if (searchString != null)
             {
-                data = data
-                    .Where(c => c.Product!.ProductName.Contains(searchString)
-                    || c.Product.ProductSizePrices!.Any(d => d.Price.ToString().Contains(searchString))
-                    || c.Product.ProductSizePrices!.Any(d => d.ProductSizeType.ToString().Contains(searchString))
-                    );
+                searchString = searchString.Trim();
+                if(Enum.TryParse(typeof(ProductSizeType), searchString, out var sizeType)) {
+                    data = data
+                        .Where(c => c.Product!.ProductSizePrices!.Any(d => d.ProductSizeType.Equals((ProductSizeType)sizeType!))
+                        );
+                }
+
+                if (double.TryParse(searchString, out double price))
+                {
+                    data = data
+                        .Where(c =>
+                            c.Product!.ProductSizePrices!.Any(d => d.Price.Equals(double.Parse(searchString)))
+                            );
+                }
+
+                data = data.Where(c => c.Product!.ProductName.Contains(searchString));
             }
 
             return PaginatedList<ProductGroupItem>.Create(data, pageNumber, pageSize);

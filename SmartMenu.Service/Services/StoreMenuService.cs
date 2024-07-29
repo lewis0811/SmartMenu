@@ -96,6 +96,14 @@ namespace SmartMenu.Service.Services
                     .Where(c => c.MenuId == menuId);
             }
 
+            if (searchString != null)
+            {
+                searchString = searchString.Trim();
+                data = data
+                    .Where(c => c.Menu!.MenuName.Contains(searchString)
+                    || c.Menu!.MenuDescription!.Contains(searchString));
+            }
+
             return PaginatedList<StoreMenu>.Create(data, pageNumber, pageSize);
         }
     }

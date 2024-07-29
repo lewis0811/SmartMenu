@@ -58,12 +58,13 @@ namespace SmartMenu.Service.Services
             if (searchString != null)
             {
                 searchString = searchString.Trim();
-                data = data
-                    .Where(c =>
-                        c.BoxMaxCapacity.ToString().Contains(searchString)
-                    || c.BoxMaxCapacity.ToString().Contains(searchString)
-                    || c.BoxPositionX.ToString().Contains(searchString)
-                    || c.BoxPositionY.ToString().Contains(searchString));
+                if (int.TryParse(searchString, out int searchNumber)) // Try to parse the search string to an integer
+                {
+                    data = data.Where(c =>
+                        c.BoxMaxCapacity == searchNumber
+                        || c.BoxPositionX == searchNumber
+                        || c.BoxPositionY == searchNumber);
+                }
             }
 
             return PaginatedList<Box>.Create(data, pageNumber, pageSize);

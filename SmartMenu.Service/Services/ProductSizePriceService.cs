@@ -2,6 +2,7 @@
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
+using SmartMenu.Domain.Models.Enum;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 using System;
@@ -77,8 +78,16 @@ namespace SmartMenu.Service.Services
 
             if (searchString != null)
             {
-                data = data.Where(c => c.ProductSizeType.ToString().Contains(searchString)
-                || c.Price.ToString() == searchString);
+                if (double.TryParse(searchString, out double result))
+                {
+                    data = data.Where(c => c.Price == result);
+                }
+
+                if (Enum.TryParse(typeof(ProductSizeType), searchString, out var result2))
+                {
+                    data = data.Where(c => c.ProductSizeType == (ProductSizeType)result2!);
+                }
+
             }
 
             return PaginatedList<ProductSizePrice>.Create(data, pageNumber, pageSize);

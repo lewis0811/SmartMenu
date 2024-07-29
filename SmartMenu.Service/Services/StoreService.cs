@@ -141,10 +141,10 @@ namespace SmartMenu.Service.Services
                 searchString = searchString.Trim();
                 data = data
                     .Where(c =>
-                        c.StoreLocation.ToString().Contains(searchString)
-                    || c.StoreCode.ToString().Contains(searchString)
-                    || c.StoreContactEmail.ToString().Contains(searchString)
-                    || c.StoreContactNumber.ToString().Contains(searchString));
+                        c.StoreLocation.Contains(searchString)
+                    || c.StoreCode.Contains(searchString)
+                    || c.StoreContactEmail.Contains(searchString)
+                    || c.StoreContactNumber.Contains(searchString));
             }
 
             return PaginatedList<Store>.Create(data, pageNumber, pageSize);

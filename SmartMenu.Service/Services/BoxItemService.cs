@@ -143,11 +143,18 @@ namespace SmartMenu.Service.Services
 
             if (searchString != null)
             {
-                data = data.Where(c =>
-                c.FontSize.ToString() == searchString
-                || c.BoxColor == searchString
-                || c.BoxItemType.ToString() == searchString
-                );
+                if (Enum.TryParse(typeof(BoxItemType), searchString, out var boxItemType))
+                {
+                    data = data.Where(c => c.BoxItemType.Equals((BoxItemType)boxItemType!));
+                }
+
+                if (double.TryParse(searchString, out double fontSize))
+                {
+                    data = data.Where(c =>
+                        c.FontSize.Equals(fontSize)
+                        || c.BoxColor.Contains(searchString)
+                        || c.BoxItemType.Equals((BoxItemType)Enum.Parse(typeof(BoxItemType), searchString)));
+                }
             }
 
             return PaginatedList<BoxItem>.Create(data, pageNumber, pageSize);
