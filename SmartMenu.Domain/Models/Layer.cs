@@ -9,13 +9,11 @@ namespace SmartMenu.Domain.Models
         public int LayerId { get; set; }
         public int TemplateId { get; set; }
 
-        [Required]
-        public string LayerName { get; set; } = string.Empty;
-
         public LayerType LayerType { get; set; }
+        public int ZIndex { get; set; }
 
-        //[ForeignKey(nameof(TemplateId))]
-        //public Template? Template { get; set; }
+        [ForeignKey(nameof(TemplateId))]
+        public Template? Template { get; set; } //
 
 
         public LayerItem? LayerItem { get; set; }

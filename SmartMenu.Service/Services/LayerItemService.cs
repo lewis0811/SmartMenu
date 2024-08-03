@@ -27,8 +27,8 @@ namespace SmartMenu.Service.Services
             var existedLayerItem = _unitOfWork.LayerItemRepository.Find(c => c.LayerId == layer.LayerId && c.IsDeleted == false).FirstOrDefault();
             if (existedLayerItem != null) throw new Exception($"Layer ID: {layer.LayerId} already have layer item");
             
-            if (layer.LayerType == LayerType.RenderLayer) throw new Exception("Render layer can't have layer item");
-            if (layer.LayerType == LayerType.MenuCollectionNameLayer) throw new Exception("MenuCollectionName layer can't have layer item");
+            if (layer.LayerType == LayerType.Content) throw new Exception("Render layer can't have layer item");
+            //if (layer.LayerType == LayerType.MenuCollectionNameLayer) throw new Exception("MenuCollectionName layer can't have layer item");
 
 
             var data = _mapper.Map<LayerItem>(layerItemCreateDTO);

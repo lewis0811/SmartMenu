@@ -13,9 +13,11 @@ namespace SmartMenu.Domain.Models
 
         [Required]
         public string? ProductDescription { get; set; }
+        public string? ProductImgPath { get; private set; }
+        public string? ProductLogoPath { get; private set; }
 
-        //[ForeignKey(nameof(CategoryId))]
-        //public Category? Category { get; set; }
+        [ForeignKey(nameof(CategoryId))]
+        public Category? Category { get; set; } //
 
         public ICollection<ProductSizePrice>? ProductSizePrices { get; set; }
     }

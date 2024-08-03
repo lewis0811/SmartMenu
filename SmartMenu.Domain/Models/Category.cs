@@ -11,8 +11,8 @@ namespace SmartMenu.Domain.Models
         [Required]
         public string CategoryName { get; set; } = string.Empty;
 
-        //[ForeignKey(nameof(BrandId))]
-        //public Brand? Brand { get; set; }
+        [ForeignKey(nameof(BrandId))]
+        public Brand? Brand { get; set; } //
 
         public ICollection<Product>? Products { get; set; }
     }

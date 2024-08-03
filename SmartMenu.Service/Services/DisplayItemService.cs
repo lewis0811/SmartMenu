@@ -81,7 +81,7 @@ namespace SmartMenu.Service.Services
 
             if (searchString != null)
             {
-                data = data.Where(c => c.Box!.BoxMaxCapacity.ToString().Contains(searchString)
+                data = data.Where(c => c.Box!.MaxProductItem.ToString().Contains(searchString)
                 || c.Box.BoxWidth.ToString().Contains(searchString)
                 || c.Box.BoxHeight.ToString().Contains(searchString)
                 || c.Box.BoxPositionX.ToString().Contains(searchString)

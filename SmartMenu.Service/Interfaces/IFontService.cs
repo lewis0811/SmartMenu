@@ -11,6 +11,6 @@ namespace SmartMenu.Service.Interfaces
     public interface IFontService
     {
         void Add(FontCreateDTO fontCreateDTO, string path);
-        IEnumerable<Font> GetAll(int? fontId, string? searchString, int pageNumber, int pageSize);
+        IEnumerable<BFont> GetAll(int? fontId, string? searchString, int pageNumber, int pageSize);
     }
 }

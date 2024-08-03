@@ -36,7 +36,8 @@ namespace SmartMenu.DAO.Implementation
         public async Task<T> FindObjectAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate)
         {
 #pragma warning disable CS8603 // Possible null reference return.
-            return await _context.Set<T>().Where(predicate).FirstOrDefaultAsync();
+            var data = await _context.Set<T>().Where(predicate).FirstOrDefaultAsync();
+            return data;
 #pragma warning restore CS8603 // Possible null reference return.
         }
 

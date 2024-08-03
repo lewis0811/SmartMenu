@@ -15,11 +15,10 @@ namespace SmartMenu.Domain.Models
         public float BoxHeight { get; set; }
         public BoxType BoxType { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Value must be greater than or equal to 1.")]
-        public int BoxMaxCapacity { get; set; } = 1;
+        public int MaxProductItem { get; set; }
 
-        //[ForeignKey(nameof(LayerId))]
-        //public Layer? Layer { get; set; }
+        [ForeignKey(nameof(LayerId))] //
+        public Layer? Layer { get; set; }
 
         public ICollection<BoxItem>? BoxItems { get; set; }
     }

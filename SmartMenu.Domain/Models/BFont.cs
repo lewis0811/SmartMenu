@@ -2,9 +2,9 @@
 
 namespace SmartMenu.Domain.Models
 {
-    public class Font : BaseModel
+    public class BFont : BaseModel
     {
-        public int FontId { get; set; }
+        public int BFontId { get; set; }
         [Required]
         public string FontName { get; set; } = string.Empty;
         [Required]

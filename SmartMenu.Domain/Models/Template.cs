@@ -14,8 +14,8 @@ namespace SmartMenu.Domain.Models
 
         public string? TemplateDescription { get; set; }
 
-        public float TemplateWidth { get; set; }
-        public float TemplateHeight { get; set; }
+        public int TemplateWidth { get; set; }
+        public int TemplateHeight { get; set; }
         public TemplateType TemplateType { get; set; }
         public string? TemplateImgPath { get; set; }
 

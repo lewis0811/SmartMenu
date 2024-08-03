@@ -12,14 +12,14 @@ namespace SmartMenu.Domain.Models.DTO
         public float BoxPositionY { get; set; }
 
         [Required(ErrorMessage = "Box width is required.")]
-        [Range(1, float.MaxValue, ErrorMessage = "Box width must be greater than 0.")] // Adjusted range to avoid 0 width
+        [Range(1, float.MaxValue, ErrorMessage = "Box width must be greater than 0.")] 
         public float BoxWidth { get; set; }
 
         [Required(ErrorMessage = "Box height is required.")]
-        [Range(1, float.MaxValue, ErrorMessage = "Box height must be greater than 0.")] // Adjusted range to avoid 0 height
+        [Range(1, float.MaxValue, ErrorMessage = "Box height must be greater than 0.")] 
         public float BoxHeight { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Box max capacity must be at least 1.")] // This validation was already present
-        public int BoxMaxCapacity { get; set; } = 1;
+        [Range(0, int.MaxValue, ErrorMessage = "Value must be greater than or equal to 0.")]
+        public int MaxProductItem { get; set; }
     }
 }

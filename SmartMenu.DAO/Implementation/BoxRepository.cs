@@ -23,7 +23,7 @@ namespace SmartMenu.DAO.Implementation
         {
             var data = _context.Boxes
                 .Include(c => c.BoxItems)!
-                .ThenInclude(c => c.Font)
+                .ThenInclude(c => c.BFont)
                 .AsQueryable();
             return DataQuery(data, boxId, layerId, searchString, pageNumber, pageSize);
         }
@@ -49,9 +49,7 @@ namespace SmartMenu.DAO.Implementation
                 searchString = searchString.Trim();
                 data = data
                     .Where(c =>
-                        c.BoxMaxCapacity.ToString().Contains(searchString)
-                    || c.BoxMaxCapacity.ToString().Contains(searchString)
-                    || c.BoxPositionX.ToString().Contains(searchString)
+                     c.BoxPositionX.ToString().Contains(searchString)
                     || c.BoxPositionY.ToString().Contains(searchString));
             }
 

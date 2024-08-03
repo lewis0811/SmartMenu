@@ -10,7 +10,7 @@ namespace SmartMenu.Service.Interfaces
 {
     public interface ILayerService
     {
-        Layer AddLayer(LayerCreateDTO layerCreateDTO);
+        Task<Domain.Models.Layer> AddLayerAsync(LayerCreateDTO layerCreateDTO);
         void Delete(int layerId);
         IEnumerable<Layer> GetAll(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize);
         IEnumerable<Layer> GetAllWithBoxes(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize);

@@ -11,5 +11,10 @@ namespace SmartMenu.Domain.Models.DTO
         [Required]
         public string ProductDescription { get; set; } = string.Empty;
 
+        [Url]
+        public string? ProductImgPath { get; private set; }
+
+        [Url]
+        public string? ProductLogoPath { get; private set; }
     }
 }

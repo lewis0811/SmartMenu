@@ -12,10 +12,10 @@ namespace SmartMenu.Domain.Models.DTO
         public string TemplateDescription { get; set; } = string.Empty;
 
         [Range(40f, 8000f, ErrorMessage = "Template Width must be between 40 and 8000f.")] // Example range constraint
-        public float TemplateWidth { get; set; }
+        public int TemplateWidth { get; set; }
 
         [Range(40f, 3125f, ErrorMessage = "Template Height must be between 40 and 3125f.")] // Example range constraint
-        public float TemplateHeight { get; set; }
+        public int TemplateHeight { get; set; }
 
         [Required(ErrorMessage = "Template image path is required.")]
         [Url(ErrorMessage = "Template image path must be a valid URL.")] // Use UrlAttribute for URL validation

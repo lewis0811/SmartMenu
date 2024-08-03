@@ -9,26 +9,19 @@ namespace SmartMenu.Service.Interfaces
 
         IEnumerable<Display> GetWithItems(int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize);
 
-        Task<string> GetImageByTimeAsync(int deviceId, string tempPath);
+        Task<string> GetImageByTimeAsync(int deviceId);
 
-        Task<string> GetImageByIdAsync(Display display, string tempPath);
-
-        Task<string> GetImageByIdV2Async(int displayId, string tempPath);
+        Task<string> GetImageByDisplayAsync(int displayId);
+        Task<string> GetTemplateImageAsync(int displayId);
 
         Display AddDisplay(DisplayCreateDTO displayCreateDTO);
 
-        Task<Display> AddDisplayV4Async(DisplayCreateDTO displayCreateDTO, string tempPath);
-
-        //Display AddDisplayV2(DisplayCreateDTO displayCreateDTO);
-        Task<string> UpdateContainImageAsync(int displayId, DisplayUpdateDTO displayUpdateDTO, string tempPath);
+        Task<Display> AddDisplayV2Async(DisplayCreateDTO displayCreateDTO);
 
         Display Update(int displayId, DisplayUpdateDTO displayUpdateDTO);
 
         void Delete(int displayId);
 
-        void DeleteTempFile(string tempPath);
-        Task<string> GetImageByIdV3Async(int displayId, string tempPath);
-
-        //Display AddDisplayV3(DisplayCreateDTO displayCreateDTO);
+        void DeleteTempFile();
     }
 }

@@ -30,20 +30,20 @@ namespace SmartMenu.Service.Services
             _cloudinary = new (configuration.GetSection("Cloudinary:CLOUDINARY_URL").Value);
         }
 
-        public IEnumerable<Domain.Models.Font> GetAll(int? fontId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Domain.Models.BFont> GetAll(int? fontId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.FontRepository.EnableQuery();
             var result = DataQuery(data, fontId, searchString, pageNumber, pageSize);
             return result;
         }
 
-        private static IEnumerable<Domain.Models.Font> DataQuery(IQueryable<Domain.Models.Font> data, int? fontId, string? searchString, int pageNumber, int pageSize)
+        private static IEnumerable<Domain.Models.BFont> DataQuery(IQueryable<Domain.Models.BFont> data, int? fontId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
             if (fontId != null)
             {
                 data = data
-                    .Where(c => c.FontId == fontId);
+                    .Where(c => c.BFontId == fontId);
             }
             if (searchString != null)
             {
@@ -51,7 +51,7 @@ namespace SmartMenu.Service.Services
                 data = data
                     .Where(c => c.FontName.Contains(searchString));
             }
-            return PaginatedList<Domain.Models.Font>.Create(data, pageNumber, pageSize);
+            return PaginatedList<Domain.Models.BFont>.Create(data, pageNumber, pageSize);
         }
 
         public void Add(FontCreateDTO fontCreateDTO, string path)
@@ -110,7 +110,7 @@ namespace SmartMenu.Service.Services
 
             fontCollection.AddFontFile(path + $"\\{fontName}");
 
-            var data = new Domain.Models.Font()
+            var data = new Domain.Models.BFont()
             {
                 FontName = fontName.Split('.')[0],
                 //FontPath = path + $"\\{fontName}"

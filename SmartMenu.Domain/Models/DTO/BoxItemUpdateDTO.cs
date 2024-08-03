@@ -6,16 +6,14 @@ namespace SmartMenu.Domain.Models.DTO
 {
     public class BoxItemUpdateDTO
     {
-        [Required(ErrorMessage = "Font ID is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Font ID must be a positive integer.")]
-        public int FontId { get; set; }
+        [Required(ErrorMessage = "BFont Id is required.")]
+        public int BFontId { get; set; }
 
-        [Required(ErrorMessage = "Font size is required.")]
-        [Range(8, 400, ErrorMessage = "Font size must be between 8 and 400.")] // Adjust the range as needed
-        public double FontSize { get; set; }
+        public float BoxItemX { get; set; }
 
-        [Required(ErrorMessage = "Text format is required.")]
-        public StringAlignment TextFormat { get; set; }
+        public float BoxItemY { get; set; }
+        public float BoxItemWidth { get; set; }
+        public float BoxItemHeight { get; set; }
 
         [Required(ErrorMessage = "Box item type is required.")]
         public BoxItemType BoxItemType { get; set; }

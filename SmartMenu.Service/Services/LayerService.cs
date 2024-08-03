@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet;
 using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
@@ -20,15 +21,15 @@ namespace SmartMenu.Service.Services
             _mapper = mapper;
         }
 
-        public IEnumerable<Layer> GetAll(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Domain.Models.Layer> GetAll(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.LayerRepository.EnableQuery();
             var result = DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
 
-            return result ?? Enumerable.Empty<Layer>();
+            return result ?? Enumerable.Empty<Domain.Models.Layer>();
         }
 
-        public IEnumerable<Layer> GetAllWithLayerItemsAndBoxes(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Domain.Models.Layer> GetAllWithLayerItemsAndBoxes(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.LayerRepository.EnableQuery();
             data = data
@@ -38,30 +39,30 @@ namespace SmartMenu.Service.Services
 
             var result = DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
 
-            return result ?? Enumerable.Empty<Layer>();
+            return result ?? Enumerable.Empty<Domain.Models.Layer>();
         }
 
-        public IEnumerable<Layer> GetAllWithLayerItems(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Domain.Models.Layer> GetAllWithLayerItems(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.LayerRepository.EnableQuery();
             data = data.Include(c => c.LayerItem);
 
             var result = DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
 
-            return result ?? Enumerable.Empty<Layer>();
+            return result ?? Enumerable.Empty<Domain.Models.Layer>();
         }
 
-        public IEnumerable<Layer> GetAllWithBoxes(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<Domain.Models.Layer> GetAllWithBoxes(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.LayerRepository.EnableQuery();
             data = data.Include(c => c.Boxes);
 
             var result = DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
 
-            return result ?? Enumerable.Empty<Layer>();
+            return result ?? Enumerable.Empty<Domain.Models.Layer>();
         }
 
-        private IEnumerable<Layer> DataQuery(IQueryable<Layer> data, int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
+        private IEnumerable<Domain.Models.Layer> DataQuery(IQueryable<Domain.Models.Layer> data, int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(data => data.IsDeleted == false);
 
@@ -79,33 +80,43 @@ namespace SmartMenu.Service.Services
             {
                 searchString = searchString.Trim();
                 data = data
-                    .Where(c => c.LayerName.Contains(searchString));
+                    .Where(c => c.LayerType.ToString().Contains(searchString));
             }
-            return PaginatedList<Layer>.Create(data, pageNumber, pageSize);
+            return PaginatedList<Domain.Models.Layer>.Create(data, pageNumber, pageSize);
         }
 
-        public Layer AddLayer(LayerCreateDTO layerCreateDTO)
+        public async Task<Domain.Models.Layer> AddLayerAsync(LayerCreateDTO layerCreateDTO)
         {
-            var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == layerCreateDTO.TemplateID && c.IsDeleted == false).FirstOrDefault()
+            var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == layerCreateDTO.TemplateId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Template not found or deleted");
 
-            if (layerCreateDTO.LayerType == LayerType.BackgroundImageLayer)
-            {
-                var existedLayer = _unitOfWork.LayerRepository
-                    .Find(c => c.TemplateId == template.TemplateId && c.LayerType == LayerType.BackgroundImageLayer && c.IsDeleted == false)
-                    .FirstOrDefault();
-                if (existedLayer != null) throw new Exception($"BackgroundImageLayer already exist in template ID: {template.TemplateId}");
-            }
+            var data = _mapper.Map<Domain.Models.Layer>(layerCreateDTO);
 
-            if (layerCreateDTO.LayerType == LayerType.MenuCollectionNameLayer) 
+            if (data.LayerType == LayerType.BackgroundImage)
             {
-                var existedLayer = _unitOfWork.LayerRepository
-              .Find(c => c.TemplateId == template.TemplateId && c.LayerType == LayerType.MenuCollectionNameLayer && c.IsDeleted == false)
-              .FirstOrDefault();
-                if (existedLayer != null) throw new Exception($"MenuCollectionNameLayer already exist in template ID: {template.TemplateId}");
-            }
+                var isExistLayer = _unitOfWork.LayerRepository.EnableQuery().Any(x => x.TemplateId == data.TemplateId && x.LayerType == LayerType.BackgroundImage);
+                if (isExistLayer) throw new Exception("Background image layer already exists");
 
-            var data = _mapper.Map<Layer>(layerCreateDTO);
+                data.LayerType = 0;
+                data.ZIndex = 0;
+            }
+            else
+            {
+                var isExistLayer = _unitOfWork.LayerRepository.EnableQuery().Any(x => x.TemplateId == data.TemplateId);
+
+                switch (isExistLayer)
+                {
+                    case false:
+                        data.ZIndex = 1;
+                        break;
+                    case true:
+                        var recentZIndex = await _unitOfWork.LayerRepository.EnableQuery()
+                            .Where(c => c.TemplateId == data.TemplateId)
+                            .Select(c => c.ZIndex).MaxAsync();
+                        data.ZIndex = recentZIndex + 1;
+                        break;
+                }
+            }
 
             _unitOfWork.LayerRepository.Add(data);
             _unitOfWork.Save();
@@ -113,7 +124,7 @@ namespace SmartMenu.Service.Services
             return data;
         }
 
-        public Layer Update(int layerId, LayerUpdateDTO layerUpdateDTO)
+        public Domain.Models.Layer Update(int layerId, LayerUpdateDTO layerUpdateDTO)
         {
             var data = _unitOfWork.LayerRepository.Find(c => c.LayerId == layerId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Template not found or deleted");
@@ -135,5 +146,6 @@ namespace SmartMenu.Service.Services
             _unitOfWork.LayerRepository.Update(data);
             _unitOfWork.Save();
         }
+
     }
 }

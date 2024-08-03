@@ -5,7 +5,7 @@ using System.Drawing.Text;
 
 namespace SmartMenu.DAO.Implementation
 {
-    public class FontRepository : GenericRepository<Font>, IFontRepository
+    public class FontRepository : GenericRepository<BFont>, IFontRepository
     {
         private readonly SmartMenuDBContext _context;
 
@@ -14,9 +14,9 @@ namespace SmartMenu.DAO.Implementation
             _context = context;
         }
 
-        public IEnumerable<Font> GetAll(int? fontId, string? searchString, int pageNumber, int pageSize)
+        public IEnumerable<BFont> GetAll(int? fontId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _context.Fonts.AsQueryable();
+            var data = _context.BFonts.AsQueryable();
             return DataQuery(data, fontId, searchString, pageNumber, pageSize);
         }
 
@@ -42,23 +42,23 @@ namespace SmartMenu.DAO.Implementation
             PrivateFontCollection fontCollection = new();
             fontCollection.AddFontFile(path + $"\\{fontName}");
 
-            var data = new Font()
+            var data = new BFont()
             {
                 FontName = fontName,
                 FontPath = path + $"\\{fontName}"
             };
 
-            _context.Fonts.Add(data);
+            _context.BFonts.Add(data);
             _context.SaveChanges();
         }
 
-        private IEnumerable<Font> DataQuery(IQueryable<Font> data, int? fontId, string? searchString, int pageNumber, int pageSize)
+        private IEnumerable<BFont> DataQuery(IQueryable<BFont> data, int? fontId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
             if (fontId != null)
             {
                 data = data
-                    .Where(c => c.FontId == fontId);
+                    .Where(c => c.BFontId == fontId);
             }
             if (searchString != null)
             {
@@ -66,7 +66,7 @@ namespace SmartMenu.DAO.Implementation
                 data = data
                     .Where(c => c.FontName.Contains(searchString));
             }
-            return PaginatedList<Font>.Create(data, pageNumber, pageSize);
+            return PaginatedList<BFont>.Create(data, pageNumber, pageSize);
         }
     }
 }

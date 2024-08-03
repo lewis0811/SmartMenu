@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Service.Interfaces;
@@ -13,11 +15,21 @@ namespace SmartMenu.API.Controllers
     {
         private readonly IDisplayService _displayService;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly SmartMenuDBContext _context;
 
-        public DisplaysController(IDisplayService displayService, IWebHostEnvironment webHostEnvironment)
+
+        public DisplaysController(IDisplayService displayService, IWebHostEnvironment webHostEnvironment, SmartMenuDBContext context)
         {
             _displayService = displayService;
             _webHostEnvironment = webHostEnvironment;
+            _context = context;
+        }
+
+        [HttpGet("text")]
+        public async Task<IActionResult> Test(int displayId)
+        {
+            var data = _context.Displays.FirstOrDefault(c => c.DisplayId == displayId);
+            return Ok(data);
         }
 
         [HttpGet]
@@ -48,22 +60,23 @@ namespace SmartMenu.API.Controllers
             }
         }
 
-        //[HttpGet("{displayId}/image")]
-        //public IActionResult GetImage(int displayId)
-        //{
-        //    try
-        //    {
-        //        var data = _displayService.GetImageById(displayId);
-        //        if (data == null) return BadRequest("Image fail to create");
+        [HttpGet("{displayId}/template/image")]
+        public async Task<IActionResult> GetTemplateImageAsync(int displayId)
+        {
+            try
+            {
+                var data = await _displayService.GetTemplateImageAsync(displayId);
+                if (data == null) return BadRequest("Image fail to create");
+                _displayService.DeleteTempFile();
 
-        //        byte[] b = System.IO.File.ReadAllBytes(data);
-        //        return File(b, "image/jpeg");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+                byte[] b = System.IO.File.ReadAllBytes(data);
+                return File(b, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message}");
+            }
+        }
 
         [HttpGet("V1/{deviceId}/image")]
         public async Task<IActionResult> GetImageAsync(int deviceId)
@@ -72,9 +85,9 @@ namespace SmartMenu.API.Controllers
             {
                 var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
 
-                var data = await _displayService.GetImageByTimeAsync(deviceId, tempPath);
+                var data = await _displayService.GetImageByTimeAsync(deviceId);
                 if (data == null) return BadRequest("Image fail to create");
-                _displayService.DeleteTempFile(tempPath);
+                _displayService.DeleteTempFile();
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
                 return File(b, "image/jpeg");
@@ -90,10 +103,9 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
-                var data = await _displayService.GetImageByIdV2Async(displayId, tempPath);
+                    var data = await _displayService.GetImageByDisplayAsync(displayId);
                 if (data == null) return BadRequest("Image fail to create");
-                _displayService.DeleteTempFile(tempPath);
+                _displayService.DeleteTempFile();
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
                 return File(b, "image/jpeg");
@@ -104,24 +116,6 @@ namespace SmartMenu.API.Controllers
             }
         }
 
-        [HttpGet("V3/{displayId}/image")]
-        public async Task<IActionResult> GetImageV3Async(int displayId)
-        {
-            try
-            {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
-                var data = await _displayService.GetImageByIdV3Async(displayId, tempPath);
-                if (data == null) return BadRequest("Image fail to create");
-                _displayService.DeleteTempFile(tempPath);
-
-                byte[] b = System.IO.File.ReadAllBytes(data);
-                return File(b, "image/jpeg");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"{ex.Message}");
-            }
-        }
 
         [HttpPost]
         public IActionResult Add(DisplayCreateDTO displayCreateDTO)
@@ -137,48 +131,16 @@ namespace SmartMenu.API.Controllers
             }
         }
 
-        //[HttpPost("V2")]
-        //[ProducesResponseType(StatusCodes.Status201Created)]
-        //public IActionResult AddV2(DisplayCreateDTO displayCreateDTO)
-        //{
-        //    try
-        //    {
-        //        var data = _displayService.AddDisplayV2(displayCreateDTO);
-        //        return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
-
-        //[HttpPost("V3")]
-        //[ProducesResponseType(StatusCodes.Status201Created)]
-        //public IActionResult AddV3(DisplayCreateDTO displayCreateDTO)
-        //{
-        //    try
-        //    {
-        //        var data = _displayService.AddDisplayV3(displayCreateDTO);
-        //        return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
-
-        [HttpPost("V4")]
+        [HttpPost("V2")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddV4Async(DisplayCreateDTO displayCreateDTO)
+        public async Task<IActionResult> AddV2Async(DisplayCreateDTO displayCreateDTO)
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
+                var data = await _displayService.AddDisplayV2Async(displayCreateDTO);
+                _displayService.DeleteTempFile();
 
-                var data = await _displayService.AddDisplayV4Async(displayCreateDTO, tempPath);
-                _displayService.DeleteTempFile(tempPath);
-
-                return CreatedAtAction(nameof(Get), new { displayId = data.DisplayId });
+                return CreatedAtAction(nameof(Get), $"Display Id: {data.DisplayId} initialized successfully");
             }
             catch (Exception ex)
             {
@@ -191,10 +153,8 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
-
                 var data = _displayService.Update(displayId, displayUpdateDTO);
-                _displayService.DeleteTempFile(tempPath);
+                _displayService.DeleteTempFile();
 
                 return Ok(data);
             }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SmartMenu.DAO.Migrations
 {
-    public partial class InitializeDatabase : Migration
+    public partial class addNewDB : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -30,7 +30,7 @@ namespace SmartMenu.DAO.Migrations
                 name: "Fonts",
                 columns: table => new
                 {
-                    FontId = table.Column<int>(type: "int", nullable: false)
+                    BFontId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FontName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FontPath = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -38,28 +38,34 @@ namespace SmartMenu.DAO.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Fonts", x => x.FontId);
+                    table.PrimaryKey("PK_Fonts", x => x.BFontId);
                 });
 
             migrationBuilder.CreateTable(
-                name: "LayersItem",
+                name: "Templates",
                 columns: table => new
                 {
-                    LayerItemID = table.Column<int>(type: "int", nullable: false)
+                    TemplateId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    LayerItemValue = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BrandId = table.Column<int>(type: "int", nullable: false),
+                    TemplateName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TemplateDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TemplateWidth = table.Column<int>(type: "int", nullable: false),
+                    TemplateHeight = table.Column<int>(type: "int", nullable: false),
+                    TemplateType = table.Column<int>(type: "int", nullable: false),
+                    TemplateImgPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LayersItem", x => x.LayerItemID);
+                    table.PrimaryKey("PK_Templates", x => x.TemplateId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -68,14 +74,14 @@ namespace SmartMenu.DAO.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.UserID);
+                    table.PrimaryKey("PK_Users", x => x.UserId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Categories",
                 columns: table => new
                 {
-                    CategoryID = table.Column<int>(type: "int", nullable: false)
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BrandId = table.Column<int>(type: "int", nullable: false),
                     CategoryName = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -83,7 +89,7 @@ namespace SmartMenu.DAO.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Categories", x => x.CategoryID);
+                    table.PrimaryKey("PK_Categories", x => x.CategoryId);
                     table.ForeignKey(
                         name: "FK_Categories_Brands_BrandId",
                         column: x => x.BrandId,
@@ -101,6 +107,7 @@ namespace SmartMenu.DAO.Migrations
                     BrandId = table.Column<int>(type: "int", nullable: false),
                     CollectionName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CollectionDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CollectionBackgroundImgPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -143,9 +150,12 @@ namespace SmartMenu.DAO.Migrations
                     StoreId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BrandId = table.Column<int>(type: "int", nullable: false),
+                    StoreCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StoreName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StoreLocation = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StoreContactEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StoreContactNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StoreStatus = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -160,54 +170,24 @@ namespace SmartMenu.DAO.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Templates",
+                name: "Layers",
                 columns: table => new
                 {
-                    TemplateId = table.Column<int>(type: "int", nullable: false)
+                    LayerId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    BrandId = table.Column<int>(type: "int", nullable: false),
-                    TemplateName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TemplateDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TemplateWidth = table.Column<float>(type: "real", nullable: false),
-                    TemplateHeight = table.Column<float>(type: "real", nullable: false),
-                    TemplateImgPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TemplateId = table.Column<int>(type: "int", nullable: false),
+                    LayerType = table.Column<int>(type: "int", nullable: false),
+                    ZIndex = table.Column<int>(type: "int", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Templates", x => x.TemplateId);
+                    table.PrimaryKey("PK_Layers", x => x.LayerId);
                     table.ForeignKey(
-                        name: "FK_Templates_Brands_BrandId",
-                        column: x => x.BrandId,
-                        principalTable: "Brands",
-                        principalColumn: "BrandId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "BrandStaffs",
-                columns: table => new
-                {
-                    BrandStaffID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    BrandID = table.Column<int>(type: "int", nullable: false),
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BrandStaffs", x => x.BrandStaffID);
-                    table.ForeignKey(
-                        name: "FK_BrandStaffs_Brands_BrandID",
-                        column: x => x.BrandID,
-                        principalTable: "Brands",
-                        principalColumn: "BrandId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_BrandStaffs_Users_UserID",
-                        column: x => x.UserID,
-                        principalTable: "Users",
-                        principalColumn: "UserID",
+                        name: "FK_Layers_Templates_TemplateId",
+                        column: x => x.TemplateId,
+                        principalTable: "Templates",
+                        principalColumn: "TemplateId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -220,6 +200,8 @@ namespace SmartMenu.DAO.Migrations
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProductDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProductImgPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProductLogoPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -229,7 +211,7 @@ namespace SmartMenu.DAO.Migrations
                         name: "FK_Products_Categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Categories",
-                        principalColumn: "CategoryID",
+                        principalColumn: "CategoryId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -242,6 +224,7 @@ namespace SmartMenu.DAO.Migrations
                     MenuId = table.Column<int>(type: "int", nullable: true),
                     CollectionId = table.Column<int>(type: "int", nullable: true),
                     ProductGroupName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HaveNormalPrice = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -257,6 +240,39 @@ namespace SmartMenu.DAO.Migrations
                         column: x => x.MenuId,
                         principalTable: "Menus",
                         principalColumn: "MenuId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BrandStaffs",
+                columns: table => new
+                {
+                    BrandStaffId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BrandId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    StoreId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BrandStaffs", x => x.BrandStaffId);
+                    table.ForeignKey(
+                        name: "FK_BrandStaffs_Brands_BrandId",
+                        column: x => x.BrandId,
+                        principalTable: "Brands",
+                        principalColumn: "BrandId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BrandStaffs_Stores_StoreId",
+                        column: x => x.StoreId,
+                        principalTable: "Stores",
+                        principalColumn: "StoreId");
+                    table.ForeignKey(
+                        name: "FK_BrandStaffs_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -296,6 +312,8 @@ namespace SmartMenu.DAO.Migrations
                     StoreDeviceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DeviceWidth = table.Column<float>(type: "real", nullable: false),
                     DeviceHeight = table.Column<float>(type: "real", nullable: false),
+                    RatioType = table.Column<int>(type: "int", nullable: false),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -337,31 +355,49 @@ namespace SmartMenu.DAO.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Layers",
+                name: "Boxes",
                 columns: table => new
                 {
-                    LayerId = table.Column<int>(type: "int", nullable: false)
+                    BoxId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TemplateId = table.Column<int>(type: "int", nullable: false),
-                    LayerItemId = table.Column<int>(type: "int", nullable: false),
-                    LayerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LayerType = table.Column<int>(type: "int", nullable: false),
+                    LayerId = table.Column<int>(type: "int", nullable: false),
+                    BoxPositionX = table.Column<float>(type: "real", nullable: false),
+                    BoxPositionY = table.Column<float>(type: "real", nullable: false),
+                    BoxWidth = table.Column<float>(type: "real", nullable: false),
+                    BoxHeight = table.Column<float>(type: "real", nullable: false),
+                    BoxType = table.Column<int>(type: "int", nullable: false),
+                    MaxProductItem = table.Column<int>(type: "int", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Layers", x => x.LayerId);
+                    table.PrimaryKey("PK_Boxes", x => x.BoxId);
                     table.ForeignKey(
-                        name: "FK_Layers_LayersItem_LayerItemId",
-                        column: x => x.LayerItemId,
-                        principalTable: "LayersItem",
-                        principalColumn: "LayerItemID",
+                        name: "FK_Boxes_Layers_LayerId",
+                        column: x => x.LayerId,
+                        principalTable: "Layers",
+                        principalColumn: "LayerId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LayersItem",
+                columns: table => new
+                {
+                    LayerItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LayerId = table.Column<int>(type: "int", nullable: false),
+                    LayerItemValue = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LayersItem", x => x.LayerItemId);
                     table.ForeignKey(
-                        name: "FK_Layers_Templates_TemplateId",
-                        column: x => x.TemplateId,
-                        principalTable: "Templates",
-                        principalColumn: "TemplateId",
+                        name: "FK_LayersItem_Layers_LayerId",
+                        column: x => x.LayerId,
+                        principalTable: "Layers",
+                        principalColumn: "LayerId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -480,32 +516,6 @@ namespace SmartMenu.DAO.Migrations
                         column: x => x.TemplateId,
                         principalTable: "Templates",
                         principalColumn: "TemplateId",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Boxes",
-                columns: table => new
-                {
-                    BoxId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    LayerId = table.Column<int>(type: "int", nullable: false),
-                    BoxPositionX = table.Column<float>(type: "real", nullable: false),
-                    BoxPositionY = table.Column<float>(type: "real", nullable: false),
-                    BoxWidth = table.Column<float>(type: "real", nullable: false),
-                    BoxHeight = table.Column<float>(type: "real", nullable: false),
-                    BoxType = table.Column<int>(type: "int", nullable: false),
-                    BoxMaxCapacity = table.Column<int>(type: "int", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Boxes", x => x.BoxId);
-                    table.ForeignKey(
-                        name: "FK_Boxes_Layers_LayerId",
-                        column: x => x.LayerId,
-                        principalTable: "Layers",
-                        principalColumn: "LayerId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -516,11 +526,14 @@ namespace SmartMenu.DAO.Migrations
                     BoxItemId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BoxId = table.Column<int>(type: "int", nullable: false),
-                    FontId = table.Column<int>(type: "int", nullable: false),
-                    FontSize = table.Column<double>(type: "float", nullable: false),
-                    TextFormat = table.Column<int>(type: "int", nullable: false),
+                    BFontId = table.Column<int>(type: "int", nullable: true),
+                    BoxItemX = table.Column<float>(type: "real", nullable: false),
+                    BoxItemY = table.Column<float>(type: "real", nullable: false),
+                    BoxItemWidth = table.Column<float>(type: "real", nullable: false),
+                    BoxItemHeight = table.Column<float>(type: "real", nullable: false),
                     BoxItemType = table.Column<int>(type: "int", nullable: false),
-                    BoxColor = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Order = table.Column<int>(type: "int", nullable: false),
+                    Style = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -533,11 +546,10 @@ namespace SmartMenu.DAO.Migrations
                         principalColumn: "BoxId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_BoxItems_Fonts_FontId",
-                        column: x => x.FontId,
+                        name: "FK_BoxItems_Fonts_BFontId",
+                        column: x => x.BFontId,
                         principalTable: "Fonts",
-                        principalColumn: "FontId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "BFontId");
                 });
 
             migrationBuilder.CreateTable(
@@ -580,24 +592,29 @@ namespace SmartMenu.DAO.Migrations
                 column: "LayerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_BoxItems_BFontId",
+                table: "BoxItems",
+                column: "BFontId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_BoxItems_BoxId",
                 table: "BoxItems",
                 column: "BoxId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BoxItems_FontId",
-                table: "BoxItems",
-                column: "FontId");
+                name: "IX_BrandStaffs_BrandId",
+                table: "BrandStaffs",
+                column: "BrandId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BrandStaffs_BrandID",
+                name: "IX_BrandStaffs_StoreId",
                 table: "BrandStaffs",
-                column: "BrandID");
+                column: "StoreId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BrandStaffs_UserID",
+                name: "IX_BrandStaffs_UserId",
                 table: "BrandStaffs",
-                column: "UserID");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_BrandId",
@@ -645,14 +662,15 @@ namespace SmartMenu.DAO.Migrations
                 column: "TemplateId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Layers_LayerItemId",
-                table: "Layers",
-                column: "LayerItemId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Layers_TemplateId",
                 table: "Layers",
                 column: "TemplateId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LayersItem_LayerId",
+                table: "LayersItem",
+                column: "LayerId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Menus_BrandId",
@@ -728,11 +746,6 @@ namespace SmartMenu.DAO.Migrations
                 name: "IX_Stores_BrandId",
                 table: "Stores",
                 column: "BrandId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Templates_BrandId",
-                table: "Templates",
-                column: "BrandId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -745,6 +758,9 @@ namespace SmartMenu.DAO.Migrations
 
             migrationBuilder.DropTable(
                 name: "DisplayItems");
+
+            migrationBuilder.DropTable(
+                name: "LayersItem");
 
             migrationBuilder.DropTable(
                 name: "ProductGroupsItem");
@@ -793,9 +809,6 @@ namespace SmartMenu.DAO.Migrations
 
             migrationBuilder.DropTable(
                 name: "Categories");
-
-            migrationBuilder.DropTable(
-                name: "LayersItem");
 
             migrationBuilder.DropTable(
                 name: "Templates");

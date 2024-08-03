@@ -61,7 +61,7 @@ namespace SmartMenu.Service.Services
                 if (int.TryParse(searchString, out int searchNumber)) // Try to parse the search string to an integer
                 {
                     data = data.Where(c =>
-                        c.BoxMaxCapacity == searchNumber
+                        c.MaxProductItem == searchNumber
                         || c.BoxPositionX == searchNumber
                         || c.BoxPositionY == searchNumber);
                 }
@@ -77,25 +77,15 @@ namespace SmartMenu.Service.Services
                 .FirstOrDefault()
                 ?? throw new Exception("Layer not found or deleted");
 
-            var existedBox = _unitOfWork.BoxRepository.Find(c => c.LayerId == boxCreateDTO.LayerId).FirstOrDefault();
-            if (existedBox != null) throw new Exception($"Layer ID: {layer.LayerId} already have box ID: {existedBox.BoxId}");
-
-            if (layer.LayerType == LayerType.BackgroundImageLayer) throw new Exception("BackgroundImageLayer can't have box ");
-
-            if (layer.LayerType == LayerType.ImageLayer && boxCreateDTO.BoxType != BoxType.UseInTemplate) 
-                throw new Exception($"Layer ID: {layer.LayerId} must have BoxType.UseInTemplate");
-            
-            if (layer.LayerType == LayerType.RenderLayer && boxCreateDTO.BoxType != BoxType.UseInDisplay)
-                throw new Exception($"Layer ID: {layer.LayerId} must have BoxType.UseInDisplay");
-            
-            if (layer.LayerType == LayerType.StaticTextLayer && boxCreateDTO.BoxType != BoxType.UseInTemplate)
-                throw new Exception($"Layer ID: {layer.LayerId} must have BoxType.UseInTemplate");
-            
-            if (layer.LayerType == LayerType.MenuCollectionNameLayer && boxCreateDTO.BoxType != BoxType.UseInDisplay)
-                throw new Exception($"Layer ID: {layer.LayerId} must have BoxType.UseInDisplay");
-
-
             var data = _mapper.Map<Box>(boxCreateDTO);
+            if (layer.LayerType == LayerType.Content) { data.BoxType = BoxType.UseInDisplay; }
+            else
+            {
+                var existBox = _unitOfWork.BoxRepository.EnableQuery().Any(x => x.LayerId == data.LayerId);
+                if (existBox) throw new Exception("Box already exists in layer");
+                data.BoxType = BoxType.UseInTemplate;
+                data.MaxProductItem = 0;
+            }
 
             var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == layer.TemplateId && c.IsDeleted == false).FirstOrDefault()!;
             if (data.BoxPositionX > template.TemplateWidth || data.BoxPositionY > template.TemplateHeight)

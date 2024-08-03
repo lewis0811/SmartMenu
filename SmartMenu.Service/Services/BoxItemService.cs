@@ -25,64 +25,75 @@ namespace SmartMenu.Service.Services
             var box = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxItemCreateDTO.BoxId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Box not found or deleted");
 
-            var font = _unitOfWork.FontRepository.Find(c => c.FontId == boxItemCreateDTO.FontId && c.IsDeleted == false).FirstOrDefault()
-            ?? throw new Exception("Font not found or deleted");
+            var font = _unitOfWork.FontRepository.Find(c => c.BFontId == boxItemCreateDTO.BFontId && c.IsDeleted == false).FirstOrDefault()
+                ?? throw new Exception("Font not found or deleted");
 
             var layer = _unitOfWork.LayerRepository.Find(c => c.LayerId == box.LayerId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Layer not found or deleted");
 
-            var existboxItem = _unitOfWork.BoxItemRepository.EnableQuery().Where(c => c.BoxId == box.BoxId && c.IsDeleted == false); ;
+            var data = _mapper.Map<BoxItem>(boxItemCreateDTO);
 
             //Validate boxItem to add
-            if (layer.LayerType == LayerType.BackgroundImageLayer) throw new Exception("Background image can't have box item");
+            if (layer.LayerType == LayerType.BackgroundImage) throw new Exception("Background image can't have box item");
 
-            if (layer.LayerType == LayerType.ImageLayer) throw new Exception("Image can't have box item");
-
-            if (layer.LayerType == LayerType.RenderLayer)
+            if (box.BoxType == BoxType.UseInTemplate)
             {
-                if (existboxItem.Count() > 1) // there is already 2 box item in render layer
-                {
-                    throw new Exception("Render layer can't have more than 2 box item");
-                }
-
-                if (boxItemCreateDTO.BoxItemType == BoxItemType.Header)
-                {
-                    var boxItemHeader = _unitOfWork.BoxItemRepository.Find(c => c.BoxId == box.BoxId && c.BoxItemType == BoxItemType.Header)
-                        .FirstOrDefault();
-                    if (boxItemHeader != null)  throw new Exception($"Box item type header already exist in box ID: {box.BoxId}"); 
-                }
-
-                if (boxItemCreateDTO.BoxItemType == BoxItemType.Body)
-                {
-                    var boxItemBody = _unitOfWork.BoxItemRepository.Find(c => c.BoxId == box.BoxId && c.BoxItemType == BoxItemType.Body)
-                        .FirstOrDefault();
-                    if (boxItemBody != null) throw new Exception($"Box item type body already exist in box ID: {box.BoxId}"); 
-                }
+                var existBoxItem = _unitOfWork.BoxItemRepository.EnableQuery()!.Any(c => c.BoxId == data.BoxId);
+                if (existBoxItem) throw new Exception($"BoxItem already exists in box id {box.BoxId}");
             }
 
-            if (layer.LayerType == LayerType.StaticTextLayer)
+            switch (data.BoxItemType)
             {
-                if (existboxItem.Any()) // there is already 1 box item in static text layer
-                {
-                    throw new Exception("Static text layer can't have more than 1 box item");
-                }
+                case BoxItemType.Header:
+                    var existBoxItem = _unitOfWork.BoxItemRepository.EnableQuery()!.Any(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.Header);
+                    if (existBoxItem) throw new Exception($"BoxItem type header already exists in box id {box.BoxId}");
+                    data.Order = 1;
+                    break;
 
-                if (boxItemCreateDTO.BoxItemType == BoxItemType.Body) throw new Exception("Box item for static text layer must be header type");
+                case BoxItemType.ProductName:
+                    var totalProductName = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductName).Count();
+                    if (totalProductName >= box.MaxProductItem) throw new Exception($"BoxItem type product name already reach max product item :{box.MaxProductItem}");
+                    data.Order = totalProductName + 1;
+                    break;
+
+                case BoxItemType.ProductDescription:
+                    var totalProductDescription = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductDescription).Count();
+                    if (totalProductDescription >= box.MaxProductItem) throw new Exception($"BoxItem type product description already reach max product item :{box.MaxProductItem}");
+                    data.Order = totalProductDescription + 1;
+                    break;
+
+                case BoxItemType.ProductPrice:
+                    var totalProductPrice = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductPrice).Count();
+                    if (totalProductPrice >= box.MaxProductItem) throw new Exception($"BoxItem type product price already reach max product item :{box.MaxProductItem}");
+                    data.Order = totalProductPrice + 1;
+                    break;
+
+                case BoxItemType.ProductImg:
+                    var totalProductImage = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductImg).Count();
+                    if (totalProductImage >= box.MaxProductItem) throw new Exception($"BoxItem type product image already reach max product item :{box.MaxProductItem}");
+                    data.Order = totalProductImage + 1;
+                    break;
+
+                case BoxItemType.ProductIcon:
+                    var totalProductIcon = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductIcon).Count();
+                    if (totalProductIcon >= box.MaxProductItem) throw new Exception($"BoxItem type product icon already reach max product item :{box.MaxProductItem}");
+                    data.Order = totalProductIcon + 1;
+                    break;
+
+                case BoxItemType.Content:
+                    data.BoxItemX = box.BoxPositionX;
+                    data.BoxItemY = box.BoxPositionY;
+                    data.BoxItemWidth = box.BoxWidth;
+                    data.BoxItemHeight = box.BoxHeight;
+                    data.Order = 0;
+                    break;
+
+                default:
+                    break;
             }
 
-            if (layer.LayerType == LayerType.MenuCollectionNameLayer)
-            {
-                if (existboxItem.Any()) // there is already 1 box item in static text layer
-                {
-                    throw new Exception("Menu/Collection name layer can't have more than 1 box item");
-                }
-
-                if (boxItemCreateDTO.BoxItemType == BoxItemType.Body) throw new Exception("Box item for menu/collection name layer must be header type");
-            }
-
-            var data = _mapper.Map<BoxItem>(boxItemCreateDTO);
-                _unitOfWork.BoxItemRepository.Add(data);
-                _unitOfWork.Save();
+            _unitOfWork.BoxItemRepository.Add(data);
+            _unitOfWork.Save();
 
             return data;
         }
@@ -100,7 +111,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<BoxItem> GetAll(int? boxItemId, int? boxId, int? fontId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.BoxItemRepository.EnableQuery()
-                .Include(c => c.Font);
+                .Include(c => c.BFont);
             var result = DataQuery(data, boxItemId, boxId, fontId, searchString, pageNumber, pageSize);
 
             return result;
@@ -111,7 +122,7 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("BoxItem not found or deleted");
 
-            var font = _unitOfWork.FontRepository.Find(c => c.FontId == boxItemUpdateDTO.FontId && c.IsDeleted == false).FirstOrDefault()
+            var font = _unitOfWork.FontRepository.Find(c => c.BFontId == boxItemUpdateDTO.BFontId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Font not found or deleted");
 
             _mapper.Map(boxItemUpdateDTO, data);
@@ -138,7 +149,7 @@ namespace SmartMenu.Service.Services
 
             if (fontId != null)
             {
-                data = data.Where(c => c.FontId == fontId);
+                data = data.Where(c => c.BFontId == fontId);
             }
 
             if (searchString != null)
@@ -150,10 +161,7 @@ namespace SmartMenu.Service.Services
 
                 if (double.TryParse(searchString, out double fontSize))
                 {
-                    data = data.Where(c =>
-                        c.FontSize.Equals(fontSize)
-                        || c.BoxColor.Contains(searchString)
-                        || c.BoxItemType.Equals((BoxItemType)Enum.Parse(typeof(BoxItemType), searchString)));
+                    data = data.Where(c => c.BoxItemType.Equals((BoxItemType)Enum.Parse(typeof(BoxItemType), searchString)));
                 }
             }
 

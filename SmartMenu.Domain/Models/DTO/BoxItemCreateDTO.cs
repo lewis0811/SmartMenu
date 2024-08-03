@@ -7,24 +7,24 @@ namespace SmartMenu.Domain.Models.DTO
     public class BoxItemCreateDTO
     {
         [Required(ErrorMessage = "Box ID is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Box ID must be a positive integer.")]
         public int BoxId { get; set; }
 
-        [Required(ErrorMessage = "Font ID is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Font ID must be a positive integer.")]
-        public int FontId { get; set; }
+        [Required(ErrorMessage = "BFont Id is required.")]
+        public int BFontId { get; set; }
 
-        [Required(ErrorMessage = "Font size is required.")]
-        [Range(8, 400, ErrorMessage = "Font size must be between 8 and 400.")] // Adjust the range as needed
-        public double FontSize { get; set; }
+        [Range(0, float.MaxValue, ErrorMessage = "Box position X must be a non-negative number.")]
+        public float BoxItemX { get; set; }
 
-        [Required(ErrorMessage = "Text format is required.")]
-        public StringAlignment TextFormat { get; set; }
+        [Range(0, float.MaxValue, ErrorMessage = "Box position Y must be a non-negative number.")]
+        public float BoxItemY { get; set; }
+
+        [Range(1, float.MaxValue, ErrorMessage = "Box width must be greater than 0.")]
+        public float BoxItemWidth { get; set; }
+
+        [Range(1, float.MaxValue, ErrorMessage = "Box height must be greater than 0.")]
+        public float BoxItemHeight { get; set; }
 
         [Required(ErrorMessage = "Box type is required.")]
         public BoxItemType BoxItemType { get; set; }
-
-        [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Invalid box color. Use a valid hexadecimal color code (e.g., #RRGGBB).")]
-        public string BoxColor { get; set; } = "#ffffff";
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
@@ -29,7 +30,7 @@ namespace SmartMenu.API.Controllers
         [HttpGet("test")]
         public IActionResult Get(int fondId)
         {
-            var font = _unitOfWork.FontRepository.Find(c => c.FontId == fondId).FirstOrDefault();
+            var font = _unitOfWork.FontRepository.Find(c => c.BFontId == fondId).FirstOrDefault();
             var path = $"{_webHostEnvironment.WebRootPath}\\temp";
             var storePath = Path.Combine(path, Guid.NewGuid().ToString() + ".ttf");
 
@@ -73,7 +74,7 @@ namespace SmartMenu.API.Controllers
         public IActionResult Get(int? fontId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             var fonts = _fontService.GetAll(fontId, searchString, pageNumber, pageSize);
-            fonts ??= Enumerable.Empty<Domain.Models.Font>();
+            fonts ??= Enumerable.Empty<BFont>();
 
             return Ok(fonts);
         }

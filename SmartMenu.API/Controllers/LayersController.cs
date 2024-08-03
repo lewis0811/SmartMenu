@@ -78,7 +78,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data = _layerService.AddLayer(layerCreateDTO);
+                var data = _layerService.AddLayerAsync(layerCreateDTO);
                 return CreatedAtAction(nameof(Get), data);
             }
             catch (Exception ex)

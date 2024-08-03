@@ -16,7 +16,7 @@ namespace SmartMenu.DAO.Implementation
         public IEnumerable<BoxItem> GetAll(int? boxItemId, int? boxId, int? fontId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _context.BoxItems
-                .Include(c => c.Font)
+                .Include(c => c.BFont)
                 .AsQueryable();
 
             return DataQuery(data, boxItemId, boxId, fontId, searchString, pageNumber, pageSize);
@@ -38,15 +38,12 @@ namespace SmartMenu.DAO.Implementation
 
             if (fontId != null)
             {
-                data = data.Where(c => c.FontId == fontId);
+                data = data.Where(c => c.BFontId == fontId);
             }
 
             if (searchString != null)
             {
-                data = data.Where(c => 
-                c.FontSize.ToString() == searchString
-                || c.BoxColor == searchString
-                || c.BoxItemType.ToString() == searchString
+                data = data.Where(c => c.BoxItemType.ToString() == searchString
                 );
             }
 

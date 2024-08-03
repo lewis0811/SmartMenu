@@ -63,7 +63,7 @@ namespace SmartMenu.DAO.Implementation
             {
                 searchString = searchString.Trim();
                 data = data
-                    .Where(c => c.LayerName.Contains(searchString));
+                    .Where(c => c.LayerType.ToString().Contains(searchString));
             }
             return PaginatedList<Layer>.Create(data, pageNumber, pageSize);
         }
