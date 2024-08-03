@@ -17,6 +17,9 @@ using System.Text.Json;
 using SmartMenu.DAO.Implementation;
 using System.Net;
 using System.Linq.Expressions;
+using CloudinaryDotNet.Actions;
+using System.IO;
+using Microsoft.Extensions.Configuration;
 #pragma warning disable CA1416 // Validate platform compatibility
 
 namespace SmartMenu.Service.Services
@@ -25,11 +28,13 @@ namespace SmartMenu.Service.Services
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly Cloudinary _cloudinary;
 
-        public DisplayService(IMapper mapper, IUnitOfWork unitOfWork)
+        public DisplayService(IMapper mapper, IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _cloudinary = new(configuration.GetSection("Cloudinary:CLOUDINARY_URL").Value);
         }
 
         // GET
@@ -140,7 +145,6 @@ namespace SmartMenu.Service.Services
             var result = await InitializeDisplayImageForStoreProductAsync(display, store);
             return result;
         }
-
 
         public async Task<string> GetImageByDisplayAsync(int displayId)
         {
@@ -441,8 +445,9 @@ namespace SmartMenu.Service.Services
 
             #endregion
 
-            string savePath = $"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\display.png";
+            string savePath = $"{Directory.GetCurrentDirectory()}" + @$"\wwwroot\images\display{display.DisplayId}.png";
             ScaleBitmapAndSave(b, 100, savePath);
+            UploadToCloud(display, savePath);
             //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template4.png");
             return savePath;
         }
@@ -519,8 +524,9 @@ namespace SmartMenu.Service.Services
 
             #endregion
 
-            string savePath = $"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\display.png";
+            string savePath = $"{Directory.GetCurrentDirectory()}" + @$"\wwwroot\images\display{display.DisplayId}.png";
             ScaleBitmapAndSave(b, 100, savePath);
+            UploadToCloud(display, savePath);
             //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template4.png");
             return savePath;
         }
@@ -601,11 +607,14 @@ namespace SmartMenu.Service.Services
 
             #endregion
 
-            string savePath = $"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template.png";
+            string savePath = $"{Directory.GetCurrentDirectory()}" + @$"\wwwroot\images\template.png";
             ScaleBitmapAndSave(b, 100, savePath);
+
             //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template3.png");
             return savePath;
         }
+
+
 
         // Methods
         private static void DrawBackgroundFromLayer(Graphics g, int templateWidth, int templateHeight)
@@ -1317,6 +1326,24 @@ namespace SmartMenu.Service.Services
             }
 
             return PaginatedList<Display>.Create(data, pageNumber, pageSize);
+        }
+        private void UploadToCloud(Display display, string savePath)
+        {
+            var uploadParams = new ImageUploadParams()
+            {
+                File = new FileDescription(savePath), // Specify the font file
+                Folder = "displays",                         // Optional: Organize fonts in a folder
+                PublicId = Path.GetFileNameWithoutExtension(savePath),  // Use file name as Public ID
+            };
+            var uploadResult = _cloudinary.Upload(uploadParams);
+            if (uploadResult.Error != null)
+            {
+                throw new Exception($"Upload failed: {uploadResult.Error.Message}");
+            }
+            display.DisplayImgPath = uploadResult.SecureUrl.ToString();
+
+            _unitOfWork.DisplayRepository.Update(display);
+            _unitOfWork.Save();
         }
         private static Image InitializeImage(string productImgPath)
         {
