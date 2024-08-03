@@ -12,8 +12,8 @@ namespace SmartMenu.Domain.Models
         public double ActiveHour { get; set; }
         public string? DisplayImgPath { get; set; }
 
-        [ForeignKey(nameof(StoreDeviceId))]
-        public StoreDevice? StoreDevice { get; set; } //
+        //[ForeignKey(nameof(StoreDeviceId))]
+        //public StoreDevice? StoreDevice { get; set; } //
 
         [ForeignKey(nameof(MenuId))]
         public Menu? Menu { get; set; }
@@ -24,6 +24,6 @@ namespace SmartMenu.Domain.Models
         [ForeignKey(nameof(TemplateId))]
         public Template? Template { get; set; }
 
-        public ICollection<DisplayItem>? DisplayItems { get; set; }
+        public ICollection<DisplayItem> DisplayItems { get; set; } = new List<DisplayItem>();
     }
 }

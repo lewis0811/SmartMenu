@@ -16,7 +16,7 @@ namespace SmartMenu.Domain.Models
         [ForeignKey(nameof(ProductId))]
         public Product? Product { get; set; }
 
-        [ForeignKey(nameof(ProductGroupId))]
-        public ProductGroup? ProductGroup { get; set; } //
+        //[ForeignKey(nameof(ProductGroupId))]
+        //public ProductGroup? ProductGroup { get; set; } //
     }
 }

@@ -27,12 +27,12 @@ namespace SmartMenu.Domain.Models
 
         public bool StoreStatus { get; set; }
 
-        [ForeignKey(nameof(BrandId))]
-        public Brand? Brand { get; set; } //
+        //[ForeignKey(nameof(BrandId))]
+        //public Brand? Brand { get; set; } //
 
         public ICollection<BrandStaff> Staffs { get; set; } = new List<BrandStaff>();
-        public ICollection<StoreMenu>? StoreMenus { get; set; } = new List<StoreMenu>();
-        public ICollection<StoreCollection>? StoreCollections { get; set; } = new List<StoreCollection>();
+        public ICollection<StoreMenu> StoreMenus { get; set; } = new List<StoreMenu>();
+        public ICollection<StoreCollection> StoreCollections { get; set; } = new List<StoreCollection>();
         public ICollection<StoreProduct> StoreProducts { get; set; } = new List<StoreProduct>();
     }
 }

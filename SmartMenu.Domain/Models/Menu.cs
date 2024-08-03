@@ -14,8 +14,8 @@ namespace SmartMenu.Domain.Models
         public string? MenuDescription { get; set; }
         //public string? MenuBackgroundImgPath { get; set; }
 
-        [ForeignKey(nameof(BrandId))]
-        public Brand? Brand { get; set; } //
+        //[ForeignKey(nameof(BrandId))]
+        //public Brand? Brand { get; set; } //
 
         public ICollection<ProductGroup>? ProductGroups { get; set; }
 

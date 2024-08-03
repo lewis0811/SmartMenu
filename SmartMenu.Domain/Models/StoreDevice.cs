@@ -18,8 +18,8 @@ namespace SmartMenu.Domain.Models
         public bool IsApproved { get; set; } = false;
 
 
-        [ForeignKey(nameof(StoreId))]
-        public Store? Store { get; set; } //
+        //[ForeignKey(nameof(StoreId))]
+        //public Store? Store { get; set; } //
 
         public ICollection<Display>? Displays { get; set; }
 

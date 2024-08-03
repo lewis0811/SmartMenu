@@ -26,5 +26,7 @@ namespace SmartMenu.Domain.Models.DTO
 
         [Required(ErrorMessage = "Box type is required.")]
         public BoxItemType BoxItemType { get; set; }
+
+        public string? Style { get; set; }
     }
 }

@@ -20,8 +20,8 @@ namespace SmartMenu.Domain.Models
 
         public string? Style { get; set; }
 
-        [ForeignKey(nameof(BoxId))]
-        public Box? Box { get; set; } //
+        //[ForeignKey(nameof(BoxId))]
+        //public Box? Box { get; set; } //
 
         [ForeignKey(nameof(BFontId))]
         public BFont? BFont { get; set; }

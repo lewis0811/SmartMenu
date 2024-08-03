@@ -12,8 +12,8 @@ namespace SmartMenu.Domain.Models
         public LayerType LayerType { get; set; }
         public int ZIndex { get; set; }
 
-        [ForeignKey(nameof(TemplateId))]
-        public Template? Template { get; set; } //
+        //[ForeignKey(nameof(TemplateId))]
+        //public Template? Template { get; set; } //
 
 
         public LayerItem? LayerItem { get; set; }

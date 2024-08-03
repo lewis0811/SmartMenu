@@ -83,7 +83,6 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var tempPath = $"{_webHostEnvironment.WebRootPath}\\temp";
 
                 var data = await _displayService.GetImageByTimeAsync(deviceId);
                 if (data == null) return BadRequest("Image fail to create");
@@ -132,7 +131,6 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPost("V2")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> AddV2Async(DisplayCreateDTO displayCreateDTO)
         {
             try

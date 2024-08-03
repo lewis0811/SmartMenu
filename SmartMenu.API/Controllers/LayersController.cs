@@ -74,11 +74,11 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult Add(LayerCreateDTO layerCreateDTO)
+        public async Task<IActionResult> AddAsync(LayerCreateDTO layerCreateDTO)
         {
             try
             {
-                var data = _layerService.AddLayerAsync(layerCreateDTO);
+                var data = await _layerService.AddLayerAsync(layerCreateDTO);
                 return CreatedAtAction(nameof(Get), data);
             }
             catch (Exception ex)

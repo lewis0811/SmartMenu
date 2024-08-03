@@ -10,7 +10,7 @@ namespace SmartMenu.Domain.Models
         public ProductSizeType ProductSizeType { get; set; }
         public double Price { get; set; }
 
-        [ForeignKey(nameof(ProductId))]
-        public Product? Product { get; set; } //
+        //[ForeignKey(nameof(ProductId))]
+        //public Product? Product { get; set; } //
     }
 }

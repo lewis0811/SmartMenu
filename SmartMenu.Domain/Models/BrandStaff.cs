@@ -13,13 +13,13 @@ namespace SmartMenu.Domain.Models
 
         public int? StoreId { get; set; }
 
-        [ForeignKey(nameof(BrandId))]
-        public Brand? Brand { get; set; } //
+        //[ForeignKey(nameof(BrandId))]
+        //public Brand? Brand { get; set; } //
 
         [ForeignKey(nameof(UserId))]
         public User? User { get; set; }
 
-        [ForeignKey(nameof(StoreId))]
-        public Store? Store { get; set; } //
+        //[ForeignKey(nameof(StoreId))]
+        //public Store? Store { get; set; } //
     }
 }

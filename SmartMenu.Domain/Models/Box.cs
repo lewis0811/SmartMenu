@@ -17,8 +17,8 @@ namespace SmartMenu.Domain.Models
 
         public int MaxProductItem { get; set; }
 
-        [ForeignKey(nameof(LayerId))] //
-        public Layer? Layer { get; set; }
+        //[ForeignKey(nameof(LayerId))] //
+        //public Layer? Layer { get; set; }
 
         public ICollection<BoxItem>? BoxItems { get; set; }
     }
