@@ -39,11 +39,11 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPost]
-        public ActionResult Add(ProductSizePriceCreateDTO productSizePriceCreateDTO)
+        public async Task<ActionResult> AddAsync(ProductSizePriceCreateDTO productSizePriceCreateDTO)
         {
             try
             {
-                var data = _productSizePriceService.Add(productSizePriceCreateDTO);
+                var data = await _productSizePriceService.AddAsync(productSizePriceCreateDTO);
                 return CreatedAtAction(nameof(Get), data);
             }
             catch (Exception ex)

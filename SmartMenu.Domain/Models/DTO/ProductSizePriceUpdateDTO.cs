@@ -10,7 +10,6 @@ namespace SmartMenu.Domain.Models.DTO
 {
     public class ProductSizePriceUpdateDTO
     {
-        public ProductSizeType ProductSizeType{ get; set; }
         [Range(1, int.MaxValue, ErrorMessage = "Price must be greater than 0")]
         public double Price { get; set; }
     }

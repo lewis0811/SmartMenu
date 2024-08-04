@@ -11,7 +11,7 @@ namespace SmartMenu.Service.Interfaces
     public interface IProductSizePriceService
     {
         IEnumerable<ProductSizePrice> GetAll(int? productSizePriceId, int? productId, string? searchString, int pageNumber, int pageSize);
-        ProductSizePrice Add(ProductSizePriceCreateDTO productSizePriceCreateDTO);
+        Task<ProductSizePrice> AddAsync(ProductSizePriceCreateDTO productSizePriceCreateDTO);
         ProductSizePrice Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO);
         void Delete(int productSizePriceId);
     }

@@ -23,8 +23,18 @@ namespace SmartMenu.Service.Services
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
-        public ProductSizePrice Add(ProductSizePriceCreateDTO productSizePriceCreateDTO)
+        public async Task<ProductSizePrice> AddAsync(ProductSizePriceCreateDTO productSizePriceCreateDTO)
         {
+            var existProductSizePrice = await _unitOfWork.ProductSizePriceRepository
+                .FindObjectAsync(c => c.ProductId == productSizePriceCreateDTO.ProductId && c.IsDeleted == false);
+
+            if (existProductSizePrice != null)
+            {
+                if (existProductSizePrice.ProductSizeType != ProductSizeType.Normal && productSizePriceCreateDTO.ProductSizeType == ProductSizeType.Normal) throw new Exception("This product already have price based on size, it can't have normal price");
+                if (existProductSizePrice.ProductSizeType == ProductSizeType.Normal && productSizePriceCreateDTO.ProductSizeType != ProductSizeType.Normal) throw new Exception("This product already have a normal price, it can't have size based price");
+                if (existProductSizePrice.ProductSizeType == productSizePriceCreateDTO.ProductSizeType) throw new Exception($"This product already have a price size {existProductSizePrice.ProductSizeType}");
+            }
+
             var data = _mapper.Map<ProductSizePrice>(productSizePriceCreateDTO);
 
             _unitOfWork.ProductSizePriceRepository.Add(data);
