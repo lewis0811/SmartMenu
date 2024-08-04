@@ -28,7 +28,7 @@ namespace SmartMenu.Service.Services
         {
             var brand = _unitOfWork.BrandRepository
                 .EnableQuery()
-                .Include(c => c.Stores)
+                .Include(c => c.Stores!.Where(d => !d.IsDeleted))
                 .Where(c => c.BrandId == storeCreateDTO.BrandID && c.IsDeleted == false)
                 .FirstOrDefault()
                 ?? throw new Exception("Brand not found or deleted");

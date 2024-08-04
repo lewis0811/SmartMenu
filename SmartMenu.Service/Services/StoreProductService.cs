@@ -94,7 +94,8 @@ namespace SmartMenu.Service.Services
         public IEnumerable<StoreProduct> GetAll(int? storeProductId, int? storeId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.StoreProductRepository.EnableQuery()
-                .Include(c => c.Product);
+                .Include(c => c.Product).Where(c => !c.Product!.IsDeleted);
+
             var result = DataQuery(data, storeProductId, storeId, productId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<StoreProduct>();
@@ -103,9 +104,9 @@ namespace SmartMenu.Service.Services
         public IEnumerable<StoreProduct> GetWithProductSizePrices(int? storeProductId, int? storeId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.StoreProductRepository.EnableQuery()
+                .Where(c => !c.Product!.IsDeleted)
                 .Include(c => c.Product!)
-                .ThenInclude(c => c.ProductSizePrices)
-                .Where(c => !c.Product!.IsDeleted);
+                .ThenInclude(c => c.ProductSizePrices);
                 
             var result = DataQuery(data, storeProductId, storeId, productId, searchString, pageNumber, pageSize);
 

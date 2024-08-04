@@ -54,11 +54,11 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Template> GetAllWithLayers(int? templateId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.TemplateRepository.EnableQuery();
-            data = data.Include(c => c.Layers)!
-                .ThenInclude(c => c.Boxes)!
-                .ThenInclude(c => c.BoxItems)
-                .Include(c => c.Layers)!
-                .ThenInclude(c => c.LayerItem);
+            data = data.Include(c => c.Layers!.Where(d => !d.IsDeleted))!
+                    .ThenInclude(c => c.Boxes)!
+                        .ThenInclude(c => c.BoxItems)
+                .Include(c => c.Layers!.Where(d => !d.IsDeleted))!
+                    .ThenInclude(c => c.LayerItem);
 
             var result = DataQuery(data, templateId, brandId, searchString, pageNumber, pageSize);
 

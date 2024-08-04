@@ -41,8 +41,9 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Display> GetAll(int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.DisplayRepository.EnableQuery()
-                .Include(c => c.Menu)
-                .Include(c => c.Collection);
+                .Include(c => c.Menu).Where(c => c.Menu!.IsDeleted == false)
+                .Include(c => c.Collection).Where(c => c.Collection!.IsDeleted == false);
+
             var result = DataQuery(data, displayId, menuId, collectionId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<Display>();
@@ -51,14 +52,14 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Display> GetWithItems(int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.DisplayRepository.EnableQuery()
-                .Include(c => c.DisplayItems)!
-                .ThenInclude(c => c.ProductGroup)!
-                .ThenInclude(c => c!.ProductGroupItems)!
-                .ThenInclude(c => c!.Product)
-                .ThenInclude(c => c!.ProductSizePrices)
-                .Include(c => c.DisplayItems)!
-                .ThenInclude(c => c.Box)
-                .ThenInclude(c => c!.BoxItems);
+                .Include(c => c.DisplayItems.Where(d => d.IsDeleted == false))!
+                    .ThenInclude(c => c.ProductGroup)
+                        .ThenInclude(c => c!.ProductGroupItems)!
+                            .ThenInclude(c => c!.Product)
+                                .ThenInclude(c => c!.ProductSizePrices)
+                .Include(c => c.DisplayItems.Where(d => d.IsDeleted == false))!
+                    .ThenInclude(c => c.Box)
+                        .ThenInclude(c => c!.BoxItems);
 
             var result = DataQuery(data, displayId, menuId, collectionId, searchString, pageNumber, pageSize);
 
@@ -69,8 +70,8 @@ namespace SmartMenu.Service.Services
         {
             var device =  await _unitOfWork.StoreDeviceRepository
                 .EnableQuery()
-                .Include(c => c.Displays)
-                .FirstOrDefaultAsync(c => c.StoreDeviceId == deviceId && c.IsDeleted == false)
+                    .Include(c => c.Displays!.Where(d => !d.IsDeleted))
+                .FirstOrDefaultAsync(c => c.StoreDeviceId == deviceId && !c.IsDeleted)
                 ?? throw new Exception("Device not found or deleted");
 
             if (device.Displays!.Count == 0) throw new Exception("Device has no display");
@@ -80,7 +81,7 @@ namespace SmartMenu.Service.Services
             float floatHour = hourNow + (float)(minute / 60);
 
             var store = await _unitOfWork.StoreRepository.EnableQuery()
-                .Include(c => c.StoreProducts)
+                .Include(c => c.StoreProducts!.Where(c => !c.IsDeleted))
                     .ThenInclude(c => c.Product!)
                         .ThenInclude(c => c.ProductSizePrices)
                 .FirstOrDefaultAsync(c => c.StoreId == device.StoreId) ?? throw new Exception("Store not found");
@@ -135,7 +136,7 @@ namespace SmartMenu.Service.Services
                     .Include(c => c.DisplayItems!)
                         .ThenInclude(c => c.ProductGroup!)
                             .ThenInclude(c => c.ProductGroupItems!)
-                                .ThenInclude(c => c.Product)
+                                .ThenInclude(c => c.Product!)
                                     .ThenInclude(c => c.ProductSizePrices)
 
                     .OrderByDescending(c => c.ActiveHour)
@@ -160,7 +161,7 @@ namespace SmartMenu.Service.Services
                 .Include(c => c.DisplayItems!)
                     .ThenInclude(c => c.ProductGroup!)
                         .ThenInclude(c => c.ProductGroupItems!)
-                            .ThenInclude(c => c.Product)
+                            .ThenInclude(c => c.Product!)
                                 .ThenInclude(c => c.ProductSizePrices)
                 .FirstOrDefaultAsync(c => c.DisplayId == displayId && c.IsDeleted == false)
                 ?? throw new Exception("Display not found or deleted");
@@ -670,12 +671,27 @@ namespace SmartMenu.Service.Services
                 graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
+                // Draw text base on box item type
+                var item = box.BoxItems!.FirstOrDefault()?? throw new Exception("Box not found");
+                var boxStyle = GetStyle(box.BoxItems!.FirstOrDefault()?.Style);
+                var font = (boxStyle != null && item.BFont != null && boxStyle.FontSize != 0)
+                    ? Ultilities.InitializeFont(boxStyle.FontSize, boxStyle.FontStyle, item.BFont!)
+                    : new Font("Arial", 16);
+
+                var color = (boxStyle != null)
+                    ? GetColor(boxStyle)
+                    : Color.White;
+
+                var stringFormat = (boxStyle != null)
+                    ? new StringFormat { Alignment = boxStyle.Alignment }
+                    : new StringFormat { Alignment = StringAlignment.Near };
+
                 graphics.Clear(RandomColor());
                 graphics.DrawString("Text layer",
-                    new Font("Arial", 32, FontStyle.Bold),
-                    new SolidBrush(Color.White),
+                    font,
+                    new SolidBrush(color),
                     rect,
-                    new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center });
+                    stringFormat);
 
                 Pen pen = new(Color.Black, 2)
                 {

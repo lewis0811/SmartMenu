@@ -33,9 +33,9 @@ namespace SmartMenu.Service.Services
         {
             var data = _unitOfWork.LayerRepository.EnableQuery();
             data = data
-                .Include(c => c.LayerItem)
-                .Include(c => c.Boxes)!
-                .ThenInclude(c => c.BoxItems);
+                .Include(c => c.LayerItem).Where(c => !c.LayerItem!.IsDeleted)
+                .Include(c => c.Boxes!.Where(d => !d.IsDeleted))
+                    .ThenInclude(c => c.BoxItems);
 
             var result = DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
 
@@ -45,7 +45,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Domain.Models.Layer> GetAllWithLayerItems(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.LayerRepository.EnableQuery();
-            data = data.Include(c => c.LayerItem);
+            data = data.Include(c => c.LayerItem).Where(c => !c.IsDeleted);
 
             var result = DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
 
@@ -55,7 +55,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Domain.Models.Layer> GetAllWithBoxes(int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.LayerRepository.EnableQuery();
-            data = data.Include(c => c.Boxes);
+            data = data.Include(c => c.Boxes!.Where(d => !d.IsDeleted));
 
             var result = DataQuery(data, layerId, templateId, searchString, pageNumber, pageSize);
 

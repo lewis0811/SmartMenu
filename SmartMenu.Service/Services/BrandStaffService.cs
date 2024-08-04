@@ -54,7 +54,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<BrandStaff> GetAll(int? brandStaffId, int? brandId, Guid? userId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.BrandStaffRepository.EnableQuery()
-                .Include(c => c.User);
+                .Include(c => c.User).Where(c => c.User!.IsDeleted == false);
             var result = DataQuery(data, brandStaffId, brandId, userId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<BrandStaff>();

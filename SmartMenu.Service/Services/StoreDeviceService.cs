@@ -41,7 +41,8 @@ namespace SmartMenu.Service.Services
         public IEnumerable<StoreDevice> GetAllWithDisplays(int? storeDeviceId, int? storeId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.StoreDeviceRepository.EnableQuery()
-                .Include(c => c.Displays);
+                .Include(c => c.Displays!.Where(d => !d.IsDeleted));
+
             return DataQuery(data, storeDeviceId, storeId, searchString, pageNumber, pageSize);
         }
         

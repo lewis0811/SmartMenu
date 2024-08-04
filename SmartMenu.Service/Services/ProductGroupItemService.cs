@@ -80,8 +80,10 @@ namespace SmartMenu.Service.Services
         public IEnumerable<ProductGroupItem> GetAll(int? productGroupItemId, int? productGroupId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.ProductGroupItemRepository.EnableQuery()
+                .Where(c => c.Product!.IsDeleted == false)
                 .Include(c => c.Product)
                     .ThenInclude(c => c!.ProductSizePrices);
+
             var result = DataQuery(data, productGroupItemId, productGroupId, productId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<ProductGroupItem>();

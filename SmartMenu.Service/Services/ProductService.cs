@@ -47,7 +47,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Product> GetAll(int? productId, int? categoryId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.ProductRepository.EnableQuery()
-                .Include(c => c.ProductSizePrices);
+                .Include(c => c.ProductSizePrices!.Where(d => d.IsDeleted == false));
             var result = DataQuery(data, productId, categoryId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<Product>();

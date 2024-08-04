@@ -32,7 +32,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Box> GetAllWithBoxItems(int? boxId, int? layerId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.BoxRepository.EnableQuery();
-            data = data.Include(c => c.BoxItems);
+            data = data.Include(c => c.BoxItems!.Where(d => d.IsDeleted == false));
 
             var result = DataQuery(data, boxId, layerId, searchString, pageNumber, pageSize);
 

@@ -22,8 +22,8 @@ namespace SmartMenu.Service.Services
         public IEnumerable<DisplayItem> GetAll(int? displayItemId, int? displayId, int? boxId, int? productGroupId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.DisplayItemRepository.EnableQuery()
-                .Include(c => c.Box)
-                .Include(c => c.ProductGroup);
+                .Include(c => c.Box).Where(d => d.Box!.IsDeleted == false)
+                .Include(c => c.ProductGroup).Where(d => d.ProductGroup!.IsDeleted == false);
             var result = DataQuery(data, displayItemId, displayId, boxId, productGroupId, searchString, pageNumber, pageSize);
 
             return result;

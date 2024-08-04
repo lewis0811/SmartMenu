@@ -111,7 +111,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<BoxItem> GetAll(int? boxItemId, int? boxId, int? fontId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.BoxItemRepository.EnableQuery()
-                .Include(c => c.BFont);
+                .Include(c => c.BFont).Where(c => c.BFont!.IsDeleted == false);
             var result = DataQuery(data, boxItemId, boxId, fontId, searchString, pageNumber, pageSize);
 
             return result;

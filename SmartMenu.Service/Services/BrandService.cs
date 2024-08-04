@@ -56,7 +56,7 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Brand> GetBranchWithBrandStaff(int? brandId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.BrandRepository.EnableQuery();
-            data = data.Include(c => c.BrandStaffs);
+            data = data.Include(c => c.BrandStaffs.Where(d => d.IsDeleted == false));
 
             var result = DataQuery(data, brandId, searchString, pageNumber, pageSize);
 
