@@ -11,8 +11,11 @@ namespace SmartMenu.Service.Interfaces
         object GetBoxItemType();
         object GetBoxType();
         object GetLayerType();
+        object GetPaymentStatus();
+        object GetProductPriceCurrency();
         object GetProductSizeType();
         object GetRoleType();
+        object GetSubscriptionStatus();
         object GetTemplateType();
     }
 }

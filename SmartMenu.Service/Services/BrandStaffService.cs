@@ -24,15 +24,15 @@ namespace SmartMenu.Service.Services
             var data = _mapper.Map<BrandStaff>(brandStaffCreateDTO);
             if (data.StoreId == 0) data.StoreId = null;
 
-            var user = _unitOfWork.UserRepository.Find(c => c.UserId == brandStaffCreateDTO.UserId)
+            var user = _unitOfWork.UserRepository.Find(c => c.UserId == brandStaffCreateDTO.UserId && !c.IsDeleted)
                 .FirstOrDefault() ?? throw new Exception($"User id: {brandStaffCreateDTO.UserId} not exist.");
 
             var existUser = _unitOfWork.BrandStaffRepository.EnableQuery()
-                .FirstOrDefault(c => c.UserId == brandStaffCreateDTO.UserId);
+                .FirstOrDefault(c => c.UserId == brandStaffCreateDTO.UserId && !c.IsDeleted);
             if (existUser != null) throw new Exception($"User already define in brand id: {existUser.BrandId}");
 
             var existUser2 = _unitOfWork.BrandStaffRepository.EnableQuery()
-                .FirstOrDefault(c => c.StoreId == brandStaffCreateDTO.StoreId);
+                .FirstOrDefault(c => c.StoreId == brandStaffCreateDTO.StoreId && !c.IsDeleted);
             if (existUser2 != null) throw new Exception($"User already define in store id: {existUser2.StoreId}");
 
             _unitOfWork.BrandStaffRepository.Add(data);

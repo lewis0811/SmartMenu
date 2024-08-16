@@ -11,14 +11,14 @@ namespace SmartMenu.Domain.Models.DTO
         [StringLength(255, ErrorMessage = "Template Description cannot exceed 255 characters.")] // Example length constraint
         public string TemplateDescription { get; set; } = string.Empty;
 
-        [Range(40f, 8000f, ErrorMessage = "Template Width must be between 40 and 8000f.")] // Example range constraint
-        public int TemplateWidth { get; set; }
+        //[Range(40f, 8000f, ErrorMessage = "Template Width must be between 40 and 8000f.")] // Example range constraint
+        //public int TemplateWidth { get; set; }
 
-        [Range(40f, 3125f, ErrorMessage = "Template Height must be between 40 and 3125f.")] // Example range constraint
-        public int TemplateHeight { get; set; }
+        //[Range(40f, 3125f, ErrorMessage = "Template Height must be between 40 and 3125f.")] // Example range constraint
+        //public int TemplateHeight { get; set; }
 
-        [Required(ErrorMessage = "Template image path is required.")]
-        [Url(ErrorMessage = "Template image path must be a valid URL.")] // Use UrlAttribute for URL validation
-        public string TemplateImgPath { get; set; } = string.Empty;
+        //[Required(ErrorMessage = "Template image path is required.")]
+        //[Url(ErrorMessage = "Template image path must be a valid URL.")] // Use UrlAttribute for URL validation
+        //public string TemplateImgPath { get; set; } = string.Empty;
     }
 }

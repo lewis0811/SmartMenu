@@ -23,8 +23,8 @@ namespace SmartMenu.Domain.Models.DTO
 
         public TemplateType TemplateType { get; set; }
 
-        [Required(ErrorMessage = "Template image path is required.")]
-        [Url(ErrorMessage = "Template image path must be a valid URL.")] // Use UrlAttribute for URL validation
-        public string TemplateImgPath { get; set; } = string.Empty;
+        //[Required(ErrorMessage = "Template image path is required.")]
+        //[Url(ErrorMessage = "Template image path must be a valid URL.")] // Use UrlAttribute for URL validation
+        //public string TemplateImgPath { get; set; } = string.Empty;
     }
 }

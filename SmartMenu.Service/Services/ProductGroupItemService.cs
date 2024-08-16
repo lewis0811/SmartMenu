@@ -53,7 +53,7 @@ namespace SmartMenu.Service.Services
             }
 
             var existProductInProductGroupItem = _unitOfWork.ProductGroupItemRepository
-                .Find(c => c.ProductId == productGroupItemCreateDTO.ProductId && c.ProductGroupId == productGroupItemCreateDTO.ProductGroupId)
+                .Find(c => c.ProductId == productGroupItemCreateDTO.ProductId && c.ProductGroupId == productGroupItemCreateDTO.ProductGroupId && !c.IsDeleted)
                 .Any();
             if (existProductInProductGroupItem) throw new Exception($"Product ID: {productGroupItemCreateDTO.ProductId} already exist in the product group ID: {productGroupItemCreateDTO.ProductGroupId}");
 
@@ -70,10 +70,10 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.ProductGroupItemRepository.Find(c => c.ProductGroupItemId == productGroupItemId && c.IsDeleted == false).FirstOrDefault()
            ?? throw new Exception("Group item not found or deleted");
 
-            //data.IsDeleted = true;
-            //_unitOfWork.ProductGroupItemRepository.Update(data);
+            data.IsDeleted = true;
+            _unitOfWork.ProductGroupItemRepository.Update(data);
 
-            _unitOfWork.ProductGroupItemRepository.Remove(data);
+            //_unitOfWork.ProductGroupItemRepository.Remove(data);
             _unitOfWork.Save();
         }
 

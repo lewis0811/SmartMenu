@@ -5,10 +5,8 @@ namespace SmartMenu.Domain.Models.DTO
 {
     public class BoxUpdateDTO
     {
-        [Range(0, float.MaxValue, ErrorMessage = "Box position X must be a non-negative number.")]
         public float BoxPositionX { get; set; }
 
-        [Range(0, float.MaxValue, ErrorMessage = "Box position Y must be a non-negative number.")]
         public float BoxPositionY { get; set; }
 
         [Required(ErrorMessage = "Box width is required.")]

@@ -33,5 +33,8 @@ namespace SmartMenu.Domain.Models
 
         [JsonPropertyName("currency")]
         public int Currency { get; set; }
+
+        [JsonPropertyName("rotation")]
+        public float Rotation { get; set; } = 0f;
     }
 }

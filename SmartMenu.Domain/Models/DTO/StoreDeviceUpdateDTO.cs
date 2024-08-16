@@ -8,6 +8,8 @@ namespace SmartMenu.Domain.Models.DTO
         [Required]
         public string StoreDeviceName { get; set; } = string.Empty;
 
+        public string DeviceCode { get; set; } = string.Empty;
+
         [Required]
         public int DeviceWidth { get; set; }
         [Required]

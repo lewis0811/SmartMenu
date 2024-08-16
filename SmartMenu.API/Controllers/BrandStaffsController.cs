@@ -33,7 +33,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new {error = ex.Message });
             };
         }
         [HttpPost]
@@ -46,23 +46,23 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new {error = ex.Message });
             }
         }
 
-        [HttpPut("{brandStaffId}")]
-        public ActionResult Update(int brandStaffId, BrandStaffUpdateDTO brandStaffUpdateDTO)
-        {
-            try
-            {
-                var data = _brandStaffService.Update(brandStaffId, brandStaffUpdateDTO);
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //[HttpPut("{brandStaffId}")]
+        //public ActionResult Update(int brandStaffId, BrandStaffUpdateDTO brandStaffUpdateDTO)
+        //{
+        //    try
+        //    {
+        //        var data = _brandStaffService.Update(brandStaffId, brandStaffUpdateDTO);
+        //        return Ok(data);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new {error = ex.Message });
+        //    }
+        //}
 
         [HttpDelete("{brandStaffId}")]
         public ActionResult Delete(int brandStaffId)
@@ -74,7 +74,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new {error = ex.Message });
             }
         }
     }

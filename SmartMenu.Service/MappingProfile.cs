@@ -51,6 +51,12 @@ namespace SmartMenu.API.Ultility
             CreateMap<Display, DisplayUpdateDTO>().ReverseMap();
             CreateMap<DisplayItem, DisplayItemUpdateDTO>().ReverseMap();
             CreateMap<DisplayItem, DisplayItemCreateDTO>().ReverseMap();
+            CreateMap<Subscription, SubscriptionCreateDTO>().ReverseMap();
+            CreateMap<Subscription, SubscriptionUpdateDTO>().ReverseMap();
+            CreateMap<DeviceSubscription, DeviceSubscriptionCreateDTO>().ReverseMap();
+            CreateMap<DeviceSubscription, DeviceSubscriptionUpdateDTO>().ReverseMap();
+            CreateMap<Transaction, TransactionCreateDTO>().ReverseMap();
+            CreateMap<Transaction, TransactionUpdateDTO>().ReverseMap();
         }
     }
 }

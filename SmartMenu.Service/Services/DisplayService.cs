@@ -20,6 +20,7 @@ using System.Linq.Expressions;
 using CloudinaryDotNet.Actions;
 using System.IO;
 using Microsoft.Extensions.Configuration;
+using static System.Formats.Asn1.AsnWriter;
 #pragma warning disable CA1416 // Validate platform compatibility
 
 namespace SmartMenu.Service.Services
@@ -41,8 +42,8 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Display> GetAll(int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.DisplayRepository.EnableQuery()
-                .Include(c => c.Menu).Where(c => c.Menu!.IsDeleted == false)
-                .Include(c => c.Collection).Where(c => c.Collection!.IsDeleted == false);
+                .Include(c => c.Menu)
+                .Include(c => c.Collection);
 
             var result = DataQuery(data, displayId, menuId, collectionId, searchString, pageNumber, pageSize);
 
@@ -52,6 +53,10 @@ namespace SmartMenu.Service.Services
         public IEnumerable<Display> GetWithItems(int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.DisplayRepository.EnableQuery()
+                .Include(c => c.Menu)
+                    .ThenInclude(c => c!.ProductGroups!.Where(d => d.IsDeleted == false))
+                .Include(c => c.Collection)
+
                 .Include(c => c.DisplayItems.Where(d => d.IsDeleted == false))!
                     .ThenInclude(c => c.ProductGroup)
                         .ThenInclude(c => c!.ProductGroupItems)!
@@ -222,15 +227,19 @@ namespace SmartMenu.Service.Services
             switch(displayCreateDTO.MenuId != null)
             {
                 case true:
-                    var isMenuExistInStore = await _unitOfWork.StoreMenuRepository.EnableQuery().AnyAsync(c => c.StoreId == storeDevice.StoreId && c.MenuId == displayCreateDTO.MenuId);
+                    var isMenuExistInStore = await _unitOfWork.StoreMenuRepository.EnableQuery().AnyAsync(c => c.StoreId == storeDevice.StoreId && c.MenuId == displayCreateDTO.MenuId && !c.IsDeleted);
                     if (!isMenuExistInStore) throw new Exception($"Menu Id: {displayCreateDTO.MenuId} not exist in Store Id: {storeDevice.StoreId}");
                     break;
 
                 case false:
-                    var isCollectionExistInStore = await _unitOfWork.StoreMenuRepository.EnableQuery().AnyAsync(c => c.StoreId == storeDevice.StoreId && c.MenuId == displayCreateDTO.MenuId);
+                    var isCollectionExistInStore = await _unitOfWork.StoreCollectionRepository.EnableQuery().AnyAsync(c => c.StoreId == storeDevice.StoreId && c.CollectionId == displayCreateDTO.CollectionId && !c.IsDeleted);
                     if (!isCollectionExistInStore) throw new Exception($"Collection Id: {displayCreateDTO.CollectionId} not exist in Store Id: {storeDevice.StoreId}");
                     break;
             }
+
+            var existDisplay = _unitOfWork.DisplayRepository.Find(c => c.StoreDeviceId == displayCreateDTO.StoreDeviceId 
+            && c.ActiveHour == displayCreateDTO.ActiveHour && !c.IsDeleted).FirstOrDefault();
+            if (existDisplay != null) throw new Exception($"{displayCreateDTO.ActiveHour} already exist in store");
 
             var data = _mapper.Map<Display>(displayCreateDTO);
             _unitOfWork.DisplayRepository.Add(data);
@@ -241,11 +250,12 @@ namespace SmartMenu.Service.Services
                     .ThenInclude(c => c.Boxes)
                 .FirstOrDefaultAsync(c => c.TemplateId == data.TemplateId) ?? throw new Exception("Template not found");
 
-            var layers = template.Layers!.Where(c => c.LayerType == LayerType.Content).ToList();
-            var boxes = layers.SelectMany(c => c.Boxes!).Where(c => c.BoxType == BoxType.UseInDisplay).ToList();
-
             try
             {
+                var layers = template.Layers!.Where(c => c.LayerType == LayerType.Content).ToList();
+                var boxes = layers.SelectMany(c => c.Boxes!).Where(c => c.BoxType == BoxType.UseInDisplay).ToList();
+                if(boxes.Count == 0) throw new Exception("Template has no boxes used for display");
+
                 switch (displayCreateDTO.MenuId != null)
                 {
                     case true:
@@ -253,22 +263,47 @@ namespace SmartMenu.Service.Services
                            .Include(c => c.ProductGroups)
                            .FirstOrDefaultAsync(c => c.MenuId == data.MenuId && c.IsDeleted == false) ?? throw new Exception("Menu not found or deleted");
 
-                        var menuProductGroups = menu.ProductGroups!.ToList();
-                        if (boxes.Count < menuProductGroups.Count) throw new Exception("Not enough boxes to display all product groups");
+                        var menuProductGroups = menu.ProductGroups!.Where(c => !c.IsDeleted).ToList();
+                        if (menuProductGroups.Count == 0) throw new Exception("This menu doesn't have any product group to initialize");
+                        //if (boxes.Count < menuProductGroups.Count) throw new Exception("Not enough boxes to display all product groups");
 
-                        foreach (var box in boxes)
+                        switch(boxes.Count < menuProductGroups.Count)
                         {
-                            var productGroup = menuProductGroups[boxes.IndexOf(box)];
-                            var displayItem = new DisplayItem
-                            {
-                                DisplayId = data.DisplayId,
-                                BoxId = box.BoxId,
-                                ProductGroupId = productGroup.ProductGroupId
+                            case false:
+                                foreach (var productGroup in menuProductGroups)
+                                {
+                                    var box = boxes[menuProductGroups.IndexOf(productGroup)];
+                                    //var productGroup = menuProductGroups[boxes.IndexOf(box)];
+                                    var displayItem = new DisplayItem
+                                    {
+                                        DisplayId = data.DisplayId,
+                                        BoxId = box.BoxId,
+                                        ProductGroupId = productGroup.ProductGroupId
 
-                            };
-                            _unitOfWork.DisplayItemRepository.Add(displayItem);
-                            _unitOfWork.Save();
+                                    };
+                                    _unitOfWork.DisplayItemRepository.Add(displayItem);
+                                    _unitOfWork.Save();
+                                }
+                                break;
+
+                            case true:
+                                foreach (var box in boxes)
+                                {
+                                    var productGroup = menuProductGroups[boxes.IndexOf(box)];
+                                    var displayItem = new DisplayItem
+                                    {
+                                        DisplayId = data.DisplayId,
+                                        BoxId = box.BoxId,
+                                        ProductGroupId = productGroup.ProductGroupId
+
+                                    };
+                                    _unitOfWork.DisplayItemRepository.Add(displayItem);
+                                    _unitOfWork.Save();
+                                }
+                                break;
                         }
+
+
                         break;
 
                     case false:
@@ -276,8 +311,8 @@ namespace SmartMenu.Service.Services
                            .Include(c => c.ProductGroups)
                            .FirstOrDefaultAsync(c => c.CollectionId == data.CollectionId && c.IsDeleted == false) ?? throw new Exception("Collection not found or deleted");
 
-                        var collectionProductGroups = collection.ProductGroups!.ToList();
-                        if (boxes.Count < collectionProductGroups.Count) throw new Exception("Not enough boxes to display all product groups");
+                        var collectionProductGroups = collection.ProductGroups!.Where(c => !c.IsDeleted).ToList();
+                        //if (boxes.Count < collectionProductGroups.Count) throw new Exception("Not enough boxes to display all product groups");
 
                         foreach (var box in boxes)
                         {
@@ -295,11 +330,11 @@ namespace SmartMenu.Service.Services
                         break;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 _unitOfWork.DisplayRepository.Remove(data);
                 _unitOfWork.Save();
-                throw new Exception("Display item fail to initialize");
+                throw new Exception($"Display item fail to initialize : {ex.Message}");
             }
 
             return data;
@@ -380,6 +415,9 @@ namespace SmartMenu.Service.Services
                 .Where(c => c.IsAvailable == true && c.IsDeleted == false)
                 .ToList();
 
+            var storeDevice = await _unitOfWork.StoreDeviceRepository
+                .FindObjectAsync(c => c.StoreId == store.StoreId && c.IsDeleted == false);
+
             var template = display.Template
             ?? throw new Exception("Template not found");
 
@@ -431,10 +469,10 @@ namespace SmartMenu.Service.Services
                 await DrawTextFromLayersAsync(textLayers, g, _unitOfWork);
             }
 
-            //// Draw content layer
+            //Draw content layer
             if (displayItems.Count > 0)
             {
-                await DrawContentFromLayerWithStoreProductAsync(displayItems, g, storeProducts ,_unitOfWork);
+                await DrawContentFromLayerWithStoreProductAsync(displayItems, g, storeProducts, _unitOfWork);
             }
 
             // Draw border
@@ -447,7 +485,8 @@ namespace SmartMenu.Service.Services
             #endregion
 
             string savePath = $"{Directory.GetCurrentDirectory()}" + @$"\wwwroot\images\display{display.DisplayId}.png";
-            ScaleBitmapAndSave(b, 100, savePath);
+            //ScaleBitmapAndSave(b, 100, savePath);
+            ScaleBitmapAndSave(b, (int)storeDevice.DeviceWidth, (int)storeDevice.DeviceHeight, savePath);
             UploadToCloud(display, savePath);
             //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template4.png");
             return savePath;
@@ -458,7 +497,9 @@ namespace SmartMenu.Service.Services
 
             var displayItems = display.DisplayItems!.ToList();
 
-            
+            var storeDevice = await _unitOfWork.StoreDeviceRepository
+                .FindObjectAsync(c => c.StoreDeviceId == display.StoreDeviceId&& c.IsDeleted == false);
+
             var template = display.Template
             ?? throw new Exception("Template not found");
 
@@ -526,8 +567,9 @@ namespace SmartMenu.Service.Services
             #endregion
 
             string savePath = $"{Directory.GetCurrentDirectory()}" + @$"\wwwroot\images\display{display.DisplayId}.png";
-            ScaleBitmapAndSave(b, 100, savePath);
-            UploadToCloud(display, savePath);
+            //ScaleBitmapAndSave(b, 100, savePath);
+            ScaleBitmapAndSave(b, (int)storeDevice.DeviceWidth, (int)storeDevice.DeviceHeight, savePath);
+            UploadToCloud(display, savePath);blob:http://localhost:5063/9fa245e0-797f-451a-a749-a4b0da465c4b
             //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template4.png");
             return savePath;
         }
@@ -610,6 +652,7 @@ namespace SmartMenu.Service.Services
 
             string savePath = $"{Directory.GetCurrentDirectory()}" + @$"\wwwroot\images\template.png";
             ScaleBitmapAndSave(b, 100, savePath);
+            UploadToCloud(template, savePath);
 
             //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template3.png");
             return savePath;
@@ -662,18 +705,34 @@ namespace SmartMenu.Service.Services
             foreach (var layer in textLayers)
             {
                 var box = layer.Boxes!.FirstOrDefault(c => c.LayerId == layer.LayerId) ?? throw new Exception("Box not found in text layer");
-                var rect = new RectangleF(0, 0, box.BoxWidth, box.BoxHeight);
+                var rect = new RectangleF(box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
 
-                using Bitmap b2 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
-                using Graphics graphics = Graphics.FromImage(b2);
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                //using Bitmap b2 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
+                //using Graphics graphics = Graphics.FromImage(b2);
+                //graphics.CompositingQuality = CompositingQuality.HighQuality;
+                //graphics.SmoothingMode = SmoothingMode.HighQuality;
+                //graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                //graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
                 // Draw text base on box item type
                 var item = box.BoxItems!.FirstOrDefault()?? throw new Exception("Box not found");
                 var boxStyle = GetStyle(box.BoxItems!.FirstOrDefault()?.Style);
+
+                // Rotation
+                var tempRotate = boxStyle!.Rotation;
+
+                // 1. Save the current transformation state
+                System.Drawing.Drawing2D.Matrix originalMatrix = g.Transform;
+
+                // 2. Translate to the center of the rectangle
+                g.TranslateTransform(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
+
+                // 3. Apply the rotation 
+                g.RotateTransform(-7.3f);
+
+                // 4. Translate back to the original position 
+                g.TranslateTransform(-(rect.X + rect.Width / 2), -(rect.Y + rect.Height / 2));
+
                 var font = (boxStyle != null && item.BFont != null && boxStyle.FontSize != 0)
                     ? Ultilities.InitializeFont(boxStyle.FontSize, boxStyle.FontStyle, item.BFont!)
                     : new Font("Arial", 16);
@@ -686,8 +745,8 @@ namespace SmartMenu.Service.Services
                     ? new StringFormat { Alignment = boxStyle.Alignment }
                     : new StringFormat { Alignment = StringAlignment.Near };
 
-                graphics.Clear(RandomColor());
-                graphics.DrawString("Text layer",
+                g.FillRectangle(new SolidBrush(RandomColor()), rect);
+                g.DrawString("Text layer",
                     font,
                     new SolidBrush(color),
                     rect,
@@ -697,9 +756,12 @@ namespace SmartMenu.Service.Services
                 {
                     Alignment = PenAlignment.Inset //<-- this
                 };
-                graphics.DrawRectangle(pen, rect);
+                g.DrawRectangle(pen, rect);
 
-                g.DrawImage(b2, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
+                // Reset rotate
+                g.Transform = originalMatrix;
+
+                //g.DrawImage(b2, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
             }
         }
         private static void DrawContentFromLayers(List<Domain.Models.Layer> contentLayers, Graphics g)
@@ -829,21 +891,21 @@ namespace SmartMenu.Service.Services
         }
         private static void DrawBackgroundFromLayerForDisplay(  Domain.Models.Layer backgroundLayer, Graphics g, int templateWidth, int templateHeight)
         {
-            using Bitmap b1 = new(templateWidth, templateHeight);
-            using Graphics g1 = Graphics.FromImage(b1);
-            g1.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g1.SmoothingMode = SmoothingMode.AntiAlias;
-            g1.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            g1.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            //using Bitmap b1 = new(templateWidth, templateHeight);
+            //using Graphics g1 = Graphics.FromImage(b1);
+            //g1.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            //g1.SmoothingMode = SmoothingMode.AntiAlias;
+            //g1.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            //g1.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
 
             var layerItem = backgroundLayer.LayerItem;
             if (layerItem == null) return;
 
             using var image = InitializeImage(layerItem);
-            g1.DrawImage(image, 0, 0, templateWidth, templateHeight);
+            g.DrawImage(image, 0, 0, templateWidth, templateHeight);
             //g1.Clear(Color.Gray); // replace with drawImage background
 
-            g.DrawImage(b1, 0, 0);
+            //g.DrawImage(b1, 0, 0);
 
         }
         private static void DrawImageFromLayersForDisplay(List<Domain.Models.Layer> imgLayers, Graphics g)
@@ -867,7 +929,7 @@ namespace SmartMenu.Service.Services
             foreach (var layer in textLayers)
             {
                 var box = layer.Boxes!.FirstOrDefault(c => c.LayerId == layer.LayerId) ?? throw new Exception("Box not found in text layer");
-                var rect = new RectangleF(0, 0, box.BoxWidth, box.BoxHeight);
+                var rect = new RectangleF(box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
 
                 using Bitmap b2 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
                 using Graphics graphics = Graphics.FromImage(b2);
@@ -913,16 +975,16 @@ namespace SmartMenu.Service.Services
                 //    rect,
                 //    stringFormat);
 
-                DrawStringWithAlpha(graphics, text ?? "Text", font, color, rect, style!.Transparency, stringFormat);
+                DrawStringWithAlpha(g, text ?? "Text", font, color, rect, style!.Transparency, stringFormat);
 
                 // Draw border
-                Pen pen = new(Color.Black, 2)
-                {
-                    Alignment = PenAlignment.Inset //<-- this
-                };
-                graphics.DrawRectangle(pen, rect);
+                //Pen pen = new(Color.Black, 2)
+                //{
+                //    Alignment = PenAlignment.Inset //<-- this
+                //};
+                //graphics.DrawRectangle(pen, rect);
 
-                g.DrawImage(b2, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
+                //g.DrawImage(b2, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
             }
         }
         private static async Task DrawContentFromLayerAsync(List<DisplayItem> displayItems, Graphics g, IUnitOfWork _unitOfWork)
@@ -937,12 +999,12 @@ namespace SmartMenu.Service.Services
 
                 var boxItems2 = box.BoxItems!.GroupBy(c => c.Order);
 
-                using Bitmap b1 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
-                using Graphics g1 = Graphics.FromImage(b1);
-                g1.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g1.SmoothingMode = SmoothingMode.AntiAlias;
-                g1.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                g1.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                //using Bitmap b1 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
+                //using Graphics g1 = Graphics.FromImage(b1);
+                //g1.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                //g1.SmoothingMode = SmoothingMode.AntiAlias;
+                //g1.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                //g1.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
                 //// Draw border
                 //Pen pen1 = new(Color.Black, 2)
@@ -951,7 +1013,7 @@ namespace SmartMenu.Service.Services
                 //};
                 //g1.DrawRectangle(pen1, rect1);
 
-                g.DrawImage(b1, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
+                //g.DrawImage(b1, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
 
                 // Draw box item
                 foreach (var group in boxItems2)
@@ -969,14 +1031,15 @@ namespace SmartMenu.Service.Services
                     foreach (var boxItem in group)
                     {
                         var boxStyle = GetStyle(boxItem.Style);
-                        var rect2 = new RectangleF(0, 0, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
+                        //var rect2 = new RectangleF(0, 0, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
+                        var rect2 = new RectangleF(boxItem.BoxItemX, boxItem.BoxItemY, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
 
-                        using Bitmap b2 = new((int)Math.Round(boxItem.BoxItemWidth), (int)Math.Round(boxItem.BoxItemHeight));
-                        using Graphics g2 = Graphics.FromImage(b2);
-                        g2.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        g2.SmoothingMode = SmoothingMode.AntiAlias;
-                        g2.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                        g2.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                        //using Bitmap b2 = new((int)Math.Round(boxItem.BoxItemWidth), (int)Math.Round(boxItem.BoxItemHeight));
+                        //using Graphics g2 = Graphics.FromImage(b2);
+                        //g2.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        //g2.SmoothingMode = SmoothingMode.AntiAlias;
+                        //g2.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        //g2.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
                         // Get Style
                         var style = GetStyle(boxItem.Style);
@@ -1003,7 +1066,7 @@ namespace SmartMenu.Service.Services
                         switch (boxItem.BoxItemType)
                         {
                             case BoxItemType.Content:
-                                g2.DrawString($"Content {boxItem.Order}",
+                                g.DrawString($"Content {boxItem.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
@@ -1016,7 +1079,7 @@ namespace SmartMenu.Service.Services
                                 //    new SolidBrush(color),
                                 //    rect2,
                                 //    stringFormat);
-                                DrawStringWithAlpha(g2, headerText, font, color, rect2, style!.Transparency, stringFormat);
+                                DrawStringWithAlpha(g, headerText, font, color, rect2, style!.Transparency, stringFormat);
                                 break;
                             case BoxItemType.ProductName:
                                 var productNameText = (style != null && style.Uppercase == true) ? product.ProductName!.ToUpper() : product.ProductName!;
@@ -1025,7 +1088,7 @@ namespace SmartMenu.Service.Services
                                 //    new SolidBrush(color),
                                 //    rect2,
                                 //    stringFormat);
-                                DrawStringWithAlpha(g2, productNameText, font, color, rect2, style!.Transparency, stringFormat);
+                                DrawStringWithAlpha(g, productNameText, font, color, rect2, style!.Transparency, stringFormat);
                                 break;
                             case BoxItemType.ProductDescription:
                                 var productDescriptionText = (style != null && style.Uppercase == true) ? product.ProductDescription!.ToUpper() : product.ProductDescription!;
@@ -1034,7 +1097,7 @@ namespace SmartMenu.Service.Services
                                 //    new SolidBrush(color),
                                 //    rect2,
                                 //    stringFormat);
-                                DrawStringWithAlpha(g2, productDescriptionText, font, color, rect2, style!.Transparency, stringFormat);
+                                DrawStringWithAlpha(g, productDescriptionText, font, color, rect2, style!.Transparency, stringFormat);
                                 break;
                             case BoxItemType.ProductPrice:
                                 var productSizePrices = product.ProductSizePrices!.ToList();
@@ -1044,7 +1107,7 @@ namespace SmartMenu.Service.Services
                                 if (prices.Count > 1)
                                 {
                                     var price = $"{prices[0].ProductSizeType.ToString()}:{prices[0].Price}  {prices[1].ProductSizeType.ToString()}:{prices[1].Price}  {prices[3].ProductSizeType.ToString()}:{prices[3].Price}";
-                                    g2.DrawString(price,
+                                    g.DrawString(price,
                                         font,
                                         new SolidBrush(color),
                                         rect2,
@@ -1054,20 +1117,21 @@ namespace SmartMenu.Service.Services
                                 {
                                     var price = prices[0].Price;
                                     string formattedPrice = "";
-                                    if (style!.Currency == 0) formattedPrice = price.ToString("C", new System.Globalization.CultureInfo("vi-VN"));
-                                    else if (style!.Currency == 1) formattedPrice = price.ToString("C", new System.Globalization.CultureInfo("en-US"));
+                                    if (product.ProductPriceCurrency == ProductPriceCurrency.VND) formattedPrice = price.ToString("C", new System.Globalization.CultureInfo("vi-VN"));
+                                    else if (product.ProductPriceCurrency == ProductPriceCurrency.USD) formattedPrice = price.ToString("C", new System.Globalization.CultureInfo("en-US"));
 
                                     //g2.DrawString(formattedPrice,
                                     //    font,
                                     //    new SolidBrush(color),
                                     //    rect2,    
                                     //    stringFormat);
-                                    DrawStringWithAlpha(g2, formattedPrice, font, color, rect2, style!.Transparency, stringFormat);
+                                    DrawStringWithAlpha(g, formattedPrice, font, color, rect2, style!.Transparency, stringFormat);
                                 }
 
                                 break;
                             case BoxItemType.ProductImg:
                                 Image? productImg = null;
+                                if (product.ProductImgPath == null) break;
                                 try
                                 {
                                     productImg = InitializeImage(product.ProductImgPath!);
@@ -1076,7 +1140,7 @@ namespace SmartMenu.Service.Services
 
                                 //g2.DrawImage(Image.FromFile(product.ProductImgPath!),
                                 //    rect2);
-                                DrawImageWithAlpha(g2, productImg, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
+                                DrawImageWithAlpha(g, productImg, new Rectangle((int)boxItem.BoxItemX, (int)boxItem.BoxItemY, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                             case BoxItemType.ProductIcon:
                                 Image? productIcon = null;
@@ -1091,7 +1155,7 @@ namespace SmartMenu.Service.Services
                                 //    new SolidBrush(color),
                                 //    rect2,
                                 //    stringFormat);
-                                DrawImageWithAlpha(g2, productIcon, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
+                                DrawImageWithAlpha(g, productIcon, new Rectangle((int)boxItem.BoxItemX, (int)boxItem.BoxItemY, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                         }
 
@@ -1111,7 +1175,7 @@ namespace SmartMenu.Service.Services
                         //else // No transparency
                         //{
                         //}
-                        g.DrawImage(b2, boxItem.BoxItemX, boxItem.BoxItemY, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
+                        //g.DrawImage(b2, boxItem.BoxItemX, boxItem.BoxItemY, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
                     }
                 }
 
@@ -1146,7 +1210,7 @@ namespace SmartMenu.Service.Services
                 //};
                 //g1.DrawRectangle(pen1, rect1);
 
-                g.DrawImage(b1, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
+                //g.DrawImage(b1, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
 
                 // Draw box item
                 foreach (var group in boxItems2)
@@ -1164,14 +1228,15 @@ namespace SmartMenu.Service.Services
                     foreach (var boxItem in group)
                     {
                         var boxStyle = GetStyle(boxItem.Style);
-                        var rect2 = new RectangleF(0, 0, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
+                        //var rect2 = new RectangleF(0, 0, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
+                        var rect2 = new RectangleF(boxItem.BoxItemX, boxItem.BoxItemY, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
 
-                        using Bitmap b2 = new((int)Math.Round(boxItem.BoxItemWidth), (int)Math.Round(boxItem.BoxItemHeight));
-                        using Graphics g2 = Graphics.FromImage(b2);
-                        g2.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        g2.SmoothingMode = SmoothingMode.AntiAlias;
-                        g2.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                        g2.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                        //using Bitmap b2 = new((int)Math.Round(boxItem.BoxItemWidth), (int)Math.Round(boxItem.BoxItemHeight));
+                        //using Graphics g2 = Graphics.FromImage(b2);
+                        //g2.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        //g2.SmoothingMode = SmoothingMode.AntiAlias;
+                        //g2.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        //g2.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
                         // Get Style
                         var style = GetStyle(boxItem.Style);
@@ -1198,7 +1263,7 @@ namespace SmartMenu.Service.Services
                         switch (boxItem.BoxItemType)
                         {
                             case BoxItemType.Content:
-                                g2.DrawString($"Content {boxItem.Order}",
+                                g.DrawString($"Content {boxItem.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
@@ -1211,7 +1276,7 @@ namespace SmartMenu.Service.Services
                                 //    new SolidBrush(color),
                                 //    rect2,
                                 //    stringFormat);
-                                DrawStringWithAlpha(g2, headerText, font, color, rect2, style!.Transparency, stringFormat);
+                                DrawStringWithAlpha(g, headerText, font, color, rect2, style!.Transparency, stringFormat);
                                 break;
                             case BoxItemType.ProductName:
                                 var productNameText = (style != null && style.Uppercase == true) ? product.ProductName!.ToUpper() : product.ProductName!;
@@ -1220,7 +1285,7 @@ namespace SmartMenu.Service.Services
                                 //    new SolidBrush(color),
                                 //    rect2,
                                 //    stringFormat);
-                                DrawStringWithAlpha(g2, productNameText, font, color, rect2, style!.Transparency, stringFormat);
+                                DrawStringWithAlpha(g, productNameText, font, color, rect2, style!.Transparency, stringFormat);
                                 break;
                             case BoxItemType.ProductDescription:
                                 var productDescriptionText = (style != null && style.Uppercase == true) ? product.ProductDescription!.ToUpper() : product.ProductDescription!;
@@ -1229,7 +1294,7 @@ namespace SmartMenu.Service.Services
                                 //    new SolidBrush(color),
                                 //    rect2,
                                 //    stringFormat);
-                                DrawStringWithAlpha(g2, productDescriptionText, font, color, rect2, style!.Transparency, stringFormat);
+                                DrawStringWithAlpha(g, productDescriptionText, font, color, rect2, style!.Transparency, stringFormat);
                                 break;
                             case BoxItemType.ProductPrice:
                                 var productSizePrices = product.ProductSizePrices!.ToList();
@@ -1239,7 +1304,7 @@ namespace SmartMenu.Service.Services
                                 if (prices.Count > 1)
                                 {
                                     var price = $"{prices[0].ProductSizeType.ToString()}:{prices[0].Price}  {prices[1].ProductSizeType.ToString()}:{prices[1].Price}  {prices[3].ProductSizeType.ToString()}:{prices[3].Price}";
-                                    g2.DrawString(price,
+                                    g.DrawString(price,
                                         font,
                                         new SolidBrush(color),
                                         rect2,
@@ -1257,7 +1322,7 @@ namespace SmartMenu.Service.Services
                                     //    new SolidBrush(color),
                                     //    rect2,    
                                     //    stringFormat);
-                                    DrawStringWithAlpha(g2, formattedPrice, font, color, rect2, style!.Transparency, stringFormat);
+                                    DrawStringWithAlpha(g, formattedPrice, font, color, rect2, style!.Transparency, stringFormat);
                                 }
 
                                 break;
@@ -1271,7 +1336,7 @@ namespace SmartMenu.Service.Services
 
                                 //g2.DrawImage(Image.FromFile(product.ProductImgPath!),
                                 //    rect2);
-                                DrawImageWithAlpha(g2, productImg, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
+                                DrawImageWithAlpha(g, productImg, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                             case BoxItemType.ProductIcon:
                                 var isEnableIcon = storeProducts.Any(c => c.IconEnable && c.ProductId == product.ProductId);
@@ -1289,7 +1354,7 @@ namespace SmartMenu.Service.Services
                                 //    new SolidBrush(color),
                                 //    rect2,
                                 //    stringFormat);
-                                DrawImageWithAlpha(g2, productIcon, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
+                                DrawImageWithAlpha(g, productIcon, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                         }
 
@@ -1309,7 +1374,8 @@ namespace SmartMenu.Service.Services
                         //else // No transparency
                         //{
                         //}
-                        g.DrawImage(b2, boxItem.BoxItemX, boxItem.BoxItemY, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
+
+                        //g.DrawImage(b2, boxItem.BoxItemX, boxItem.BoxItemY, boxItem.BoxItemWidth, boxItem.BoxItemHeight);
                     }
                 }
 
@@ -1361,6 +1427,26 @@ namespace SmartMenu.Service.Services
             _unitOfWork.DisplayRepository.Update(display);
             _unitOfWork.Save();
         }
+
+        private void UploadToCloud(Template template, string savePath)
+        {
+            var uploadParams = new ImageUploadParams()
+            {
+                File = new FileDescription(savePath), // Specify the font file
+                Folder = "displays",                         // Optional: Organize fonts in a folder
+                PublicId = Path.GetFileNameWithoutExtension(savePath),  // Use file name as Public ID
+            };
+            var uploadResult = _cloudinary.Upload(uploadParams);
+            if (uploadResult.Error != null)
+            {
+                throw new Exception($"Upload failed: {uploadResult.Error.Message}");
+            }
+            template.TemplateImgPath = uploadResult.SecureUrl.ToString();
+
+            _unitOfWork.TemplateRepository.Update(template);
+            _unitOfWork.Save();
+        }
+
         private static Image InitializeImage(string productImgPath)
         {
             string tempPath = $"{Directory.GetCurrentDirectory()}" + @"\wwwroot\temp";
@@ -1475,6 +1561,22 @@ namespace SmartMenu.Service.Services
 
             scaledBitmap.Save(savePath);
         }
+        public static void ScaleBitmapAndSave(Bitmap originalBitmap, int deviceWidth, int deviceHeight, string savePath)
+        {
+
+            using Bitmap scaledBitmap = new(deviceWidth, deviceHeight);
+            using (Graphics graphics = Graphics.FromImage(scaledBitmap))
+            {
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                graphics.DrawImage(originalBitmap, 0, 0, deviceWidth, deviceHeight);
+            }
+
+            scaledBitmap.Save(savePath);
+        }
         public void DeleteTempFile()
         {
             string tempPath = $"{Directory.GetCurrentDirectory()}" + @"\wwwroot\temp";
@@ -1489,6 +1591,11 @@ namespace SmartMenu.Service.Services
             {
                 try
                 {
+                    if (Path.GetFileName(file) == "DONOTDELETE.txt") 
+                    {
+                        continue; 
+                    }
+
                     var fileInfo = new FileInfo(file);
 
                     // Check file attributes before deletion

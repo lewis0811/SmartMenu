@@ -32,6 +32,9 @@ namespace SmartMenu.DAO
             //ProductSizes = Set<ProductSize>();
             ProductSizePrices = Set<ProductSizePrice>();
             BoxItems = Set<BoxItem>();
+            Subscriptions = Set<Subscription>();
+            DeviceSubscriptions = Set<DeviceSubscription>();
+            Transactions = Set<Transaction>();
         }
 
         public DbSet<Box> Boxes { get; set; }
@@ -60,5 +63,8 @@ namespace SmartMenu.DAO
         //public DbSet<ProductSize> ProductSizes { get; set; }
         public DbSet<ProductSizePrice> ProductSizePrices { get; set; }
         public DbSet<BoxItem> BoxItems { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<DeviceSubscription> DeviceSubscriptions { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
     }
 }

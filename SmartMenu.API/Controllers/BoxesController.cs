@@ -1,7 +1,5 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SmartMenu.Domain.Models.DTO;
-using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 
 namespace SmartMenu.API.Controllers
@@ -10,14 +8,10 @@ namespace SmartMenu.API.Controllers
     [ApiController]
     public class BoxesController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IBoxService _boxService;
 
-        public BoxesController(IMapper mapper, IUnitOfWork unitOfWork, IBoxService boxService)
+        public BoxesController(IBoxService boxService)
         {
-            _mapper = mapper;
-            _unitOfWork = unitOfWork;
             _boxService = boxService;
         }
 
@@ -36,7 +30,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -55,7 +49,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -69,7 +63,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -83,7 +77,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -97,7 +91,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

@@ -33,7 +33,9 @@
 //            }
 //            catch (Exception ex)
 //            {
-//                return BadRequest(ex.Message);
+//
+//                
+
 //            };
 //        }
 
@@ -47,7 +49,7 @@
 //            }
 //            catch (Exception ex)
 //            {
-//                return BadRequest(ex.Message);
+//                return BadRequest(new {error = ex.Message });
 //            }
 //        }
 
@@ -61,7 +63,7 @@
 //            }
 //            catch (Exception ex)
 //            {
-//                return BadRequest(ex.Message);
+//                return BadRequest(new {error = ex.Message });
 //            }
 //        }
 //        [HttpDelete("{productSizeId}")]
@@ -74,7 +76,7 @@
 //            }
 //            catch (Exception ex)
 //            {
-//                return BadRequest(ex.Message);
+//                return BadRequest(new {error = ex.Message });
 //            }
 //        }
 //    }

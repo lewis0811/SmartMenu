@@ -106,7 +106,7 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.StoreProductRepository.EnableQuery()
                 .Where(c => !c.Product!.IsDeleted)
                 .Include(c => c.Product!)
-                .ThenInclude(c => c.ProductSizePrices);
+                    .ThenInclude(c => c.ProductSizePrices);
                 
             var result = DataQuery(data, storeProductId, storeId, productId, searchString, pageNumber, pageSize);
 

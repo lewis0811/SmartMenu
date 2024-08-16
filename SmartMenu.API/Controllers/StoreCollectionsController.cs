@@ -33,7 +33,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new {error = ex.Message });
             }
         }
         [HttpPost]
@@ -46,11 +46,11 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new {error = ex.Message });
             }
         }
 
-        [HttpPut("{storeCollectionID}")]
+        [HttpPut("{storeCollectionId}")]
         public ActionResult Update(int storeCollectionId, StoreCollectionCreateDTO storeCollectionCreateDTO)
         {
             try
@@ -60,11 +60,11 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new {error = ex.Message });
             }
         }
 
-        [HttpDelete("{storeCollectionID}")]
+        [HttpDelete("{storeCollectionId}")]
         public ActionResult Delete(int storeCollectionId)
         {
             try
@@ -74,7 +74,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new {error = ex.Message });
             }
         }
     }

@@ -247,6 +247,41 @@ namespace SmartMenu.DAO.Migrations
                     b.ToTable("Collections");
                 });
 
+            modelBuilder.Entity("SmartMenu.Domain.Models.DeviceSubscription", b =>
+                {
+                    b.Property<int>("DeviceSubscriptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DeviceSubscriptionId"), 1L, 1);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StoreDeviceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubscriptionEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubscriptionStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SubscriptionStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("DeviceSubscriptionId");
+
+                    b.HasIndex("StoreDeviceId");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.ToTable("DeviceSubscriptions");
+                });
+
             modelBuilder.Entity("SmartMenu.Domain.Models.Display", b =>
                 {
                     b.Property<int>("DisplayId")
@@ -427,6 +462,9 @@ namespace SmartMenu.DAO.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ProductPriceCurrency")
+                        .HasColumnType("int");
+
                     b.HasKey("ProductId");
 
                     b.HasIndex("CategoryId");
@@ -598,6 +636,10 @@ namespace SmartMenu.DAO.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreDeviceId"), 1L, 1);
 
+                    b.Property<string>("DeviceCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<float>("DeviceHeight")
                         .HasColumnType("real");
 
@@ -683,6 +725,38 @@ namespace SmartMenu.DAO.Migrations
                     b.ToTable("StoreProducts");
                 });
 
+            modelBuilder.Entity("SmartMenu.Domain.Models.Subscription", b =>
+                {
+                    b.Property<int>("SubscriptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubscriptionId"), 1L, 1);
+
+                    b.Property<int>("DayDuration")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("SubscriptionId");
+
+                    b.ToTable("Subscriptions");
+                });
+
             modelBuilder.Entity("SmartMenu.Domain.Models.Template", b =>
                 {
                     b.Property<int>("TemplateId")
@@ -719,6 +793,39 @@ namespace SmartMenu.DAO.Migrations
                     b.HasKey("TemplateId");
 
                     b.ToTable("Templates");
+                });
+
+            modelBuilder.Entity("SmartMenu.Domain.Models.Transaction", b =>
+                {
+                    b.Property<int>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"), 1L, 1);
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("DeviceSubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("PayDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PayType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Payment_Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("TransactionId");
+
+                    b.HasIndex("DeviceSubscriptionId");
+
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.User", b =>
@@ -802,6 +909,25 @@ namespace SmartMenu.DAO.Migrations
                         .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SmartMenu.Domain.Models.DeviceSubscription", b =>
+                {
+                    b.HasOne("SmartMenu.Domain.Models.StoreDevice", "StoreDevice")
+                        .WithMany()
+                        .HasForeignKey("StoreDeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SmartMenu.Domain.Models.Subscription", "Subscription")
+                        .WithMany()
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StoreDevice");
+
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.Display", b =>
@@ -982,6 +1108,17 @@ namespace SmartMenu.DAO.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("SmartMenu.Domain.Models.Transaction", b =>
+                {
+                    b.HasOne("SmartMenu.Domain.Models.DeviceSubscription", "DeviceSubscription")
+                        .WithMany("Transactions")
+                        .HasForeignKey("DeviceSubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DeviceSubscription");
+                });
+
             modelBuilder.Entity("SmartMenu.Domain.Models.Box", b =>
                 {
                     b.Navigation("BoxItems");
@@ -1004,6 +1141,11 @@ namespace SmartMenu.DAO.Migrations
             modelBuilder.Entity("SmartMenu.Domain.Models.Collection", b =>
                 {
                     b.Navigation("ProductGroups");
+                });
+
+            modelBuilder.Entity("SmartMenu.Domain.Models.DeviceSubscription", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.Display", b =>

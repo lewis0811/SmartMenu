@@ -27,6 +27,10 @@
         IBoxItemRepository BoxItemRepository { get; }
         IDisplayRepository DisplayRepository { get; }
         IDisplayItemRepository DisplayItemRepository { get; }
+
+        ISubscriptionRepository SubscriptionRepository { get; }
+        IDeviceSubscriptionRepository DeviceSubscriptionRepository { get; }
+        ITransactionRepository TransactionRepository { get; }
         int Save();
     }
 }

@@ -12,10 +12,10 @@ namespace SmartMenu.Domain.Models.DTO
         [Required(ErrorMessage = "BFont Id is required.")]
         public int BFontId { get; set; }
 
-        [Range(0, float.MaxValue, ErrorMessage = "Box position X must be a non-negative number.")]
+
         public float BoxItemX { get; set; }
 
-        [Range(0, float.MaxValue, ErrorMessage = "Box position Y must be a non-negative number.")]
+
         public float BoxItemY { get; set; }
 
         [Range(1, float.MaxValue, ErrorMessage = "Box width must be greater than 0.")]

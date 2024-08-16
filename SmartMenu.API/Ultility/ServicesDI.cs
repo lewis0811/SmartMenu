@@ -14,6 +14,7 @@ namespace SmartMenu.API.Ultility
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Services DI
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IBoxService, BoxService>();
             services.AddScoped<ITemplateService, TemplateService>();
@@ -40,6 +41,9 @@ namespace SmartMenu.API.Ultility
             services.AddScoped<IFontService, FontService>();
             services.AddScoped<ICloudinary, Cloudinary>();
             services.AddScoped<IEnumService, EnumService>();
+            services.AddScoped<ISubscriptionService, SubscriptionService>();
+            services.AddScoped<IDeviceSubscriptionService, DeviceSubscriptionService>();
+            services.AddScoped<ITransactionService, TransactionService>();
             return services;
         }
     }

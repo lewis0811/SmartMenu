@@ -24,7 +24,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet("BoxType")]
-        public IActionResult GetBoxType() 
+        public IActionResult GetBoxType()
         {
             var enums = _enumService.GetBoxType();
             return Ok(enums);
@@ -55,6 +55,27 @@ namespace SmartMenu.API.Controllers
         public IActionResult GetTemplateType()
         {
             var enums = _enumService.GetTemplateType();
+            return Ok(enums);
+        }
+
+        [HttpGet("PaymentStatus")]
+        public IActionResult GetPaymentStatus()
+        {
+            var enums = _enumService.GetPaymentStatus();
+            return Ok(enums);
+        }
+
+        [HttpGet("ProductPriceCurrency")]
+        public IActionResult GetProductPriceCurrency()
+        {
+            var enums = _enumService.GetProductPriceCurrency();
+            return Ok(enums);
+        }
+
+        [HttpGet("SubscriptionStatus")]
+        public IActionResult GetSubscriptionStatus()
+        {
+            var enums = _enumService.GetSubscriptionStatus();
             return Ok(enums);
         }
     }

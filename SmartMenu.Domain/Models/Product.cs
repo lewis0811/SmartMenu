@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SmartMenu.Domain.Models.Enum;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartMenu.Domain.Models
@@ -13,6 +14,7 @@ namespace SmartMenu.Domain.Models
 
         [Required]
         public string? ProductDescription { get; set; }
+        public ProductPriceCurrency ProductPriceCurrency { get; set; }
         public string? ProductImgPath { get; private set; }
         public string? ProductLogoPath { get; private set; }
 
