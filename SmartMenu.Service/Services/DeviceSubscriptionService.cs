@@ -30,32 +30,52 @@ namespace SmartMenu.Service.Services
         {
             var data = _unitOfWork.DeviceSubscriptionRepository.EnableQuery()
                 .Include(c => c.StoreDevice).Where(c => !c.IsDeleted)
-                .Include(c => c.Subscription).Where(c => !c.IsDeleted)
                 .Include(c => c.Transactions!.Where(d => !d.IsDeleted));
 
             var result = DataQuery(data, deviceSubscriptionId, storeDeviceId, searchString, pageNumber, pageSize);
+            var dS = result.FirstOrDefault() ?? throw new Exception("DeviceSubscription not found or deleted");
+            
+            if (DateTime.Now > dS.SubscriptionEndDate)
+            {
+                dS.SubscriptionStatus = SubscriptionStatus.Expired;
+                _unitOfWork.DeviceSubscriptionRepository.Update(dS);
+                _unitOfWork.Save();
+            }
+
             return result;
         }
 
-        public async Task<DeviceSubscription> AddDeviceSubscription(DeviceSubscriptionCreateDTO deviceSubscriptionCreateDTO)
+        public DeviceSubscription AddDeviceSubscription(DeviceSubscriptionCreateDTO deviceSubscriptionCreateDTO)
         {
-            var existDeviceSubscription =  _unitOfWork.DeviceSubscriptionRepository
+            var existDeviceSubscription = _unitOfWork.DeviceSubscriptionRepository
                 .Find(c => c.StoreDeviceId == deviceSubscriptionCreateDTO.StoreDeviceId && c.IsDeleted == false).FirstOrDefault();
 
-            if (existDeviceSubscription != null)
-            {
-                throw new Exception("DeviceSubscription already exists.");
-            }
+            var subscription = _unitOfWork.SubscriptionRepository.Find(c => c.SubscriptionId == deviceSubscriptionCreateDTO.SubscriptionId && c.IsDeleted == false)
+                .FirstOrDefault() ?? throw new Exception("Subscription not found or deleted");
 
-            var storeDevice =  _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == deviceSubscriptionCreateDTO.StoreDeviceId && c.IsDeleted == false).FirstOrDefault()
+            var storeDevice = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == deviceSubscriptionCreateDTO.StoreDeviceId && c.IsDeleted == false).FirstOrDefault()
                 ?? throw new Exception("Store device not found");
 
             var data = _mapper.Map<DeviceSubscription>(deviceSubscriptionCreateDTO);
 
-            _unitOfWork.DeviceSubscriptionRepository.Add(data);
-            _unitOfWork.Save();
+            switch (existDeviceSubscription != null)
+            {
+                case true:
+                    existDeviceSubscription.SubscriptionStartDate = existDeviceSubscription.SubscriptionEndDate;
+                    existDeviceSubscription.SubscriptionEndDate = existDeviceSubscription.SubscriptionStartDate.Date.AddDays(subscription.DayDuration).AddHours(23).AddMinutes(59).AddSeconds(59);
+                    _unitOfWork.DeviceSubscriptionRepository.Update(existDeviceSubscription);
+                    _unitOfWork.Save();
+                    return existDeviceSubscription;
 
-            return data;
+                case false:
+                    data.SubscriptionStartDate = DateTime.Now;
+                    data.SubscriptionEndDate = data.SubscriptionStartDate.Date.AddDays(subscription.DayDuration).AddHours(23).AddMinutes(59).AddSeconds(59);
+                    _unitOfWork.DeviceSubscriptionRepository.Add(data);
+                    _unitOfWork.Save();
+                    return data;
+            }
+            //_unitOfWork.DeviceSubscriptionRepository.Add(data);
+
         }
 
         public async Task<DeviceSubscription> UpdateDeviceSubscription(int deviceSubscriptionId, DeviceSubscriptionUpdateDTO deviceSubscriptionUpdateDTO)
@@ -63,7 +83,14 @@ namespace SmartMenu.Service.Services
             var existDeviceSubscription = await _unitOfWork.DeviceSubscriptionRepository.FindObjectAsync(c => c.DeviceSubscriptionId == deviceSubscriptionId && c.IsDeleted == false)
                 ?? throw new Exception("DeviceSubscription not found or deleted.");
 
+            var subscription = _unitOfWork.SubscriptionRepository.Find(c => c.SubscriptionId == deviceSubscriptionUpdateDTO.SubscriptionId && c.IsDeleted == false)
+                .FirstOrDefault() ?? throw new Exception("Subscription not found or deleted");
+
             _mapper.Map(deviceSubscriptionUpdateDTO, existDeviceSubscription);
+
+            existDeviceSubscription.SubscriptionStartDate = existDeviceSubscription.SubscriptionEndDate;
+            existDeviceSubscription.SubscriptionEndDate = existDeviceSubscription.SubscriptionStartDate.Date.AddDays(subscription.DayDuration).AddHours(23).AddMinutes(59).AddSeconds(59);
+            existDeviceSubscription.SubscriptionStatus = SubscriptionStatus.Active;
 
             _unitOfWork.DeviceSubscriptionRepository.Update(existDeviceSubscription);
             _unitOfWork.Save();
@@ -73,7 +100,7 @@ namespace SmartMenu.Service.Services
 
         public void DeleteDeviceSubscription(int deviceSubscriptionId)
         {
-            var existDeviceSubscription =  _unitOfWork.DeviceSubscriptionRepository.Find(c => c.DeviceSubscriptionId == deviceSubscriptionId && c.IsDeleted == false).FirstOrDefault()
+            var existDeviceSubscription = _unitOfWork.DeviceSubscriptionRepository.Find(c => c.DeviceSubscriptionId == deviceSubscriptionId && c.IsDeleted == false).FirstOrDefault()
                 ?? throw new Exception("DeviceSubscription not found or deleted.");
 
             existDeviceSubscription.IsDeleted = true;

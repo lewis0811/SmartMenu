@@ -31,11 +31,11 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAsync(DeviceSubscriptionCreateDTO deviceSubscriptionCreateDTO)
+        public IActionResult Add(DeviceSubscriptionCreateDTO deviceSubscriptionCreateDTO)
         {
             try
             {
-                var data = await _deviceSubscriptionService.AddDeviceSubscription(deviceSubscriptionCreateDTO);
+                var data =  _deviceSubscriptionService.AddDeviceSubscription(deviceSubscriptionCreateDTO);
                 return CreatedAtAction(nameof(Get), data);
             }
             catch (Exception ex)

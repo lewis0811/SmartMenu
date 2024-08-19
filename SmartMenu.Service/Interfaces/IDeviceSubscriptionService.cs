@@ -10,7 +10,7 @@ namespace SmartMenu.Service.Interfaces
 {
     public interface IDeviceSubscriptionService
     {
-        Task <DeviceSubscription> AddDeviceSubscription(DeviceSubscriptionCreateDTO deviceSubscriptionCreateDTO);
+        DeviceSubscription AddDeviceSubscription(DeviceSubscriptionCreateDTO deviceSubscriptionCreateDTO);
         void DeleteDeviceSubscription(int deviceSubscriptionId);
         IEnumerable<DeviceSubscription> GetAll(int? deviceSubscriptionId, int? storeDeviceId, string? searchString, int pageNumber, int pageSize);
         Task<DeviceSubscription> UpdateDeviceSubscription(int deviceSubscriptionId, DeviceSubscriptionUpdateDTO deviceSubscriptionUpdateDTO);

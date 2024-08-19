@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartMenu.DAO;
 
@@ -11,9 +12,10 @@ using SmartMenu.DAO;
 namespace SmartMenu.DAO.Migrations
 {
     [DbContext(typeof(SmartMenuDBContext))]
-    partial class SmartMenuDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240817181114_UpdateUser")]
+    partial class UpdateUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -264,6 +266,9 @@ namespace SmartMenu.DAO.Migrations
                     b.Property<DateTime>("SubscriptionEndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("SubscriptionStartDate")
                         .HasColumnType("datetime2");
 
@@ -273,6 +278,8 @@ namespace SmartMenu.DAO.Migrations
                     b.HasKey("DeviceSubscriptionId");
 
                     b.HasIndex("StoreDeviceId");
+
+                    b.HasIndex("SubscriptionId");
 
                     b.ToTable("DeviceSubscriptions");
                 });
@@ -917,7 +924,15 @@ namespace SmartMenu.DAO.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SmartMenu.Domain.Models.Subscription", "Subscription")
+                        .WithMany()
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("StoreDevice");
+
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.Display", b =>

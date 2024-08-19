@@ -16,6 +16,8 @@ namespace SmartMenu.Domain.Models
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
+        public Guid? Token { get; set; }
+
         public Role Role { get; set; }
     }
 }

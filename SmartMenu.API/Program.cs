@@ -12,6 +12,7 @@ using Amazon.S3;
 using SmartMenu.Service.Interfaces;
 using SmartMenu.Service.Services;
 using CloudinaryDotNet;
+using SmartMenu.Domain.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,10 +38,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Add Email config
-//var emailConfig = builder.Configuration
-//    .GetSection("EmailConfiguration")
-//    .Get<EmailConfiguration>();
+// Add Email Configs
+var emailConfig = builder.Configuration
+    .GetSection("EmailConfiguration")
+    .Get<EmailConfiguration>();
+builder.Services.AddSingleton(emailConfig);
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

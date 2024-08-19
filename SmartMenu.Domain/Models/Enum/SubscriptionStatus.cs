@@ -9,7 +9,6 @@ namespace SmartMenu.Domain.Models.Enum
     public enum SubscriptionStatus
     {
         Active = 0,
-        Inactive = 1,
-        Expired = 2
+        Expired = 1
     }
 }

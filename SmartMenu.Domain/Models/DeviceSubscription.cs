@@ -9,7 +9,7 @@ namespace SmartMenu.Domain.Models
         public int DeviceSubscriptionId { get; set; }
 
         public int StoreDeviceId { get; set; }
-        public int SubscriptionId { get; set; }
+        //public int SubscriptionId { get; set; }
 
         public DateTime SubscriptionStartDate { get; set; }
 
@@ -21,8 +21,8 @@ namespace SmartMenu.Domain.Models
         [ForeignKey(nameof(StoreDeviceId))]
         public StoreDevice? StoreDevice { get; set; }
 
-        [ForeignKey(nameof(SubscriptionId))]
-        public Subscription? Subscription { get; set; }
+        //[ForeignKey(nameof(SubscriptionId))]
+        //public Subscription? Subscription { get; set; }
 
         public ICollection<Transaction>? Transactions { get; set; }
     }
