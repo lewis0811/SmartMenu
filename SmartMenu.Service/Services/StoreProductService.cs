@@ -96,10 +96,18 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.StoreProductRepository.EnableQuery()
                 .Include(c => c.Product).Where(c => !c.Product!.IsDeleted);
 
+            if (storeId != null)
+            {
+                AddProductForStore(storeId);
+
+            }
+
             var result = DataQuery(data, storeProductId, storeId, productId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<StoreProduct>();
         }
+
+
 
         public IEnumerable<StoreProduct> GetWithProductSizePrices(int? storeProductId, int? storeId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
@@ -107,7 +115,13 @@ namespace SmartMenu.Service.Services
                 .Where(c => !c.Product!.IsDeleted)
                 .Include(c => c.Product!)
                     .ThenInclude(c => c.ProductSizePrices);
-                
+
+            if (storeId != null)
+            {
+                AddProductForStore(storeId);
+
+            }
+
             var result = DataQuery(data, storeProductId, storeId, productId, searchString, pageNumber, pageSize);
 
             return result ?? Enumerable.Empty<StoreProduct>();
@@ -125,6 +139,38 @@ namespace SmartMenu.Service.Services
             return data;
         }
 
+        private void AddProductForStore(int? storeId)
+        {
+            var store = _unitOfWork.StoreRepository.EnableQuery()
+                .Include(c => c.StoreProducts.Where(c => !c.IsDeleted))
+                .FirstOrDefault(c => c.StoreId == storeId && !c.IsDeleted)
+                ?? throw new Exception("Store not found or deleted");
+
+            var products = _unitOfWork.BrandRepository.EnableQuery()
+                .Include(C => C.Categories!)
+                    .ThenInclude(c => c.Products)
+                .Where(c => c.BrandId == store.BrandId && !c.IsDeleted)
+                .SelectMany(c => c.Categories!)
+                    .SelectMany(c => c.Products!).ToList();
+
+            if (store.StoreProducts.Count < products.Count)
+            {
+                foreach (var product in products)
+                {
+                    if (store.StoreProducts != null && store.StoreProducts!.Any(c => c.ProductId == product.ProductId)) continue;
+                    {
+                        StoreProduct storeProduct = new()
+                        {
+                            ProductId = product.ProductId,
+                            StoreId = store.StoreId,
+                            IsAvailable = true
+                        };
+                        _unitOfWork.StoreProductRepository.Add(storeProduct);
+                        _unitOfWork.Save();
+                    }
+                }
+            }
+        }
         private IEnumerable<StoreProduct> DataQuery(IQueryable<StoreProduct> data, int? storeProductId, int? storeId, int? productId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
@@ -134,7 +180,7 @@ namespace SmartMenu.Service.Services
                     .Where(c => c.StoreProductId == storeProductId);
             }
 
-            if(storeId != null)
+            if (storeId != null)
             {
                 data = data
                     .Where(c => c.StoreId == storeId);

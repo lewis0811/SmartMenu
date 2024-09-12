@@ -33,7 +33,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
         [HttpPost]
@@ -46,7 +46,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -60,7 +60,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -74,7 +74,21 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpDelete("{storeCollectionId}/v2")]
+        public ActionResult DeleteV2(int storeCollectionId)
+        {
+            try
+            {
+                _storeCollectionService.DeleteV2(storeCollectionId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

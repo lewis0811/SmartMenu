@@ -23,5 +23,7 @@ namespace SmartMenu.Service.Interfaces
         void Delete(int displayId);
 
         void DeleteTempFile();
+        Task<Display> GetByDeviceId(int? deviceId);
+        IEnumerable<Display> GetWithItemsV2(int storeId, int? deviceId, int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize);
     }
 }

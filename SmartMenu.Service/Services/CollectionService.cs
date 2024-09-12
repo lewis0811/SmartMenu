@@ -29,6 +29,31 @@ namespace SmartMenu.Service.Services
             _unitOfWork.CollectionRepository.Add(data);
             _unitOfWork.Save();
 
+            // Add data for store
+            var br = _unitOfWork.BrandRepository
+                .Find(c => c.BrandId == collectionCreateDTO.BrandID && c.IsDeleted == false)
+                .FirstOrDefault()
+                ?? throw new Exception("Brand not found or deleted");
+
+            var brandStores = _unitOfWork.BrandRepository.EnableQuery()
+                .Include(c => c.Stores)
+                .SelectMany(c => c.Stores!)
+                .Where(c => c.BrandId == collectionCreateDTO.BrandID && !c.IsDeleted)
+                .ToList();
+
+            foreach (var brandStore in brandStores)
+            {
+                StoreCollection storeCollection = new()
+                {
+                    StoreId = brandStore.StoreId,
+                    CollectionId = data.CollectionId,
+                };
+
+                _unitOfWork.StoreCollectionRepository.Add(storeCollection);
+                _unitOfWork.Save();
+            }
+
+
             return data;
         }
 
@@ -52,8 +77,11 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<Collection> GetCollectionWithProductGroup(int? collectionId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
-            var data = _unitOfWork.CollectionRepository.EnableQuery();
-            data = data.Include(c => c.ProductGroups!.Where(c => c.IsDeleted == false));
+            var data = _unitOfWork.CollectionRepository.EnableQuery()
+                .Include(c => c.ProductGroups!.Where(c => c.IsDeleted == false))
+                    .ThenInclude(c => c.ProductGroupItems!.Where(c => !c.IsDeleted))
+                        .ThenInclude(c => c.Product!)
+                            .ThenInclude(c => c.ProductSizePrices!.Where(c => !c.IsDeleted));
 
             var result = DataQuery(data, collectionId, brandId, searchString, pageNumber, pageSize);
 

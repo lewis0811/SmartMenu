@@ -34,16 +34,60 @@ namespace SmartMenu.Service.Services
             var data = _mapper.Map<DisplayItem>(displayItemCreateDTO);
             _unitOfWork.DisplayItemRepository.Add(data);
             _unitOfWork.Save();
+
+            UpdateDisplayIfExist(data);
+
             return data;
         }
 
         public DisplayItem Update(int displayItemId, DisplayItemUpdateDTO displayItemUpdateDTO)
         {
-            var data = _mapper.Map<DisplayItem>(displayItemUpdateDTO);
-            _unitOfWork.DisplayItemRepository.Update(data);
+            var displayItem = _unitOfWork.DisplayItemRepository.Find(c => c.DisplayItemId == displayItemId && !c.IsDeleted)
+                .FirstOrDefault() ?? throw new Exception("Display Item not found or deleted");
+
+            var display = _unitOfWork.DisplayRepository.Find(c => c.DisplayId == displayItem.DisplayId && !c.IsDeleted).FirstOrDefault()!;
+
+            switch (display.MenuId)
+            {
+                case null:
+                    var isExistCollection = _unitOfWork.StoreCollectionRepository.EnableQuery()
+                        .Include(c => c.Collection!)
+                            .ThenInclude(c => c.ProductGroups)
+                        .Where(c => !c.IsDeleted && !c.Collection!.IsDeleted)
+                            .SelectMany(c => c.Collection!.ProductGroups!)
+                        .FirstOrDefault(c => c.ProductGroupId == displayItemUpdateDTO.ProductGroupID && !c.IsDeleted)
+                        ?? throw new Exception($"Product group not exist in collection Id: {display.CollectionId}");
+                    break;
+
+                default:
+                    var isExistMenu = _unitOfWork.StoreMenuRepository.EnableQuery()
+                        .Include(c => c.Menu!)
+                            .ThenInclude(c => c.ProductGroups)
+                        .Where(c => !c.IsDeleted && !c.Menu!.IsDeleted)
+                            .SelectMany(c => c.Menu!.ProductGroups!)
+                        .FirstOrDefault(c => c.ProductGroupId == displayItemUpdateDTO.ProductGroupID && !c.IsDeleted)
+                        ?? throw new Exception($"Product group not exist in menu Id: {display.MenuId}");
+                    break;
+            }
+
+            var tempProductGroupId = displayItem.ProductGroupId;
+            _mapper.Map(displayItemUpdateDTO, displayItem);
+
+            var matchedProductgroup = _unitOfWork.DisplayItemRepository.Find(c => c.ProductGroupId == displayItemUpdateDTO.ProductGroupID && c.DisplayId == displayItem.DisplayId && !c.IsDeleted)
+                .FirstOrDefault();
+            if (matchedProductgroup != null)
+            {
+                matchedProductgroup.ProductGroupId = tempProductGroupId;
+                _unitOfWork.DisplayItemRepository.Update(matchedProductgroup);
+                _unitOfWork.Save();
+            }
+
+            _unitOfWork.DisplayItemRepository.Update(displayItem);
             _unitOfWork.Save();
 
-            return data;
+            UpdateDisplayIfExist(displayItem);
+
+            return displayItem;
         }
 
         public void Delete(int displayItemId)
@@ -53,6 +97,8 @@ namespace SmartMenu.Service.Services
 
             _unitOfWork.DisplayItemRepository.Remove(data);
             _unitOfWork.Save();
+
+            UpdateDisplayIfExist(data);
         }
 
         private static IEnumerable<DisplayItem> DataQuery(IQueryable<DisplayItem> data, int? displayItemId, int? displayId, int? boxId, int? productGroupId, string? searchString, int pageNumber, int pageSize)
@@ -81,8 +127,7 @@ namespace SmartMenu.Service.Services
 
             if (searchString != null)
             {
-                data = data.Where(c => c.Box!.MaxProductItem.ToString().Contains(searchString)
-                || c.Box.BoxWidth.ToString().Contains(searchString)
+                data = data.Where(c => c.Box!.BoxWidth.ToString().Contains(searchString)
                 || c.Box.BoxHeight.ToString().Contains(searchString)
                 || c.Box.BoxPositionX.ToString().Contains(searchString)
                 || c.Box.BoxPositionY.ToString().Contains(searchString)
@@ -90,6 +135,17 @@ namespace SmartMenu.Service.Services
             }
 
             return PaginatedList<DisplayItem>.Create(data, pageNumber, pageSize);
+        }
+
+        private void UpdateDisplayIfExist(DisplayItem data)
+        {
+            var display = _unitOfWork.DisplayRepository.Find(c => c.DisplayId == data.DisplayId && !c.IsDeleted).FirstOrDefault();
+            if (display != null)
+            {
+                display.IsChanged = true;
+                _unitOfWork.DisplayRepository.Update(display);
+                _unitOfWork.Save();
+            }
         }
     }
 }

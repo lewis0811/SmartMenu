@@ -14,5 +14,6 @@ namespace SmartMenu.Service.Interfaces
         StoreMenu Add(StoreMenuCreateDTO storeMenuCreateDTO);
         StoreMenu Update(int storeMenuId, StoreMenuCreateDTO storeMenuCreateDTO);
         void Delete(int storeMenuId);
+        void DeleteV2(int storeMenuId);
     }
 }

@@ -23,6 +23,7 @@ namespace SmartMenu.Service.Services
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
+
         public StoreMenu Add(StoreMenuCreateDTO storeMenuCreateDTO)
         {
             var st = _unitOfWork.StoreRepository
@@ -33,7 +34,7 @@ namespace SmartMenu.Service.Services
             var mn = _unitOfWork.MenuRepository
                 .Find(c => c.MenuId == storeMenuCreateDTO.MenuID && c.IsDeleted == false)
                 .FirstOrDefault()
-                ?? throw new Exception("Store not found or deleted");
+                ?? throw new Exception("Menu not found or deleted");
 
             var data = _mapper.Map<StoreMenu>(storeMenuCreateDTO);
 
@@ -45,10 +46,19 @@ namespace SmartMenu.Service.Services
 
         public void Delete(int storeMenuId)
         {
-            var data = _unitOfWork.StoreMenuRepository.Find(c => c.StoreMenuId == storeMenuId && c.IsDeleted == false).FirstOrDefault()
-            ?? throw new Exception("Store Menu not found or deleted");
+            var data = _unitOfWork.StoreMenuRepository.Find(c => c.StoreMenuId == storeMenuId).FirstOrDefault()
+                ?? throw new Exception("Store Menu not found or deleted");
 
-            data.IsDeleted = true;
+            _unitOfWork.StoreMenuRepository.Remove(data);
+            _unitOfWork.Save();
+        }
+
+        public void DeleteV2(int storeMenuId)
+        {
+            var data = _unitOfWork.StoreMenuRepository.Find(c => c.StoreMenuId == storeMenuId).FirstOrDefault()
+                ?? throw new Exception("Store Menu not found or deleted");
+
+            data.IsDeleted = !data.IsDeleted;
             _unitOfWork.StoreMenuRepository.Update(data);
             _unitOfWork.Save();
         }
@@ -57,7 +67,17 @@ namespace SmartMenu.Service.Services
         {
             var data = _unitOfWork.StoreMenuRepository.EnableQuery()
                 .Include(c => c.Menu)
+                    .ThenInclude(c => c.ProductGroups!.Where(c => !c.IsDeleted))
+                        .ThenInclude(c => c.ProductGroupItems!.Where(c => !c.IsDeleted))
+                            .ThenInclude(c => c.Product!)
+                                .ThenInclude(c => c.ProductSizePrices!.Where(c => !c.IsDeleted))
                 .Where(c => !c.Menu!.IsDeleted);
+
+            if (storeId != null)
+            {
+                AddMenuForStore(storeId);
+
+            }
 
             var result = DataQuery(data, storeMenuId, storeId, menuId, searchString, pageNumber, pageSize);
 
@@ -75,9 +95,39 @@ namespace SmartMenu.Service.Services
 
             return data;
         }
+
+        private void AddMenuForStore(int? storeId)
+        {
+            var store = _unitOfWork.StoreRepository.EnableQuery()
+                .Include(c => c.StoreMenus.Where(c => !c.IsDeleted))
+                .FirstOrDefault(c => c.StoreId == storeId && !c.IsDeleted)
+                ?? throw new Exception("Store not found or deleted");
+
+            var menus = _unitOfWork.MenuRepository.EnableQuery()
+                .Where(c => c.BrandId == store.BrandId && !c.IsDeleted)
+                .ToList();
+
+            if (store.StoreMenus.Count < menus.Count)
+            {
+                foreach (var menu in menus)
+                {
+                    if (store.StoreMenus != null && store.StoreMenus.Any(c => c.MenuId == menu.MenuId)) continue;
+                    {
+                        StoreMenu storeMenu = new()
+                        {
+                            MenuId = menu.MenuId,
+                            StoreId = store.StoreId,
+                        };
+                        _unitOfWork.StoreMenuRepository.Add(storeMenu);
+                        _unitOfWork.Save();
+                    }
+                }
+            }
+        }
+
         private IEnumerable<StoreMenu> DataQuery(IQueryable<StoreMenu> data, int? storeMenuId, int? storeId, int? menuId, string? searchString, int pageNumber, int pageSize)
         {
-            data = data.Where(c => c.IsDeleted == false);
+            //data = data.Where(c => c.IsDeleted == false);
             if (storeMenuId != null)
             {
                 data = data

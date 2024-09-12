@@ -34,5 +34,6 @@ namespace SmartMenu.Domain.Models
         public ICollection<StoreMenu> StoreMenus { get; set; } = new List<StoreMenu>();
         public ICollection<StoreCollection> StoreCollections { get; set; } = new List<StoreCollection>();
         public ICollection<StoreProduct> StoreProducts { get; set; } = new List<StoreProduct>();
+        public ICollection<StoreDevice> StoreDevices { get; set; } = new List<StoreDevice>();
     }
 }

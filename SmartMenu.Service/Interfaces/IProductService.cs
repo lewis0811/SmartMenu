@@ -14,5 +14,7 @@ namespace SmartMenu.Service.Interfaces
         Product Add(ProductCreateDTO productCreateDTO);
         Product Update(int productId, ProductUpdateDTO productUpdateDTO);
         void Delete(int productId);
+        IEnumerable<Product> GetProductByMenuOrCollection(int? menuId, int? collectionId);
+        IEnumerable<Product> GetProductByCollection(int collectionId);
     }
 }

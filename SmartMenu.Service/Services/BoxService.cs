@@ -39,36 +39,7 @@ namespace SmartMenu.Service.Services
             return result ?? Enumerable.Empty<Box>();
         }
 
-        private static IEnumerable<Box> DataQuery(IQueryable<Box> data, int? boxId, int? layerId, string? searchString, int pageNumber, int pageSize)
-        {
-            data = data.Where(data => data.IsDeleted == false);
 
-            if (boxId != null)
-            {
-                data = data
-                    .Where(c => c.BoxId == boxId);
-            }
-
-            if (layerId != null)
-            {
-                data = data
-                    .Where(c => c.LayerId == layerId);
-            }
-
-            if (searchString != null)
-            {
-                searchString = searchString.Trim();
-                if (int.TryParse(searchString, out int searchNumber)) // Try to parse the search string to an integer
-                {
-                    data = data.Where(c =>
-                        c.MaxProductItem == searchNumber
-                        || c.BoxPositionX == searchNumber
-                        || c.BoxPositionY == searchNumber);
-                }
-            }
-
-            return PaginatedList<Box>.Create(data, pageNumber, pageSize);
-        }
 
         public Box Add(BoxCreateDTO boxCreateDTO)
         {
@@ -84,7 +55,6 @@ namespace SmartMenu.Service.Services
                 var existBox = _unitOfWork.BoxRepository.EnableQuery().Any(x => x.LayerId == data.LayerId);
                 if (existBox) throw new Exception("Box already exists in layer");
                 data.BoxType = BoxType.UseInTemplate;
-                data.MaxProductItem = 0;
             }
 
             var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == layer.TemplateId && c.IsDeleted == false).FirstOrDefault()!;
@@ -95,6 +65,8 @@ namespace SmartMenu.Service.Services
 
             _unitOfWork.BoxRepository.Add(data);
             _unitOfWork.Save();
+
+            UpdateDisplayIfExist(data);
 
             return data;
         }
@@ -118,6 +90,7 @@ namespace SmartMenu.Service.Services
             _unitOfWork.BoxRepository.Update(data);
             _unitOfWork.Save();
 
+            UpdateDisplayIfExist(data);
             return data;
         }
 
@@ -126,9 +99,58 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Box not found or deleted");
 
-            data.IsDeleted = true;
-            _unitOfWork.BoxRepository.Update(data);
+            //data.IsDeleted = true;
+            _unitOfWork.BoxRepository.Remove(data);
             _unitOfWork.Save();
+
+            UpdateDisplayIfExist(data);
+        }
+
+        private static IEnumerable<Box> DataQuery(IQueryable<Box> data, int? boxId, int? layerId, string? searchString, int pageNumber, int pageSize)
+        {
+            data = data.Where(data => data.IsDeleted == false);
+
+            if (boxId != null)
+            {
+                data = data
+                    .Where(c => c.BoxId == boxId);
+            }
+
+            if (layerId != null)
+            {
+                data = data
+                    .Where(c => c.LayerId == layerId);
+            }
+
+            if (searchString != null)
+            {
+                searchString = searchString.Trim();
+                if (int.TryParse(searchString, out int searchNumber)) // Try to parse the search string to an integer
+                {
+                    data = data.Where(c => c.BoxPositionX == searchNumber
+                        || c.BoxPositionY == searchNumber);
+                }
+            }
+
+            return PaginatedList<Box>.Create(data, pageNumber, pageSize);
+        }
+
+        private void UpdateDisplayIfExist(Box data)
+        {
+            // Find the display associated with the template and check if it exists and is not deleted
+            var display = _unitOfWork.DisplayRepository.EnableQuery()
+                .Include(c => c.Template!)
+                    .ThenInclude(c => c.Layers!.Where(d => d.LayerId == data.LayerId && !d.IsDeleted))
+                .Where(c => !c.Template!.IsDeleted)
+                .FirstOrDefault();
+
+            // If the display exists, mark it as changed and save the changes
+            if (display != null)
+            {
+                display.IsChanged = true;
+                _unitOfWork.DisplayRepository.Update(display);
+                _unitOfWork.Save();
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Service.Interfaces;
 
@@ -29,7 +30,32 @@ namespace SmartMenu.API.Controllers
             try
             {
                 _authService.Register(userCreateDTO);
-                return Ok();
+
+                var verifyLink = Url.Action(nameof(EmailVerify), "Auth", new { email = userCreateDTO.Email }, Request.Scheme);
+                string emailBody = $@"
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset='utf-8'>
+                        <title>Verify Your Email</title>
+                    </head>
+                    <body>
+                        <p>Dear {userCreateDTO.UserName},</p>
+                        <p>Thank you for registering for SmartMenuSystem!</p>
+                        <p>To verify your email address, please click the following link:</p>
+
+                        <p><a href=""{verifyLink}"" style=""display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;"">Verify Email</a></p>
+
+                        <p>If you did not request this email, please ignore it.</p>
+                        <p>Best regards,</p>
+                        <p>The SmartMenu Team</p>
+                    </body>
+                    </html>
+                    
+                ";
+
+                _emailService.SendEmail(new MessageCreateDTO(new string[] { userCreateDTO.Email }, "Verify Your Email", emailBody));
+                return Ok("Registration successful. Please check your email for verification.");
             }
             catch (Exception ex)
             {
@@ -58,7 +84,7 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var token = await _authService.ForgotPassword(email);
-                var user = _authService.Find(email) ?? throw new Exception("User not found or deleted");
+                var user = _authService.Find(email) ?? throw new Exception("Email not found or deleted");
 
                 var resetLink = Url.Action(nameof(ResetPassword), "Auth", new { token, email = user.Email }, Request.Scheme);
 
@@ -122,6 +148,42 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("EmailVerify")]
+        public IActionResult EmailVerify(string email)
+        {
+            try
+            {
+                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+                {
+                    // Localhost redirect for development
+                    return Redirect($"http://localhost:3000/pages/email-verify?email={email}");
+                }
+                else
+                {
+                    // Production redirect to smartmenuweb.netlify.app
+                    return Redirect($"https://smartmenuweb.netlify.app/pages/email-verify?email={email}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("EmailVerify")]
+        public IActionResult EmailVerifyPost(string email)
+        {
+            try
+            {
+                _authService.VerifyEmail(email);
+                return Ok("Email verified successfully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }

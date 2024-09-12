@@ -34,7 +34,7 @@ namespace SmartMenu.Service.Services
 
             var result = DataQuery(data, deviceSubscriptionId, storeDeviceId, searchString, pageNumber, pageSize);
             var dS = result.FirstOrDefault() ?? throw new Exception("DeviceSubscription not found or deleted");
-            
+
             if (DateTime.Now > dS.SubscriptionEndDate)
             {
                 dS.SubscriptionStatus = SubscriptionStatus.Expired;

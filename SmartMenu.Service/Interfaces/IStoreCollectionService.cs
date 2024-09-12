@@ -14,5 +14,6 @@ namespace SmartMenu.Service.Interfaces
         StoreCollection Add(StoreCollectionCreateDTO storeCollectionCreateDTO);
         StoreCollection Update(int storeCollectionId, StoreCollectionCreateDTO storeCollectionUpdateDTO);
         void Delete(int storeCollectionId);
+        void DeleteV2(int storeCollectionId);
     }
 }

@@ -15,5 +15,6 @@ namespace SmartMenu.Service.Interfaces
         object Login(UserLoginDTO userLoginDTO);
         void Register(UserCreateDTO userCreateDTO);
         bool ResetPasswordAsync(User user, string token, string password);
+        void VerifyEmail(string email);
     }
 }

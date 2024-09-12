@@ -1,9 +1,6 @@
 ﻿using AutoMapper;
-using Azure.Core;
-using CloudinaryDotNet;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models.Enum;
@@ -91,6 +88,7 @@ namespace SmartMenu.Service.Services
         public void Register(UserCreateDTO userCreateDTO)
         {
             var data = _mapper.Map<User>(userCreateDTO);
+            data.EmailVerified = false;
             _unitOfWork.UserRepository.Add(data);
             _unitOfWork.Save();
         }
@@ -124,6 +122,18 @@ namespace SmartMenu.Service.Services
             {
                 return false;
             }
+        }
+
+        public void VerifyEmail(string email)
+        {
+            var user = _unitOfWork.UserRepository.Find(c => c.Email == email && c.IsDeleted == false).FirstOrDefault()
+                ?? throw new Exception("User not found or deleted");
+
+            if (user.EmailVerified) throw new Exception("Email already verified");
+
+            user.EmailVerified = true;
+            _unitOfWork.UserRepository.Update(user);
+            _unitOfWork.Save();
         }
     }
 }

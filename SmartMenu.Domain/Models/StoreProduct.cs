@@ -7,7 +7,7 @@ namespace SmartMenu.Domain.Models
         public int StoreProductId { get; set; }
         public int StoreId { get; set; }
         public int ProductId { get; set; }
-        public bool IconEnable { get; set; } = false;
+        //public bool IconEnable { get; set; } = false;
         public bool IsAvailable { get; set; } = true;
 
         //[ForeignKey(nameof(StoreId))]

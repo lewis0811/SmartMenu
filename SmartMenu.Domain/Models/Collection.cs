@@ -12,7 +12,7 @@ namespace SmartMenu.Domain.Models
         public string CollectionName { get; set; } = string.Empty;
 
         public string? CollectionDescription { get; set; }
-        public string? CollectionBackgroundImgPath { get; set; }
+        //public string? CollectionBackgroundImgPath { get; set; }
 
         //[ForeignKey(nameof(BrandId))]
         //public Brand? Brand { get; set; } //

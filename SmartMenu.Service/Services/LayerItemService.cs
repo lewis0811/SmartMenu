@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
@@ -26,7 +27,7 @@ namespace SmartMenu.Service.Services
 
             var existedLayerItem = _unitOfWork.LayerItemRepository.Find(c => c.LayerId == layer.LayerId && c.IsDeleted == false).FirstOrDefault();
             if (existedLayerItem != null) throw new Exception($"Layer ID: {layer.LayerId} already have layer item");
-            
+
             if (layer.LayerType == LayerType.Content) throw new Exception("Render layer can't have layer item");
             //if (layer.LayerType == LayerType.MenuCollectionNameLayer) throw new Exception("MenuCollectionName layer can't have layer item");
 
@@ -36,6 +37,8 @@ namespace SmartMenu.Service.Services
             _unitOfWork.LayerItemRepository.Add(data);
             _unitOfWork.Save();
 
+            UpdateDisplayIfExist(data);
+
             return data;
         }
 
@@ -44,10 +47,12 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.LayerItemRepository.Find(c => c.LayerItemId == layerItemId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Layer item not found or deleted");
 
-            data.IsDeleted = true;
+            //data.IsDeleted = true;
 
-            _unitOfWork.LayerItemRepository.Update(data);
+            _unitOfWork.LayerItemRepository.Remove(data);
             _unitOfWork.Save();
+
+            UpdateDisplayIfExist(data);
         }
 
         public IEnumerable<LayerItem> GetAll(int? layerItemId, int? layerId, string? searchString, int pageNumber, int pageSize)
@@ -67,8 +72,11 @@ namespace SmartMenu.Service.Services
             _unitOfWork.LayerItemRepository.Update(data);
             _unitOfWork.Save();
 
+            UpdateDisplayIfExist(data);
+
             return data;
         }
+
 
         private IEnumerable<LayerItem> DataQuery(IQueryable<LayerItem> data, int? layerId, int? layerItemId, string? searchString, int pageNumber, int pageSize)
         {
@@ -93,6 +101,24 @@ namespace SmartMenu.Service.Services
                     .Where(c => c.LayerItemValue.Contains(searchString));
             }
             return PaginatedList<LayerItem>.Create(data, pageNumber, pageSize);
+        }
+
+        private void UpdateDisplayIfExist(LayerItem data)
+        {
+            // Find the display associated with the template and check if it exists and is not deleted
+            var display = _unitOfWork.DisplayRepository.EnableQuery()
+                .Include(c => c.Template!)
+                    .ThenInclude(c => c.Layers!.Where(d => d.LayerId == data.LayerId && !d.IsDeleted))
+                .Where(c => !c.Template!.IsDeleted)
+                .FirstOrDefault();
+
+            // If the display exists, mark it as changed and save the changes
+            if (display != null)
+            {
+                display.IsChanged = true;
+                _unitOfWork.DisplayRepository.Update(display);
+                _unitOfWork.Save();
+            }
         }
     }
 }

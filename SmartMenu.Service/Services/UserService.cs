@@ -1,21 +1,14 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartMenu.Service.Services
 {
     public class UserService : IUserService
     {
-
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
@@ -24,7 +17,6 @@ namespace SmartMenu.Service.Services
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-
 
         public IEnumerable<User> GetAll(Guid? userId, bool isDeleted, string? searchString, int pageNumber, int pageSize)
         {
@@ -46,6 +38,7 @@ namespace SmartMenu.Service.Services
 
             return data;
         }
+
         public void Delete(Guid userId)
         {
             var data = _unitOfWork.UserRepository.GetByID(userId) ?? throw new Exception("User not found!");

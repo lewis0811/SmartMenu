@@ -37,7 +37,7 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.StoreDeviceRepository.EnableQuery();
             return DataQuery(data, storeDeviceId, storeId, searchString, pageNumber, pageSize);
         }
-        
+
         public IEnumerable<StoreDevice> GetAllWithDisplays(int? storeDeviceId, int? storeId, string? searchString, int pageNumber, int pageSize)
         {
             var data = _unitOfWork.StoreDeviceRepository.EnableQuery()
@@ -45,7 +45,15 @@ namespace SmartMenu.Service.Services
 
             return DataQuery(data, storeDeviceId, storeId, searchString, pageNumber, pageSize);
         }
-        
+
+        public bool IsSubscription(int storeDeviceId)
+        {
+            var storeDevice = _unitOfWork.DeviceSubscriptionRepository.EnableQuery()
+                .Any(c => !c.IsDeleted && c.StoreDeviceId == storeDeviceId && c.SubscriptionStatus == Domain.Models.Enum.SubscriptionStatus.Active);
+
+            return storeDevice;
+        }
+
         public StoreDevice Update(int storeDeviceId, StoreDeviceUpdateDTO storeDeviceUpdateDTO)
         {
             var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false)
@@ -57,18 +65,40 @@ namespace SmartMenu.Service.Services
 
             return data;
         }
-        public StoreDevice Update(int storeDeviceId, bool isApproved)
+
+        public StoreDevice UpdateApprove(int storeDeviceId)
         {
             var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false)
                 .FirstOrDefault() ?? throw new Exception("StoreDevice not found or deleted");
 
-            data.IsApproved = isApproved;
+            data.IsApproved = !data.IsApproved;
 
             _unitOfWork.StoreDeviceRepository.Update(data);
             _unitOfWork.Save();
             return data;
         }
-        
+
+        public StoreDevice UpdateRatioType(int storeDeviceId)
+        {
+            var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false)
+                .FirstOrDefault() ?? throw new Exception("StoreDevice not found or deleted");
+
+            //switch (data.RatioType)
+            //{
+            //    case Domain.Models.Enum.RatioType.Horizontal:
+            //        data.RatioType = Domain.Models.Enum.RatioType.Vertical;
+            //        break;
+
+            //    case Domain.Models.Enum.RatioType.Vertical:
+            //        data.RatioType = Domain.Models.Enum.RatioType.Horizontal;
+            //        break;
+            //}
+
+            _unitOfWork.StoreDeviceRepository.Update(data);
+            _unitOfWork.Save();
+            return data;
+        }
+
         public void Delete(int storeDeviceId)
         {
             var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false).FirstOrDefault()
@@ -78,7 +108,7 @@ namespace SmartMenu.Service.Services
             _unitOfWork.StoreDeviceRepository.Update(data);
             _unitOfWork.Save();
         }
-        
+
         private static IEnumerable<StoreDevice> DataQuery(IQueryable<StoreDevice> data, int? storeDeviceId, int? storeId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
@@ -107,6 +137,7 @@ namespace SmartMenu.Service.Services
             }
             return PaginatedList<StoreDevice>.Create(data, pageNumber, pageSize);
         }
+
 
     }
 }

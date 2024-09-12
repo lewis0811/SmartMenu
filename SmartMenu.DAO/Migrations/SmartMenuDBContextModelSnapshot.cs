@@ -75,9 +75,6 @@ namespace SmartMenu.DAO.Migrations
                     b.Property<int>("LayerId")
                         .HasColumnType("int");
 
-                    b.Property<int>("MaxProductItem")
-                        .HasColumnType("int");
-
                     b.HasKey("BoxId");
 
                     b.HasIndex("LayerId");
@@ -229,9 +226,6 @@ namespace SmartMenu.DAO.Migrations
                     b.Property<int>("BrandId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CollectionBackgroundImgPath")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("CollectionDescription")
                         .HasColumnType("nvarchar(max)");
 
@@ -264,6 +258,9 @@ namespace SmartMenu.DAO.Migrations
                     b.Property<DateTime>("SubscriptionEndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("SubscriptionStartDate")
                         .HasColumnType("datetime2");
 
@@ -273,6 +270,8 @@ namespace SmartMenu.DAO.Migrations
                     b.HasKey("DeviceSubscriptionId");
 
                     b.HasIndex("StoreDeviceId");
+
+                    b.HasIndex("SubscriptionId");
 
                     b.ToTable("DeviceSubscriptions");
                 });
@@ -293,6 +292,9 @@ namespace SmartMenu.DAO.Migrations
 
                     b.Property<string>("DisplayImgPath")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsChanged")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -638,6 +640,10 @@ namespace SmartMenu.DAO.Migrations
                     b.Property<float>("DeviceHeight")
                         .HasColumnType("real");
 
+                    b.Property<string>("DeviceLocation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<float>("DeviceWidth")
                         .HasColumnType("real");
 
@@ -658,6 +664,8 @@ namespace SmartMenu.DAO.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("StoreDeviceId");
+
+                    b.HasIndex("StoreId");
 
                     b.ToTable("StoreDevices");
                 });
@@ -695,9 +703,6 @@ namespace SmartMenu.DAO.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreProductId"), 1L, 1);
-
-                    b.Property<bool>("IconEnable")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
@@ -813,9 +818,6 @@ namespace SmartMenu.DAO.Migrations
                     b.Property<int>("PayType")
                         .HasColumnType("int");
 
-                    b.Property<int>("Payment_Status")
-                        .HasColumnType("int");
-
                     b.HasKey("TransactionId");
 
                     b.HasIndex("DeviceSubscriptionId");
@@ -832,6 +834,9 @@ namespace SmartMenu.DAO.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EmailVerified")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -917,7 +922,15 @@ namespace SmartMenu.DAO.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SmartMenu.Domain.Models.Subscription", "Subscription")
+                        .WithMany()
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("StoreDevice");
+
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("SmartMenu.Domain.Models.Display", b =>
@@ -1064,6 +1077,15 @@ namespace SmartMenu.DAO.Migrations
                     b.Navigation("Collection");
                 });
 
+            modelBuilder.Entity("SmartMenu.Domain.Models.StoreDevice", b =>
+                {
+                    b.HasOne("SmartMenu.Domain.Models.Store", null)
+                        .WithMany("StoreDevices")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SmartMenu.Domain.Models.StoreMenu", b =>
                 {
                     b.HasOne("SmartMenu.Domain.Models.Menu", "Menu")
@@ -1168,6 +1190,8 @@ namespace SmartMenu.DAO.Migrations
                     b.Navigation("Staffs");
 
                     b.Navigation("StoreCollections");
+
+                    b.Navigation("StoreDevices");
 
                     b.Navigation("StoreMenus");
 

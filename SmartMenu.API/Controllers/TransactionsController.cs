@@ -36,6 +36,7 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var data = await _transactionService.AddTransaction(transactionCreateDTO);
+
                 return CreatedAtAction(nameof(Get), data);
             }
             catch (Exception ex)

@@ -11,16 +11,19 @@ namespace SmartMenu.Domain.Models
 
         [Required]
         public string StoreDeviceName { get; set; } = string.Empty;
+        public string DeviceLocation { get; set; } = string.Empty;
 
         public string DeviceCode { get; set; } = string.Empty;
         public float DeviceWidth { get; set; } = 0;
         public float DeviceHeight { get; set; } = 0;
-        public RatioType RatioType { get; set; }
+        //public RatioType RatioType { get; set; }
         public bool IsApproved { get; set; } = false;
 
 
         //[ForeignKey(nameof(StoreId))]
         //public Store? Store { get; set; } //
+
+        //public DeviceSubscription? DeviceSubscription { get; set; }
 
         public ICollection<Display>? Displays { get; set; }
 

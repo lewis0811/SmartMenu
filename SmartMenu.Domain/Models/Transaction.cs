@@ -12,7 +12,7 @@ namespace SmartMenu.Domain.Models
         [Range(50000, double.MaxValue, ErrorMessage = "Amount must be greater than 50000")]
         public decimal Amount { get; set; }
 
-        public Payment_Status Payment_Status { get; set; }
+        //public Payment_Status Payment_Status { get; set; }
         public PayType PayType { get; set; }
         public DateTime PayDate { get; set; } = DateTime.Now;
 

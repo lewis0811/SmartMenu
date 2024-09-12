@@ -5,6 +5,7 @@ using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Service.Interfaces;
+using System;
 using System.Diagnostics;
 
 namespace SmartMenu.API.Controllers
@@ -16,7 +17,6 @@ namespace SmartMenu.API.Controllers
         private readonly IDisplayService _displayService;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly SmartMenuDBContext _context;
-
 
         public DisplaysController(IDisplayService displayService, IWebHostEnvironment webHostEnvironment, SmartMenuDBContext context)
         {
@@ -42,7 +42,6 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-
                 return BadRequest(new { error = ex.Message });
             }
         }
@@ -57,7 +56,36 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("DisplayItems/v2")]
+        public IActionResult GetWithItemsV2(int storeId, int? deviceId, int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                var data = _displayService.GetWithItemsV2(storeId, deviceId, displayId, menuId, collectionId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("{deviceId}")]
+        public async Task<IActionResult> GetByDeviceId(int? deviceId)
+        {
+            try
+            {
+                var data = await _displayService.GetByDeviceId(deviceId);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+                throw;
             }
         }
 
@@ -69,6 +97,9 @@ namespace SmartMenu.API.Controllers
                 var data = await _displayService.GetTemplateImageAsync(displayId);
                 if (data == null) return BadRequest("Image fail to create");
                 _displayService.DeleteTempFile();
+
+                var isUri = Uri.IsWellFormedUriString(data, UriKind.RelativeOrAbsolute);
+                if (isUri) { return Redirect(data); }
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
                 return File(b, "image/jpeg");
@@ -84,17 +115,19 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-
                 var data = await _displayService.GetImageByTimeAsync(deviceId);
                 if (data == null) return BadRequest("Image fail to create");
                 _displayService.DeleteTempFile();
+
+                var isUri = Uri.TryCreate(data, UriKind.RelativeOrAbsolute, out Uri? uri);
+                if (isUri) { return Redirect(data); }
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
                 return File(b, "image/jpeg");
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -103,9 +136,12 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                    var data = await _displayService.GetImageByDisplayAsync(displayId);
+                var data = await _displayService.GetImageByDisplayAsync(displayId);
                 if (data == null) return BadRequest("Image fail to create");
                 _displayService.DeleteTempFile();
+
+                var isUri = Uri.IsWellFormedUriString(data, UriKind.RelativeOrAbsolute);
+                if (isUri) { return Redirect(data); }
 
                 byte[] b = System.IO.File.ReadAllBytes(data);
                 return File(b, "image/jpeg");
@@ -127,7 +163,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -143,7 +179,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message});
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -159,7 +195,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -173,7 +209,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 

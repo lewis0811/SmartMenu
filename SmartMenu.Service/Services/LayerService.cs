@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using CloudinaryDotNet;
 using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
@@ -62,6 +61,92 @@ namespace SmartMenu.Service.Services
             return result ?? Enumerable.Empty<Domain.Models.Layer>();
         }
 
+
+        /// <summary>
+        /// Adds a new layer to the system.
+        /// </summary>
+        /// <param name="layerCreateDTO">The DTO containing the layer information.</param>
+        /// <returns>The newly created layer.</returns>
+        /// <exception cref="Exception">Thrown when the template is not found or deleted.</exception>
+        /// <exception cref="Exception">Thrown when a background image layer already exists.</exception>
+        public async Task<Domain.Models.Layer> AddLayerAsync(LayerCreateDTO layerCreateDTO)
+        {
+            // Find the template by its ID and check if it exists and is not deleted
+            var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == layerCreateDTO.TemplateId && c.IsDeleted == false).FirstOrDefault()
+                ?? throw new Exception("Template not found or deleted");
+
+            // Map the DTO to a new layer object
+            var data = _mapper.Map<Domain.Models.Layer>(layerCreateDTO);
+
+            // If the layer type is background image, check if there is already a background image layer
+            if (data.LayerType == LayerType.BackgroundImage)
+            {
+                var isExistLayer = _unitOfWork.LayerRepository.EnableQuery().Any(x => x.TemplateId == data.TemplateId && x.LayerType == LayerType.BackgroundImage);
+                if (isExistLayer) throw new Exception("Background image layer already exists");
+
+                // Set the layer type to 0 and z-index to 0
+                data.LayerType = 0;
+                data.ZIndex = 0;
+            }
+            else
+            {
+                // Check if there are any layers for the template
+                var isExistLayer = _unitOfWork.LayerRepository.EnableQuery().Any(x => x.TemplateId == data.TemplateId);
+
+                switch (isExistLayer)
+                {
+                    case false:
+                        // If there are no layers, set the z-index to 1
+                        data.ZIndex = 1;
+                        break;
+
+                    case true:
+                        // If there are layers, get the highest z-index and increment it by 1
+                        var recentZIndex = await _unitOfWork.LayerRepository.EnableQuery()
+                            .Where(c => c.TemplateId == data.TemplateId)
+                            .Select(c => c.ZIndex).MaxAsync();
+                        data.ZIndex = recentZIndex + 1;
+                        break;
+                }
+            }
+
+            // Add the new layer to the repository and save the changes
+            _unitOfWork.LayerRepository.Add(data);
+            _unitOfWork.Save();
+
+            UpdateDisplayIfExist(data);
+
+            // Return the newly created layer
+            return data;
+        }
+
+        public Domain.Models.Layer Update(int layerId, LayerUpdateDTO layerUpdateDTO)
+        {
+            var data = _unitOfWork.LayerRepository.Find(c => c.LayerId == layerId && c.IsDeleted == false).FirstOrDefault()
+            ?? throw new Exception("Template not found or deleted");
+
+            _mapper.Map(layerUpdateDTO, data);
+            _unitOfWork.LayerRepository.Update(data);
+            _unitOfWork.Save();
+
+            UpdateDisplayIfExist(data);
+
+            return data;
+        }
+
+        public void Delete(int layerId)
+        {
+            var data = _unitOfWork.LayerRepository.Find(c => c.LayerId == layerId && c.IsDeleted == false).FirstOrDefault()
+            ?? throw new Exception("Template not found or deleted");
+
+            //data.IsDeleted = true;
+
+            _unitOfWork.LayerRepository.Remove(data);
+            _unitOfWork.Save();
+
+            UpdateDisplayIfExist(data);
+        }
+
         private IEnumerable<Domain.Models.Layer> DataQuery(IQueryable<Domain.Models.Layer> data, int? layerId, int? templateId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(data => data.IsDeleted == false);
@@ -85,67 +170,22 @@ namespace SmartMenu.Service.Services
             return PaginatedList<Domain.Models.Layer>.Create(data, pageNumber, pageSize);
         }
 
-        public async Task<Domain.Models.Layer> AddLayerAsync(LayerCreateDTO layerCreateDTO)
+        private void UpdateDisplayIfExist(Layer data)
         {
-            var template = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == layerCreateDTO.TemplateId && c.IsDeleted == false).FirstOrDefault()
-            ?? throw new Exception("Template not found or deleted");
+            // Find the display associated with the template and check if it exists and is not deleted
+            var display = _unitOfWork.DisplayRepository.EnableQuery()
+                .Include(c => c.Template!)
+                    .ThenInclude(c => c.Layers!.Where(d => d.LayerId == data.LayerId && !d.IsDeleted))
+                .Where(c => !c.Template!.IsDeleted)
+                .FirstOrDefault();
 
-            var data = _mapper.Map<Domain.Models.Layer>(layerCreateDTO);
-
-            if (data.LayerType == LayerType.BackgroundImage)
+            // If the display exists, mark it as changed and save the changes
+            if (display != null)
             {
-                var isExistLayer = _unitOfWork.LayerRepository.EnableQuery().Any(x => x.TemplateId == data.TemplateId && x.LayerType == LayerType.BackgroundImage);
-                if (isExistLayer) throw new Exception("Background image layer already exists");
-
-                data.LayerType = 0;
-                data.ZIndex = 0;
+                display.IsChanged = true;
+                _unitOfWork.DisplayRepository.Update(display);
+                _unitOfWork.Save();
             }
-            else
-            {
-                var isExistLayer = _unitOfWork.LayerRepository.EnableQuery().Any(x => x.TemplateId == data.TemplateId);
-
-                switch (isExistLayer)
-                {
-                    case false:
-                        data.ZIndex = 1;
-                        break;
-                    case true:
-                        var recentZIndex = await _unitOfWork.LayerRepository.EnableQuery()
-                            .Where(c => c.TemplateId == data.TemplateId)
-                            .Select(c => c.ZIndex).MaxAsync();
-                        data.ZIndex = recentZIndex + 1;
-                        break;
-                }
-            }
-
-            _unitOfWork.LayerRepository.Add(data);
-            _unitOfWork.Save();
-
-            return data;
         }
-
-        public Domain.Models.Layer Update(int layerId, LayerUpdateDTO layerUpdateDTO)
-        {
-            var data = _unitOfWork.LayerRepository.Find(c => c.LayerId == layerId && c.IsDeleted == false).FirstOrDefault()
-            ?? throw new Exception("Template not found or deleted");
-
-            _mapper.Map(layerUpdateDTO, data);
-            _unitOfWork.LayerRepository.Update(data);
-            _unitOfWork.Save();
-
-            return data;
-        }
-
-        public void Delete(int layerId)
-        {
-            var data = _unitOfWork.LayerRepository.Find(c => c.LayerId == layerId && c.IsDeleted == false).FirstOrDefault()
-            ?? throw new Exception ("Template not found or deleted");
-
-            data.IsDeleted = true;
-
-            _unitOfWork.LayerRepository.Update(data);
-            _unitOfWork.Save();
-        }
-
     }
 }

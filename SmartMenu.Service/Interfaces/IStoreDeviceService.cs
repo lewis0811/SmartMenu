@@ -15,6 +15,8 @@ namespace SmartMenu.Service.Interfaces
         IEnumerable<StoreDevice> GetAllWithDisplays(int? storeDeviceId, int? storeId, string? searchString, int pageNumber, int pageSize);
         StoreDevice Update(int storeDeviceId, StoreDeviceUpdateDTO storeDeviceUpdateDTO);
         void Delete(int storeDeviceId);
-        StoreDevice Update(int storeDeviceId, bool isApproved);
+        StoreDevice UpdateApprove(int storeDeviceId);
+        StoreDevice UpdateRatioType(int storeDeviceId);
+        bool IsSubscription(int storeDeviceId);
     }
 }

@@ -21,15 +21,36 @@ namespace SmartMenu.Service.Services
 
         public Menu Add(MenuCreateDTO menuCreateDTO)
         {
-            var br = _unitOfWork.BrandRepository
-                .Find(c => c.BrandId == menuCreateDTO.BrandId && c.IsDeleted == false)
-                .FirstOrDefault()
-                ?? throw new Exception("Brand not found or deleted");
+
 
             var data = _mapper.Map<Menu>(menuCreateDTO);
 
             _unitOfWork.MenuRepository.Add(data);
             _unitOfWork.Save();
+
+            // Add data for store
+            var br = _unitOfWork.BrandRepository
+                .Find(c => c.BrandId == menuCreateDTO.BrandId && c.IsDeleted == false)
+                .FirstOrDefault()
+                ?? throw new Exception("Brand not found or deleted");
+
+            var brandStores = _unitOfWork.BrandRepository.EnableQuery()
+                .Include(c => c.Stores)
+                .SelectMany(c => c.Stores!)
+                .Where(c => c.BrandId == br.BrandId && !c.IsDeleted)
+                .ToList();
+
+            foreach (var brandStore in brandStores)
+            {
+                StoreMenu storeMenu = new()
+                {
+                    StoreId = brandStore.StoreId,
+                    MenuId = data.MenuId,
+                };
+
+                _unitOfWork.StoreMenuRepository.Add(storeMenu);
+                _unitOfWork.Save();
+            }
 
             return data;
         }
@@ -54,8 +75,11 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<Menu> GetMenuWithProductGroup(int? menuId, int? brandId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _unitOfWork.MenuRepository.EnableQuery();
-            data = data.Include(c => c.ProductGroups!.Where(c => c.IsDeleted == false));
+            var data = _unitOfWork.MenuRepository.EnableQuery()
+                .Include(c => c.ProductGroups!.Where(c => c.IsDeleted == false))
+                    .ThenInclude(c => c.ProductGroupItems!.Where(c => !c.IsDeleted))
+                        .ThenInclude(c => c.Product!)
+                            .ThenInclude(c => c.ProductSizePrices!.Where(c => !c.IsDeleted));
 
             var result = DataQuery(data, menuId, brandId, searchString, pageNumber, pageSize);
 

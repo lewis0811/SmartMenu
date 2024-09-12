@@ -20,6 +20,15 @@ namespace SmartMenu.Service.Services
             _unitOfWork = unitOfWork;
         }
 
+        public IEnumerable<BoxItem> GetAll(int? boxItemId, int? boxId, int? fontId, string? searchString, int pageNumber, int pageSize)
+        {
+            var data = _unitOfWork.BoxItemRepository.EnableQuery()
+                .Include(c => c.BFont).Where(c => c.BFont!.IsDeleted == false);
+            var result = DataQuery(data, boxItemId, boxId, fontId, searchString, pageNumber, pageSize);
+
+            return result;
+        }
+
         public BoxItem AddBoxItem(BoxItemCreateDTO boxItemCreateDTO)
         {
             var box = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxItemCreateDTO.BoxId && c.IsDeleted == false).FirstOrDefault()
@@ -52,31 +61,31 @@ namespace SmartMenu.Service.Services
 
                 case BoxItemType.ProductName:
                     var totalProductName = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductName).Count();
-                    if (totalProductName >= box.MaxProductItem) throw new Exception($"BoxItem type product name already reach max product item :{box.MaxProductItem}");
+                    //if (totalProductName >= box.MaxProductItem) throw new Exception($"BoxItem type product name already reach max product item :{box.MaxProductItem}");
                     data.Order = totalProductName + 1;
                     break;
 
                 case BoxItemType.ProductDescription:
                     var totalProductDescription = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductDescription).Count();
-                    if (totalProductDescription >= box.MaxProductItem) throw new Exception($"BoxItem type product description already reach max product item :{box.MaxProductItem}");
+                    //if (totalProductDescription >= box.MaxProductItem) throw new Exception($"BoxItem type product description already reach max product item :{box.MaxProductItem}");
                     data.Order = totalProductDescription + 1;
                     break;
 
                 case BoxItemType.ProductPrice:
                     var totalProductPrice = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductPrice).Count();
-                    if (totalProductPrice >= box.MaxProductItem) throw new Exception($"BoxItem type product price already reach max product item :{box.MaxProductItem}");
+                    //if (totalProductPrice >= box.MaxProductItem) throw new Exception($"BoxItem type product price already reach max product item :{box.MaxProductItem}");
                     data.Order = totalProductPrice + 1;
                     break;
 
                 case BoxItemType.ProductImg:
                     var totalProductImage = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductImg).Count();
-                    if (totalProductImage >= box.MaxProductItem) throw new Exception($"BoxItem type product image already reach max product item :{box.MaxProductItem}");
+                    //if (totalProductImage >= box.MaxProductItem) throw new Exception($"BoxItem type product image already reach max product item :{box.MaxProductItem}");
                     data.Order = totalProductImage + 1;
                     break;
 
                 case BoxItemType.ProductIcon:
                     var totalProductIcon = _unitOfWork.BoxItemRepository.EnableQuery()!.Where(c => c.BoxId == data.BoxId && c.BoxItemType == BoxItemType.ProductIcon).Count();
-                    if (totalProductIcon >= box.MaxProductItem) throw new Exception($"BoxItem type product icon already reach max product item :{box.MaxProductItem}");
+                    //if (totalProductIcon >= box.MaxProductItem) throw new Exception($"BoxItem type product icon already reach max product item :{box.MaxProductItem}");
                     data.Order = totalProductIcon + 1;
                     break;
 
@@ -95,6 +104,8 @@ namespace SmartMenu.Service.Services
             _unitOfWork.BoxItemRepository.Add(data);
             _unitOfWork.Save();
 
+            UpdateDisplayIfExist(data);
+
             return data;
         }
 
@@ -103,18 +114,11 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("BoxItem not found or deleted");
 
-            data.IsDeleted = true;
-            _unitOfWork.BoxItemRepository.Update(data);
+            //data.IsDeleted = true;
+            _unitOfWork.BoxItemRepository.Remove(data);
             _unitOfWork.Save();
-        }
 
-        public IEnumerable<BoxItem> GetAll(int? boxItemId, int? boxId, int? fontId, string? searchString, int pageNumber, int pageSize)
-        {
-            var data = _unitOfWork.BoxItemRepository.EnableQuery()
-                .Include(c => c.BFont).Where(c => c.BFont!.IsDeleted == false);
-            var result = DataQuery(data, boxItemId, boxId, fontId, searchString, pageNumber, pageSize);
-
-            return result;
+            UpdateDisplayIfExist(data);
         }
 
         public BoxItem Update(int boxItemId, BoxItemUpdateDTO boxItemUpdateDTO)
@@ -130,6 +134,7 @@ namespace SmartMenu.Service.Services
             _unitOfWork.BoxItemRepository.Update(data);
             _unitOfWork.Save();
 
+            UpdateDisplayIfExist(data);
             return data;
         }
 
@@ -166,6 +171,25 @@ namespace SmartMenu.Service.Services
             }
 
             return PaginatedList<BoxItem>.Create(data, pageNumber, pageSize);
+        }
+
+        private void UpdateDisplayIfExist(BoxItem data)
+        {
+            // Find the display associated with the template and check if it exists and is not deleted
+            var display = _unitOfWork.DisplayRepository.EnableQuery()
+                .Include(c => c.Template!)
+                    .ThenInclude(c => c.Layers!.Where(c => !c.IsDeleted))
+                        .ThenInclude(c => c.Boxes!.Where(c => c.BoxId == data.BoxId && !c.IsDeleted))
+                .Where(c => !c.Template!.IsDeleted)
+                .FirstOrDefault();
+
+            // If the display exists, mark it as changed and save the changes
+            if (display != null)
+            {
+                display.IsChanged = true;
+                _unitOfWork.DisplayRepository.Update(display);
+                _unitOfWork.Save();
+            }
         }
     }
 }

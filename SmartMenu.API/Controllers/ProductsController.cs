@@ -28,14 +28,32 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data = _productService.GetAll(productId, categoryId,  searchString, pageNumber, pageSize);
+                var data = _productService.GetAll(productId, categoryId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             };
         }
+
+        [HttpGet("menu-collection")]
+        public IActionResult GetProductByMenu(int? menuId, int? collectionId)
+        {
+            try
+            {
+                if (menuId == null && collectionId == null) throw new Exception("Please input menuId or collectionId");
+
+                var data = _productService.GetProductByMenuOrCollection(menuId, collectionId);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
         [HttpPost]
         public ActionResult Add(ProductCreateDTO productCreateDTO)
         {
@@ -46,7 +64,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -60,7 +78,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -74,7 +92,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

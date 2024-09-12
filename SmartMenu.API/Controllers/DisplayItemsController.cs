@@ -52,8 +52,16 @@ namespace SmartMenu.API.Controllers
         [HttpPut("{displayItemId}")]
         public IActionResult Update(int displayItemId, DisplayItemUpdateDTO displayItemUpdateDTO)
         {
-            var data = _displayItemService.Update(displayItemId, displayItemUpdateDTO);
-            return Ok(data);
+            try
+            {
+                var data = _displayItemService.Update(displayItemId, displayItemUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpDelete("{displayItemId}")]

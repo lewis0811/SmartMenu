@@ -15,7 +15,7 @@ namespace SmartMenu.Domain.Models
         public float BoxHeight { get; set; }
         public BoxType BoxType { get; set; }
 
-        public int MaxProductItem { get; set; }
+        //public int MaxProductItem { get; set; }
 
         //[ForeignKey(nameof(LayerId))] //
         //public Layer? Layer { get; set; }

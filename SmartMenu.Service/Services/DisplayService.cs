@@ -21,6 +21,7 @@ using CloudinaryDotNet.Actions;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using static System.Formats.Asn1.AsnWriter;
+using System.Globalization;
 #pragma warning disable CA1416 // Validate platform compatibility
 
 namespace SmartMenu.Service.Services
@@ -70,10 +71,10 @@ namespace SmartMenu.Service.Services
 
             return result ?? Enumerable.Empty<Display>();
         }
-        
-        public async Task<string> GetImageByTimeAsync(int deviceId)
+
+        public async Task<Display> GetByDeviceId(int? deviceId)
         {
-            var device =  await _unitOfWork.StoreDeviceRepository
+            var device = await _unitOfWork.StoreDeviceRepository
                 .EnableQuery()
                     .Include(c => c.Displays!.Where(d => !d.IsDeleted))
                 .FirstOrDefaultAsync(c => c.StoreDeviceId == deviceId && !c.IsDeleted)
@@ -90,9 +91,93 @@ namespace SmartMenu.Service.Services
                     .ThenInclude(c => c.Product!)
                         .ThenInclude(c => c.ProductSizePrices)
                 .FirstOrDefaultAsync(c => c.StoreId == device.StoreId) ?? throw new Exception("Store not found");
-            
 
-            Display display = new ();
+            Display unchageDisplay = new();
+
+            unchageDisplay = await _unitOfWork.DisplayRepository.EnableQuery()
+                .Include(c => c.Template)
+                .Where(c => c.StoreDeviceId == device.StoreDeviceId && !c.IsDeleted && c.ActiveHour < floatHour)
+                .OrderByDescending(c => c.ActiveHour)
+                .FirstOrDefaultAsync()! ?? new Display();
+
+            if (unchageDisplay.Template == null)
+            {
+                unchageDisplay = await _unitOfWork.DisplayRepository
+                    .EnableQuery()
+                    .Include(c => c.Template)
+                    .Where(c => c.StoreDeviceId == device.StoreDeviceId && c.IsDeleted == false && c.ActiveHour > floatHour)
+                    .OrderBy(c => c.ActiveHour)
+                    .FirstOrDefaultAsync()! ?? throw new Exception("Fail to get display");
+            }
+
+            return unchageDisplay;
+        }
+
+        public IEnumerable<Display> GetWithItemsV2(int storeId, int? deviceId, int? displayId, int? menuId, int? collectionId, string? searchString, int pageNumber, int pageSize)
+        {
+            var data = _unitOfWork.StoreRepository.EnableQuery()
+                .Include(c => c.StoreDevices)
+                    .ThenInclude(c => c.Displays!)
+                        .ThenInclude(c => c.Menu)
+
+                .Include(c => c.StoreDevices)
+                    .ThenInclude(c => c.Displays!)
+                        .ThenInclude(c => c.Collection)
+                .Where(c => c.StoreId == storeId && !c.IsDeleted)
+                .SelectMany(c => c.StoreDevices!)
+                    .SelectMany(c => c.Displays!);
+
+            if (deviceId != null)
+            {
+                data = data.Where(c => c.StoreDeviceId == deviceId && !c.IsDeleted);
+            }
+
+            return DataQuery(data, displayId, menuId, collectionId, searchString, pageNumber, pageSize);
+        }
+
+        // GET IMAGE
+
+        public async Task<string> GetImageByTimeAsync(int deviceId)
+        {
+            var device = await _unitOfWork.StoreDeviceRepository
+                .EnableQuery()
+                    .Include(c => c.Displays!.Where(d => !d.IsDeleted))
+                .FirstOrDefaultAsync(c => c.StoreDeviceId == deviceId && !c.IsDeleted)
+                ?? throw new Exception("Device not found or deleted");
+
+            if (device.Displays!.Count == 0) throw new Exception("Device has no display");
+
+            var hourNow = DateTime.Now.Hour;
+            float minute = DateTime.Now.Minute;
+            float floatHour = hourNow + (float)(minute / 60);
+
+            var store = await _unitOfWork.StoreRepository.EnableQuery()
+                .Include(c => c.StoreProducts!.Where(c => !c.IsDeleted))
+                    .ThenInclude(c => c.Product!)
+                        .ThenInclude(c => c.ProductSizePrices)
+                .FirstOrDefaultAsync(c => c.StoreId == device.StoreId) ?? throw new Exception("Store not found");
+
+            Display unchageDisplay = new Display();
+            Display display = new();
+
+            unchageDisplay = await _unitOfWork.DisplayRepository.EnableQuery()
+                .Where(c => c.StoreDeviceId == device.StoreDeviceId && !c.IsDeleted && c.ActiveHour < floatHour)
+                .OrderByDescending(c => c.ActiveHour)
+                .FirstOrDefaultAsync()! ?? new Display();
+
+            if (unchageDisplay.Template == null)
+            {
+                unchageDisplay = await _unitOfWork.DisplayRepository
+                    .EnableQuery()
+                    .Where(c => c.StoreDeviceId == device.StoreDeviceId && c.IsDeleted == false && c.ActiveHour > floatHour)
+                    .OrderBy(c => c.ActiveHour)
+                    .FirstOrDefaultAsync()! ?? throw new Exception("Fail to get display");
+            }
+
+            if (unchageDisplay.IsChanged == false && unchageDisplay.DisplayImgPath != null)
+            {
+                return unchageDisplay.DisplayImgPath;
+            }
 
 
             display = await _unitOfWork.DisplayRepository
@@ -120,7 +205,7 @@ namespace SmartMenu.Service.Services
                 .FirstOrDefaultAsync()! ?? new Display();
 
             // If null then mean there's no display that have activeHour < recent hour
-            if(display.Template == null)
+            if (display.Template == null)
             {
                 display = await _unitOfWork.DisplayRepository
                     .EnableQuery()
@@ -144,7 +229,7 @@ namespace SmartMenu.Service.Services
                                 .ThenInclude(c => c.Product!)
                                     .ThenInclude(c => c.ProductSizePrices)
 
-                    .OrderByDescending(c => c.ActiveHour)
+                    .OrderBy(c => c.ActiveHour)
                     .FirstOrDefaultAsync()! ?? throw new Exception("Fail to get display");
             }
 
@@ -171,6 +256,10 @@ namespace SmartMenu.Service.Services
                 .FirstOrDefaultAsync(c => c.DisplayId == displayId && c.IsDeleted == false)
                 ?? throw new Exception("Display not found or deleted");
 
+            if (display.IsChanged == false && display.DisplayImgPath != null)
+            {
+                return display.DisplayImgPath;
+            }
 
             var result = await InitializeDisplayImageAsync(display);
             return result;
@@ -178,8 +267,20 @@ namespace SmartMenu.Service.Services
 
         public async Task<string> GetTemplateImageAsync(int displayId)
         {
-            var display = await _unitOfWork.DisplayRepository.FindObjectAsync(c => c.DisplayId == displayId)
+            var display = await _unitOfWork.DisplayRepository.FindObjectAsync(c => c.DisplayId == displayId && !c.IsDeleted)
                ?? throw new Exception("Display not found");
+
+            if (display.IsChanged == false)
+            {
+                var template = await _unitOfWork.TemplateRepository.FindObjectAsync(c => c.TemplateId == display.TemplateId && !c.IsDeleted)
+                    ?? throw new Exception("Template not found or deleted");
+                if (template.TemplateImgPath != null) return template.TemplateImgPath;
+            }
+
+            if (display.IsChanged == false && display.DisplayImgPath != null)
+            {
+                return display.DisplayImgPath;
+            }
 
             var result = await InitializeTemplateImageAsync(display);
             return result;
@@ -201,8 +302,8 @@ namespace SmartMenu.Service.Services
             if (menu == null) throw new Exception("Menu not found or deleted");
             if (collection == null) throw new Exception("Collection not found or deleted");
             if (template == null) throw new Exception("Template not found or deleted");
-            if (storeDevice.RatioType == RatioType.Horizontal && template.TemplateType == TemplateType.Vertical) throw new Exception("Template ratio type is vertical");
-            if (storeDevice.RatioType == RatioType.Vertical && template.TemplateType == TemplateType.Horizontal) throw new Exception("Template ratio type is horizontal");
+            //if (storeDevice.RatioType == RatioType.Horizontal && template.TemplateType == TemplateType.Vertical) throw new Exception("Template ratio type is vertical");
+            //if (storeDevice.RatioType == RatioType.Vertical && template.TemplateType == TemplateType.Horizontal) throw new Exception("Template ratio type is horizontal");
 
             var data = _mapper.Map<Display>(displayCreateDTO);
             _unitOfWork.DisplayRepository.Add(data);
@@ -221,10 +322,10 @@ namespace SmartMenu.Service.Services
 
             if (storeDevice == null) throw new Exception("StoreDevice not found or deleted");
             if (templateExist == null) throw new Exception("Template not found or deleted");
-            if (storeDevice.RatioType == RatioType.Horizontal && templateExist.TemplateType == TemplateType.Vertical) throw new Exception("Template ratio type is vertical but device ratio type is horizontal");
-            if (storeDevice.RatioType == RatioType.Vertical && templateExist.TemplateType == TemplateType.Horizontal) throw new Exception("Template ratio type is horizontal but device ratio type is vertical");
+            //if (storeDevice.RatioType == RatioType.Horizontal && templateExist.TemplateType == TemplateType.Vertical) throw new Exception("Template ratio type is vertical but device ratio type is horizontal");
+            //if (storeDevice.RatioType == RatioType.Vertical && templateExist.TemplateType == TemplateType.Horizontal) throw new Exception("Template ratio type is horizontal but device ratio type is vertical");
 
-            switch(displayCreateDTO.MenuId != null)
+            switch (displayCreateDTO.MenuId != null)
             {
                 case true:
                     var isMenuExistInStore = await _unitOfWork.StoreMenuRepository.EnableQuery().AnyAsync(c => c.StoreId == storeDevice.StoreId && c.MenuId == displayCreateDTO.MenuId && !c.IsDeleted);
@@ -237,7 +338,7 @@ namespace SmartMenu.Service.Services
                     break;
             }
 
-            var existDisplay = _unitOfWork.DisplayRepository.Find(c => c.StoreDeviceId == displayCreateDTO.StoreDeviceId 
+            var existDisplay = _unitOfWork.DisplayRepository.Find(c => c.StoreDeviceId == displayCreateDTO.StoreDeviceId
             && c.ActiveHour == displayCreateDTO.ActiveHour && !c.IsDeleted).FirstOrDefault();
             if (existDisplay != null) throw new Exception($"{displayCreateDTO.ActiveHour} already exist in store");
 
@@ -254,7 +355,7 @@ namespace SmartMenu.Service.Services
             {
                 var layers = template.Layers!.Where(c => c.LayerType == LayerType.Content).ToList();
                 var boxes = layers.SelectMany(c => c.Boxes!).Where(c => c.BoxType == BoxType.UseInDisplay).ToList();
-                if(boxes.Count == 0) throw new Exception("Template has no boxes used for display");
+                if (boxes.Count == 0) throw new Exception("Template has no boxes used for display");
 
                 switch (displayCreateDTO.MenuId != null)
                 {
@@ -267,7 +368,7 @@ namespace SmartMenu.Service.Services
                         if (menuProductGroups.Count == 0) throw new Exception("This menu doesn't have any product group to initialize");
                         //if (boxes.Count < menuProductGroups.Count) throw new Exception("Not enough boxes to display all product groups");
 
-                        switch(boxes.Count < menuProductGroups.Count)
+                        switch (boxes.Count < menuProductGroups.Count)
                         {
                             case false:
                                 foreach (var productGroup in menuProductGroups)
@@ -398,6 +499,11 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.DisplayRepository.Find(c => c.DisplayId == displayId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Display not found or deleted");
 
+            var displayItems = _unitOfWork.DisplayItemRepository.Find(c => c.DisplayId == data.DisplayId).ToList();
+
+            _unitOfWork.DisplayItemRepository.RemoveRange(displayItems);
+            _unitOfWork.Save();
+
             _unitOfWork.DisplayRepository.Remove(data);
             _unitOfWork.Save();
         }
@@ -475,19 +581,39 @@ namespace SmartMenu.Service.Services
                 await DrawContentFromLayerWithStoreProductAsync(displayItems, g, storeProducts, _unitOfWork);
             }
 
-            // Draw border
-            Pen pen = new(Color.Black, 2)
-            {
-                Alignment = PenAlignment.Inset //<-- this
-            };
-            g.DrawRectangle(pen, 0, 0, template.TemplateWidth, template.TemplateHeight);
+            //// Draw border
+            //Pen pen = new(Color.Black, 2)
+            //{
+            //    Alignment = PenAlignment.Inset //<-- this
+            //};
+            //g.DrawRectangle(pen, 0, 0, template.TemplateWidth, template.TemplateHeight);
 
             #endregion
 
             string savePath = $"{Directory.GetCurrentDirectory()}" + @$"\wwwroot\images\display{display.DisplayId}.png";
             //ScaleBitmapAndSave(b, 100, savePath);
+
+            if (template.TemplateType == TemplateType.Horizontal && storeDevice.DeviceHeight > storeDevice.DeviceWidth)
+            {
+                var temp = (int)storeDevice.DeviceHeight;
+                storeDevice.DeviceHeight = (int)storeDevice.DeviceWidth;
+                storeDevice.DeviceWidth = temp;
+            }
+            else if (template.TemplateType == TemplateType.Vertical && storeDevice.DeviceWidth > storeDevice.DeviceHeight)
+            {
+                var temp = (int)storeDevice.DeviceWidth;
+                storeDevice.DeviceWidth = (int)storeDevice.DeviceHeight;
+                storeDevice.DeviceHeight = temp;
+            }
+
             ScaleBitmapAndSave(b, (int)storeDevice.DeviceWidth, (int)storeDevice.DeviceHeight, savePath);
             UploadToCloud(display, savePath);
+
+            // Reset Display change field
+            display.IsChanged = false;
+            _unitOfWork.DisplayRepository.Update(display);
+            _unitOfWork.Save();
+
             //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template4.png");
             return savePath;
         }
@@ -498,7 +624,7 @@ namespace SmartMenu.Service.Services
             var displayItems = display.DisplayItems!.ToList();
 
             var storeDevice = await _unitOfWork.StoreDeviceRepository
-                .FindObjectAsync(c => c.StoreDeviceId == display.StoreDeviceId&& c.IsDeleted == false);
+                .FindObjectAsync(c => c.StoreDeviceId == display.StoreDeviceId && c.IsDeleted == false);
 
             var template = display.Template
             ?? throw new Exception("Template not found");
@@ -525,6 +651,8 @@ namespace SmartMenu.Service.Services
 
             #region Draw path
             // Initialize bitmap
+
+
             using Bitmap b = new(width: template.TemplateWidth, height: template.TemplateHeight);
             using Graphics g = Graphics.FromImage(b);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
@@ -540,37 +668,57 @@ namespace SmartMenu.Service.Services
             }
 
             // Draw image layer
-            if (imgLayers.Count > 0)
+            if (imgLayers.Count > 0 && imgLayers != null)
             {
                 DrawImageFromLayersForDisplay(imgLayers, g);
             }
 
             // Draw text layer
-            if (textLayers.Count > 0)
+            if (textLayers.Count > 0 && textLayers != null)
             {
                 await DrawTextFromLayersAsync(textLayers, g, _unitOfWork);
             }
 
             //// Draw content layer
-            if (displayItems.Count > 0)
+            if (displayItems.Count > 0 && displayItems != null)
             {
                 await DrawContentFromLayerAsync(displayItems, g, _unitOfWork);
             }
 
             // Draw border
-            Pen pen = new(Color.Black, 2)
-            {
-                Alignment = PenAlignment.Inset //<-- this
-            };
-            g.DrawRectangle(pen, 0, 0, template.TemplateWidth, template.TemplateHeight);
+            //Pen pen = new(Color.Black, 2)
+            //{
+            //    Alignment = PenAlignment.Inset //<-- this
+            //};
+            //g.DrawRectangle(pen, 0, 0, template.TemplateWidth, template.TemplateHeight);
 
             #endregion
 
             string savePath = $"{Directory.GetCurrentDirectory()}" + @$"\wwwroot\images\display{display.DisplayId}.png";
             //ScaleBitmapAndSave(b, 100, savePath);
+
+            if (template.TemplateType == TemplateType.Horizontal && storeDevice.DeviceHeight > storeDevice.DeviceWidth)
+            {
+                var temp = (int)storeDevice.DeviceHeight;
+                storeDevice.DeviceHeight = (int)storeDevice.DeviceWidth;
+                storeDevice.DeviceWidth = temp;
+            }
+            else if (template.TemplateType == TemplateType.Vertical && storeDevice.DeviceWidth > storeDevice.DeviceHeight)
+            {
+                var temp = (int)storeDevice.DeviceWidth;
+                storeDevice.DeviceWidth = (int)storeDevice.DeviceHeight;
+                storeDevice.DeviceHeight = temp;
+            }
+
             ScaleBitmapAndSave(b, (int)storeDevice.DeviceWidth, (int)storeDevice.DeviceHeight, savePath);
-            UploadToCloud(display, savePath);blob:http://localhost:5063/9fa245e0-797f-451a-a749-a4b0da465c4b
-            //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template4.png");
+            //b.Save(savePath);
+            UploadToCloud(display, savePath); blob: http://localhost:5063/9fa245e0-797f-451a-a749-a4b0da465c4b
+
+            // Reset Display change field
+            display.IsChanged = false;
+            _unitOfWork.DisplayRepository.Update(display);
+            _unitOfWork.Save();
+
             return savePath;
         }
         public async Task<string> InitializeTemplateImageAsync(Display display)
@@ -654,6 +802,11 @@ namespace SmartMenu.Service.Services
             ScaleBitmapAndSave(b, 100, savePath);
             UploadToCloud(template, savePath);
 
+            // Reset Display change field
+            display.IsChanged = false;
+            _unitOfWork.DisplayRepository.Update(display);
+            _unitOfWork.Save();
+
             //b.Save($"{Directory.GetCurrentDirectory()}" + @"\wwwroot\images\template3.png");
             return savePath;
         }
@@ -715,7 +868,7 @@ namespace SmartMenu.Service.Services
                 //graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
                 // Draw text base on box item type
-                var item = box.BoxItems!.FirstOrDefault()?? throw new Exception("Box not found");
+                var item = box.BoxItems!.FirstOrDefault() ?? throw new Exception("Box not found");
                 var boxStyle = GetStyle(box.BoxItems!.FirstOrDefault()?.Style);
 
                 // Rotation
@@ -725,13 +878,13 @@ namespace SmartMenu.Service.Services
                 System.Drawing.Drawing2D.Matrix originalMatrix = g.Transform;
 
                 // 2. Translate to the center of the rectangle
-                g.TranslateTransform(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
+                g.TranslateTransform(rect.X, rect.Y + rect.Height / 2);
 
                 // 3. Apply the rotation 
-                g.RotateTransform(-7.3f);
+                g.RotateTransform(tempRotate);
 
                 // 4. Translate back to the original position 
-                g.TranslateTransform(-(rect.X + rect.Width / 2), -(rect.Y + rect.Height / 2));
+                g.TranslateTransform(-(rect.X), -(rect.Y + rect.Height / 2));
 
                 var font = (boxStyle != null && item.BFont != null && boxStyle.FontSize != 0)
                     ? Ultilities.InitializeFont(boxStyle.FontSize, boxStyle.FontStyle, item.BFont!)
@@ -770,17 +923,20 @@ namespace SmartMenu.Service.Services
             {
                 foreach (var box in layer.Boxes!)
                 {
-                    var rect1 = new RectangleF(0, 0, box.BoxWidth, box.BoxHeight);
+                    var rect1 = new RectangleF(box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
 
-                    using Bitmap b1 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
-                    using Graphics g1 = Graphics.FromImage(b1);
-                    g1.CompositingQuality = CompositingQuality.HighQuality;
-                    g1.SmoothingMode = SmoothingMode.HighQuality;
-                    g1.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    g1.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    //using Bitmap b1 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
+                    //using Graphics g1 = Graphics.FromImage(b1);
+                    //g1.CompositingQuality = CompositingQuality.HighQuality;
+                    //g1.SmoothingMode = SmoothingMode.HighQuality;
+                    //g1.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    //g1.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                    g1.Clear(RandomColor());
-                    g1.DrawString("Content layer",
+                    //g.Clear(RandomColor());
+                    var brush = new SolidBrush(RandomColor());
+
+                    g.FillRectangle(brush, rect1);
+                    g.DrawString("Content layer",
                         new Font("Arial", 20),
                         new SolidBrush(Color.White),
                         rect1,
@@ -791,24 +947,28 @@ namespace SmartMenu.Service.Services
                     {
                         Alignment = PenAlignment.Inset //<-- this
                     };
-                    g1.DrawRectangle(pen1, rect1);
+                    g.DrawRectangle(pen1, rect1);
 
-                    g.DrawImage(b1, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
+                    //g.DrawImage(b1, box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
 
                     // draw box items
                     foreach (var item in box.BoxItems!)
                     {
                         var boxStyle = GetStyle(item.Style);
-                        var rect2 = new RectangleF(0, 0, item.BoxItemWidth, item.BoxItemHeight);
+                        var rect2 = new RectangleF(item.BoxItemX, item.BoxItemY, item.BoxItemWidth, item.BoxItemHeight);
 
-                        using Bitmap b2 = new((int)Math.Round(item.BoxItemWidth), (int)Math.Round(item.BoxItemHeight));
-                        using Graphics g2 = Graphics.FromImage(b2);
-                        g2.CompositingQuality = CompositingQuality.HighQuality;
-                        g2.SmoothingMode = SmoothingMode.HighQuality;
-                        g2.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        g2.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        //using Bitmap b2 = new((int)Math.Round(item.BoxItemWidth), (int)Math.Round(item.BoxItemHeight));
+                        //using Graphics g2 = Graphics.FromImage(b2);
+                        //g2.CompositingQuality = CompositingQuality.HighQuality;
+                        //g2.SmoothingMode = SmoothingMode.HighQuality;
+                        //g2.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        //g2.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                        g2.Clear(RandomColor());
+                        //g2.Clear(RandomColor());
+
+                        var brush2 = new SolidBrush(RandomColor());
+
+                        g.FillRectangle(brush2, rect2);
 
                         // Draw text base on box item type
                         var font = (boxStyle != null && item.BFont != null && boxStyle.FontSize != 0)
@@ -826,49 +986,49 @@ namespace SmartMenu.Service.Services
                         switch (item.BoxItemType)
                         {
                             case BoxItemType.Content:
-                                g2.DrawString($"Content {item.Order}",
+                                g.DrawString($"Content {item.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
                                     stringFormat);
                                 break;
                             case BoxItemType.Header:
-                                g2.DrawString($"Header {item.Order}",
+                                g.DrawString($"Header {item.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
                                     stringFormat);
                                 break;
                             case BoxItemType.ProductName:
-                                g2.DrawString($"ProductName {item.Order}",
+                                g.DrawString($"ProductName {item.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
                                     stringFormat);
                                 break;
                             case BoxItemType.ProductDescription:
-                                g2.DrawString($"ProductDesc {item.Order}",
+                                g.DrawString($"ProductDesc {item.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
                                     stringFormat);
                                 break;
                             case BoxItemType.ProductPrice:
-                                g2.DrawString($"Price {item.Order}",
+                                g.DrawString($"Price {item.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
                                     stringFormat);
                                 break;
                             case BoxItemType.ProductImg:
-                                g2.DrawString($"ProductImg {item.Order}",
+                                g.DrawString($"ProductImg {item.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
                                     stringFormat);
                                 break;
                             case BoxItemType.ProductIcon:
-                                g2.DrawString($"I {item.Order}",
+                                g.DrawString($"I {item.Order}",
                                     font,
                                     new SolidBrush(color),
                                     rect2,
@@ -881,15 +1041,15 @@ namespace SmartMenu.Service.Services
                         {
                             Alignment = PenAlignment.Inset //<-- this
                         };
-                        g2.DrawRectangle(pen2, rect2);
+                        g.DrawRectangle(pen2, rect2);
 
-                        g.DrawImage(b2, item.BoxItemX, item.BoxItemY, item.BoxItemWidth, item.BoxItemHeight);
+                        //g.DrawImage(b2, item.BoxItemX, item.BoxItemY, item.BoxItemWidth, item.BoxItemHeight);
                     }
                 }
 
             }
         }
-        private static void DrawBackgroundFromLayerForDisplay(  Domain.Models.Layer backgroundLayer, Graphics g, int templateWidth, int templateHeight)
+        private static void DrawBackgroundFromLayerForDisplay(Domain.Models.Layer backgroundLayer, Graphics g, int templateWidth, int templateHeight)
         {
             //using Bitmap b1 = new(templateWidth, templateHeight);
             //using Graphics g1 = Graphics.FromImage(b1);
@@ -931,18 +1091,33 @@ namespace SmartMenu.Service.Services
                 var box = layer.Boxes!.FirstOrDefault(c => c.LayerId == layer.LayerId) ?? throw new Exception("Box not found in text layer");
                 var rect = new RectangleF(box.BoxPositionX, box.BoxPositionY, box.BoxWidth, box.BoxHeight);
 
-                using Bitmap b2 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
-                using Graphics graphics = Graphics.FromImage(b2);
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                //using Bitmap b2 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
+                //using Graphics graphics = Graphics.FromImage(b2);
+                //graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                //graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                //graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                //graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
                 var layerItem = layer.LayerItem;
                 if (layerItem == null) continue;
 
                 // Get Style
                 var style = GetStyle(box.BoxItems!.FirstOrDefault()!.Style) ?? throw new Exception("Style fail to get");
+
+                // Rotation
+                var tempRotate = style!.Rotation;
+
+                // 1. Save the current transformation state
+                System.Drawing.Drawing2D.Matrix originalMatrix = g.Transform;
+
+                // 2. Translate to the center of the rectangle
+                g.TranslateTransform(rect.X, rect.Y + rect.Height / 2);
+
+                // 3. Apply the rotation 
+                g.RotateTransform(tempRotate);
+
+                // 4. Translate back to the original position 
+                g.TranslateTransform(-(rect.X), -(rect.Y + rect.Height / 2));
 
                 // Get text
                 var text = (style.Uppercase)
@@ -951,7 +1126,7 @@ namespace SmartMenu.Service.Services
 
                 // Get Font
                 var bFont = (style != null)
-                    ?  await _unitOfWork.FontRepository.FindObjectAsync(c => c.BFontId.Equals(style!.BFontId))
+                    ? await _unitOfWork.FontRepository.FindObjectAsync(c => c.BFontId.Equals(style!.BFontId))
                     : null;
 
                 var font = (style != null && bFont != null)
@@ -976,6 +1151,9 @@ namespace SmartMenu.Service.Services
                 //    stringFormat);
 
                 DrawStringWithAlpha(g, text ?? "Text", font, color, rect, style!.Transparency, stringFormat);
+
+                // Reset rotate
+                g.Transform = originalMatrix;
 
                 // Draw border
                 //Pen pen = new(Color.Black, 2)
@@ -1100,25 +1278,60 @@ namespace SmartMenu.Service.Services
                                 DrawStringWithAlpha(g, productDescriptionText, font, color, rect2, style!.Transparency, stringFormat);
                                 break;
                             case BoxItemType.ProductPrice:
-                                var productSizePrices = product.ProductSizePrices!.ToList();
+                                var productSizePrices = product.ProductSizePrices!.Where(c => !c.IsDeleted).ToList();
                                 if (productSizePrices.Count == 0) break;
 
-                                var prices = productSizePrices.ToList();
+                                var prices = productSizePrices.Where(c => !c.IsDeleted).ToList();
                                 if (prices.Count > 1)
                                 {
-                                    var price = $"{prices[0].ProductSizeType.ToString()}:{prices[0].Price}  {prices[1].ProductSizeType.ToString()}:{prices[1].Price}  {prices[3].ProductSizeType.ToString()}:{prices[3].Price}";
-                                    g.DrawString(price,
-                                        font,
-                                        new SolidBrush(color),
-                                        rect2,
-                                        stringFormat);
+                                    //var price = $"{prices[0].ProductSizeType.ToString()}:{prices[0].Price}  {prices[1].ProductSizeType.ToString()}:{prices[1].Price}  {prices[2].ProductSizeType.ToString()}:{prices[2].Price}";
+                                    //g.DrawString(price,
+                                    //    font,
+                                    //    new SolidBrush(color),
+                                    //    rect2,
+                                    //    stringFormat);
+
+                                    foreach (var price in prices)
+                                    {
+                                        switch (price.ProductSizeType)
+                                        {
+                                            case ProductSizeType.S:
+                                                g.DrawString(price.Price.ToString(),
+                                                    font,
+                                                    new SolidBrush(color),
+                                                    rect2);
+                                                break;
+
+                                            case ProductSizeType.M:
+                                                var textSizeM = g.MeasureString(price.Price.ToString(), font).Width;
+                                                var newRectM = rect2;
+                                                newRectM.X = (newRectM.X + newRectM.Width / 2) - (textSizeM / 2);
+
+                                                g.DrawString(price.Price.ToString(),
+                                                    font,
+                                                    new SolidBrush(color),
+                                                    newRectM);
+                                                break;
+
+                                            case ProductSizeType.L:
+                                                var textSizeL = g.MeasureString(price.Price.ToString(), font).Width;
+                                                var newRectL = rect2;
+                                                newRectL.X = newRectL.X + newRectL.Width - textSizeL;
+
+                                                g.DrawString(price.Price.ToString(),
+                                                    font,
+                                                    new SolidBrush(color),
+                                                    newRectL);
+                                                break;
+                                        }
+                                    }
                                 }
                                 else
                                 {
                                     var price = prices[0].Price;
                                     string formattedPrice = "";
-                                    if (product.ProductPriceCurrency == ProductPriceCurrency.VND) formattedPrice = price.ToString("C", new System.Globalization.CultureInfo("vi-VN"));
-                                    else if (product.ProductPriceCurrency == ProductPriceCurrency.USD) formattedPrice = price.ToString("C", new System.Globalization.CultureInfo("en-US"));
+                                    if (product.ProductPriceCurrency == ProductPriceCurrency.VND) formattedPrice = price.ToString("C", CultureInfo.CreateSpecificCulture("vi-VN"));
+                                    else if (product.ProductPriceCurrency == ProductPriceCurrency.USD) formattedPrice = price.ToString("C2", CultureInfo.CreateSpecificCulture("en-US"));
 
                                     //g2.DrawString(formattedPrice,
                                     //    font,
@@ -1196,12 +1409,12 @@ namespace SmartMenu.Service.Services
 
                 var boxItems2 = box.BoxItems!.GroupBy(c => c.Order);
 
-                using Bitmap b1 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
-                using Graphics g1 = Graphics.FromImage(b1);
-                g1.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g1.SmoothingMode = SmoothingMode.AntiAlias;
-                g1.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                g1.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                //using Bitmap b1 = new((int)Math.Round(box.BoxWidth), (int)Math.Round(box.BoxHeight));
+                //using Graphics g1 = Graphics.FromImage(b1);
+                //g1.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                //g1.SmoothingMode = SmoothingMode.AntiAlias;
+                //g1.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                //g1.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
                 //// Draw border
                 //Pen pen1 = new(Color.Black, 2)
@@ -1303,12 +1516,47 @@ namespace SmartMenu.Service.Services
                                 var prices = productSizePrices.ToList();
                                 if (prices.Count > 1)
                                 {
-                                    var price = $"{prices[0].ProductSizeType.ToString()}:{prices[0].Price}  {prices[1].ProductSizeType.ToString()}:{prices[1].Price}  {prices[3].ProductSizeType.ToString()}:{prices[3].Price}";
-                                    g.DrawString(price,
-                                        font,
-                                        new SolidBrush(color),
-                                        rect2,
-                                        stringFormat);
+                                    //var price = $"{prices[0].ProductSizeType.ToString()}:{prices[0].Price}  {prices[1].ProductSizeType.ToString()}:{prices[1].Price}  {prices[2].ProductSizeType.ToString()}:{prices[2].Price}";
+                                    //g.DrawString(price,
+                                    //    font,
+                                    //    new SolidBrush(color),
+                                    //    rect2,
+                                    //    stringFormat);
+
+                                    foreach (var price in prices)
+                                    {
+                                        switch (price.ProductSizeType)
+                                        {
+                                            case ProductSizeType.S:
+                                                g.DrawString(price.Price.ToString(),
+                                                    font,
+                                                    new SolidBrush(color),
+                                                    rect2);
+                                                break;
+
+                                            case ProductSizeType.M:
+                                                var textSizeM = g.MeasureString(price.Price.ToString(), font).Width;
+                                                var newRectM = rect2;
+                                                newRectM.X += newRectM.Width / 2 - (textSizeM / 2);
+
+                                                g.DrawString(price.Price.ToString(),
+                                                    font,
+                                                    new SolidBrush(color),
+                                                    newRectM);
+                                                break;
+
+                                            case ProductSizeType.L:
+                                                var textSizeL = g.MeasureString(price.Price.ToString(), font).Width;
+                                                var newRectL = rect2;
+                                                newRectL.X = newRectL.Right - (textSizeL / 2);
+
+                                                g.DrawString(price.Price.ToString(),
+                                                    font,
+                                                    new SolidBrush(color),
+                                                    newRectL);
+                                                break;
+                                        }
+                                    }
                                 }
                                 else
                                 {
@@ -1339,8 +1587,8 @@ namespace SmartMenu.Service.Services
                                 DrawImageWithAlpha(g, productImg, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                             case BoxItemType.ProductIcon:
-                                var isEnableIcon = storeProducts.Any(c => c.IconEnable && c.ProductId == product.ProductId);
-                                if (!isEnableIcon) break;
+                                //var isEnableIcon = storeProducts.Any(c => c.IconEnable && c.ProductId == product.ProductId);
+                                //if (!isEnableIcon) break;
 
                                 Image? productIcon = null;
                                 try
@@ -1501,7 +1749,7 @@ namespace SmartMenu.Service.Services
             // Create a color matrix with the specified alpha value
             ColorMatrix colorMatrix = new()
             {
-                Matrix33 = alpha 
+                Matrix33 = alpha
             };
 
             // Create image attributes and set the color matrix
@@ -1591,9 +1839,9 @@ namespace SmartMenu.Service.Services
             {
                 try
                 {
-                    if (Path.GetFileName(file) == "DONOTDELETE.txt") 
+                    if (Path.GetFileName(file) == "DONOTDELETE.txt")
                     {
-                        continue; 
+                        continue;
                     }
 
                     var fileInfo = new FileInfo(file);
@@ -1619,6 +1867,7 @@ namespace SmartMenu.Service.Services
                 }
             }
         }
+
     }
 }
 
