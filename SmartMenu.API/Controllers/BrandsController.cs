@@ -16,13 +16,11 @@ namespace SmartMenu.API.Controllers
     //[Authorize(Roles = SD.Role_Admin)]
     public class BrandsController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IBrandService _brandService;
 
-        public BrandsController(IUnitOfWork unitOfWork, IMapper mapper, IBrandService brandService)
+        public BrandsController(IMapper mapper, IBrandService brandService)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _brandService = brandService;
         }
@@ -37,7 +35,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -51,7 +49,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -65,7 +63,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -86,12 +84,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPut("{brandId}")]
-        public ActionResult Update(int brandId, BrandUpdateDTO brandUpdateDTO) 
+        public ActionResult Update(int brandId, BrandUpdateDTO brandUpdateDTO)
         {
             try
             {
@@ -100,7 +98,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -114,7 +112,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

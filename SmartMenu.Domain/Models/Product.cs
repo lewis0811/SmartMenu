@@ -16,7 +16,7 @@ namespace SmartMenu.Domain.Models
         public string? ProductDescription { get; set; }
         public ProductPriceCurrency ProductPriceCurrency { get; set; }
         public string? ProductImgPath { get; private set; }
-        public string? ProductLogoPath { get; private set; }
+        //public string? ProductLogoPath { get; private set; }
 
         //[ForeignKey(nameof(CategoryId))]
         //public Category? Category { get; set; } //

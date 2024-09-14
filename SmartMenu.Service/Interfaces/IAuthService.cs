@@ -14,7 +14,7 @@ namespace SmartMenu.Service.Interfaces
         Task<Guid?> ForgotPassword(string email);
         object Login(UserLoginDTO userLoginDTO);
         void Register(UserCreateDTO userCreateDTO);
-        bool ResetPasswordAsync(User user, string token, string password);
+        void ResetPasswordAsync(User user, string token, string password);
         void VerifyEmail(string email);
     }
 }

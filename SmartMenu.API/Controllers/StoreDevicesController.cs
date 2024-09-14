@@ -13,13 +13,11 @@ namespace SmartMenu.API.Controllers
     public class StoreDevicesController : ControllerBase
     {
         private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IStoreDeviceService _storeDeviceService;
 
-        public StoreDevicesController(IMapper mapper, IUnitOfWork unitOfWork, IStoreDeviceService storeDeviceService)
+        public StoreDevicesController(IMapper mapper, IStoreDeviceService storeDeviceService)
         {
             _mapper = mapper;
-            _unitOfWork = unitOfWork;
             _storeDeviceService = storeDeviceService;
         }
 

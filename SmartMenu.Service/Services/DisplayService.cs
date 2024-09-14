@@ -1356,19 +1356,19 @@ namespace SmartMenu.Service.Services
                                 DrawImageWithAlpha(g, productImg, new Rectangle((int)boxItem.BoxItemX, (int)boxItem.BoxItemY, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                             case BoxItemType.ProductIcon:
-                                Image? productIcon = null;
-                                try
-                                {
-                                    productIcon = InitializeImage(product.ProductLogoPath!);
-                                }
-                                catch (FileNotFoundException) { break; }
+                                //Image? productIcon = null;
+                                //try
+                                //{
+                                //    productIcon = InitializeImage(product.ProductLogoPath!);
+                                //}
+                                //catch (FileNotFoundException) { break; }
 
-                                //g2.DrawString($"I {boxItem.Order}",
-                                //    font,
-                                //    new SolidBrush(color),
-                                //    rect2,
-                                //    stringFormat);
-                                DrawImageWithAlpha(g, productIcon, new Rectangle((int)boxItem.BoxItemX, (int)boxItem.BoxItemY, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
+                                ////g2.DrawString($"I {boxItem.Order}",
+                                ////    font,
+                                ////    new SolidBrush(color),
+                                ////    rect2,
+                                ////    stringFormat);
+                                //DrawImageWithAlpha(g, productIcon, new Rectangle((int)boxItem.BoxItemX, (int)boxItem.BoxItemY, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                         }
 
@@ -1587,22 +1587,22 @@ namespace SmartMenu.Service.Services
                                 DrawImageWithAlpha(g, productImg, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                             case BoxItemType.ProductIcon:
-                                //var isEnableIcon = storeProducts.Any(c => c.IconEnable && c.ProductId == product.ProductId);
-                                //if (!isEnableIcon) break;
+                                ////var isEnableIcon = storeProducts.Any(c => c.IconEnable && c.ProductId == product.ProductId);
+                                ////if (!isEnableIcon) break;
 
-                                Image? productIcon = null;
-                                try
-                                {
-                                    productIcon = InitializeImage(product.ProductLogoPath!);
-                                }
-                                catch (FileNotFoundException) { break; }
+                                //Image? productIcon = null;
+                                //try
+                                //{
+                                //    productIcon = InitializeImage(product.ProductLogoPath!);
+                                //}
+                                //catch (FileNotFoundException) { break; }
 
-                                //g2.DrawString($"I {boxItem.Order}",
-                                //    font,
-                                //    new SolidBrush(color),
-                                //    rect2,
-                                //    stringFormat);
-                                DrawImageWithAlpha(g, productIcon, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
+                                ////g2.DrawString($"I {boxItem.Order}",
+                                ////    font,
+                                ////    new SolidBrush(color),
+                                ////    rect2,
+                                ////    stringFormat);
+                                //DrawImageWithAlpha(g, productIcon, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                         }
 

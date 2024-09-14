@@ -105,23 +105,14 @@ namespace SmartMenu.Service.Services
             return user.Token;
         }
 
-        public bool ResetPasswordAsync(User user, string token, string password)
+        public void ResetPasswordAsync(User user, string token, string password)
         {
-            try
-            {
-                if (user.Token != Guid.Parse(token)) throw new Exception("Invalid token");
+            if (user.Token != Guid.Parse(token)) throw new Exception("Invalid token");
 
-                user.Password = password;
-                user.Token = null;
-                _unitOfWork.UserRepository.Update(user);
-                _unitOfWork.Save();
-
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+            user.Password = password;
+            user.Token = null;
+            _unitOfWork.UserRepository.Update(user);
+            _unitOfWork.Save();
         }
 
         public void VerifyEmail(string email)

@@ -140,8 +140,7 @@ namespace SmartMenu.API.Controllers
             {
                 var user = _authService.Find(userResetPasswordDTO.Email) ?? throw new Exception("User does not exist");
 
-                var result = _authService.ResetPasswordAsync(user, userResetPasswordDTO.Token, userResetPasswordDTO.Password);
-                if (!result) throw new Exception("Failed to reset password");
+                _authService.ResetPasswordAsync(user, userResetPasswordDTO.Token, userResetPasswordDTO.Password);
 
                 return Ok("Password has been changed successfully");
             }
