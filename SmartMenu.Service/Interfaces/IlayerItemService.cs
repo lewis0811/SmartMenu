@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace SmartMenu.Service.Interfaces
 {
-    public interface IlayerItemService
+    public interface ILayerItemService
     {
-        LayerItem AddLayerItem(LayerItemCreateDTO layerItemCreateDTO);
-        void Delete(int layerItemId);
         IEnumerable<LayerItem> GetAll(int? layerItemId, int? layerId, string? searchString, int pageNumber, int pageSize);
+        LayerItem AddLayerItem(LayerItemCreateDTO layerItemCreateDTO);
         LayerItem Update(int layerItemId, LayerItemUpdateDTO layerItemUpdateDTO);
+        void Delete(int layerItemId);
     }
 }

@@ -11,9 +11,9 @@ namespace SmartMenu.API.Controllers
     [ApiController]
     public class LayerItemsController : ControllerBase
     {
-        private readonly IlayerItemService _layerItemService;
+        private readonly ILayerItemService _layerItemService;
 
-        public LayerItemsController(IlayerItemService layerItemService)
+        public LayerItemsController(ILayerItemService layerItemService)
         {
             _layerItemService = layerItemService;
         }
@@ -45,7 +45,7 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
 
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -60,7 +60,7 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
 
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -75,7 +75,7 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
 
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

@@ -9,7 +9,7 @@ using SmartMenu.Service.Interfaces;
 
 namespace SmartMenu.Service.Services
 {
-    public class LayerItemService : IlayerItemService
+    public class LayerItemService : ILayerItemService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
