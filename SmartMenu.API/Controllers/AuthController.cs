@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Service.Interfaces;
@@ -25,6 +26,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPost("Register")]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager)]
         public IActionResult Register(UserCreateDTO userCreateDTO)
         {
             try

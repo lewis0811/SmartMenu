@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Service.Interfaces;
 
@@ -6,6 +8,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_StoreManager + "," + SD.Role_Admin)]
     public class TransactionsController : ControllerBase
     {
         private readonly ITransactionService _transactionService;

@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -10,15 +12,14 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class ProductGroupController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IProductGroupService _productGroupService;
 
-        public ProductGroupController(IUnitOfWork unitOfWork, IMapper mapper, IProductGroupService productGroupService)
+        public ProductGroupController(IMapper mapper, IProductGroupService productGroupService)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _productGroupService = productGroupService;
         }
@@ -33,7 +34,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -47,11 +48,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPost]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Add(ProductGroupCreateDTO productCreateDTO)
         {
             try
@@ -61,11 +63,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPut("{productGroupId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Update(int productGroupId, ProductGroupUpdateDTO productGroupUpdateDTO)
         {
             try
@@ -75,11 +78,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpDelete("{productGroupId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Delete(int productGroupId)
         {
             try
@@ -89,7 +93,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

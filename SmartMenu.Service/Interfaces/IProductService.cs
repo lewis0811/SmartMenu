@@ -16,5 +16,6 @@ namespace SmartMenu.Service.Interfaces
         void Delete(int productId);
         IEnumerable<Product> GetProductByMenuOrCollection(int? menuId, int? collectionId);
         IEnumerable<Product> GetProductByCollection(int collectionId);
+        IEnumerable<Product> GetByBrand(int brandId, string? searchString, int pageNumber, int pageSize);
     }
 }

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -10,6 +12,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -47,11 +50,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpDelete("{userId}")]
+        [Authorize(Roles = SD.Role_Admin)]
         public IActionResult Delete(Guid userId)
         {
             try
@@ -62,7 +66,7 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
 
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 

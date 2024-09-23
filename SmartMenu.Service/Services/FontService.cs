@@ -27,7 +27,7 @@ namespace SmartMenu.Service.Services
         public FontService(IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
-            _cloudinary = new (configuration.GetSection("Cloudinary:CLOUDINARY_URL").Value);
+            _cloudinary = new(configuration.GetSection("Cloudinary:CLOUDINARY_URL").Value);
         }
 
         public IEnumerable<Domain.Models.BFont> GetAll(int? fontId, string? searchString, int pageNumber, int pageSize)
@@ -119,6 +119,17 @@ namespace SmartMenu.Service.Services
 
             _unitOfWork.FontRepository.Add(data);
             _unitOfWork.Save();
+        }
+
+        public void Delete(int fontId)
+        {
+            var font = _unitOfWork.FontRepository.Find(c => c.BFontId == fontId).FirstOrDefault()
+                ?? throw new Exception("Font not found or deleted");
+            if (font != null)
+            {
+                _unitOfWork.FontRepository.Remove(font);
+                _unitOfWork.Save();
+            }
         }
     }
 }

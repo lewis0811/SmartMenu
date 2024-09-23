@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Service.Interfaces;
 
@@ -7,6 +9,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_StoreManager + "," + SD.Role_BrandManager + "," + SD.Role_Admin)]
     public class DeviceSubscriptionsController : ControllerBase
     {
         private readonly IDeviceSubscriptionService _deviceSubscriptionService;
@@ -17,7 +20,8 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get(int? deviceSubscriptionId, int? storeDeviceId, string? searchString, int pageNumber = 1, int pageSize = 10) {
+        public IActionResult Get(int? deviceSubscriptionId, int? storeDeviceId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        {
             try
             {
                 var data = _deviceSubscriptionService.GetAll(deviceSubscriptionId, storeDeviceId, searchString, pageNumber, pageSize);
@@ -35,7 +39,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data =  _deviceSubscriptionService.AddDeviceSubscription(deviceSubscriptionCreateDTO);
+                var data = _deviceSubscriptionService.AddDeviceSubscription(deviceSubscriptionCreateDTO);
                 return CreatedAtAction(nameof(Get), data);
             }
             catch (Exception ex)
@@ -49,7 +53,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data =  await _deviceSubscriptionService.UpdateDeviceSubscription(deviceSubscriptionId ,deviceSubscriptionUpdateDTO);
+                var data = await _deviceSubscriptionService.UpdateDeviceSubscription(deviceSubscriptionId, deviceSubscriptionUpdateDTO);
                 return Ok(data);
             }
             catch (Exception ex)

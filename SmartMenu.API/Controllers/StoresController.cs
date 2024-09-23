@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -10,6 +12,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class StoresController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -22,6 +25,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult Get(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {
             try
@@ -64,6 +68,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public IActionResult Add(StoreCreateDTO storeCreateDTO)
         {
             try
@@ -92,6 +97,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpDelete("{storeId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public IActionResult Delete(int storeId)
         {
             try

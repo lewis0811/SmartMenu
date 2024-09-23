@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
+using SmartMenu.DAO.Implementation;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models.Enum;
@@ -136,6 +137,8 @@ namespace SmartMenu.Service.Services
             _unitOfWork.StoreProductRepository.Update(data);
             _unitOfWork.Save();
 
+            UpdateDisplayIfExist(data);
+
             return data;
         }
 
@@ -217,6 +220,28 @@ namespace SmartMenu.Service.Services
             }
 
             return PaginatedList<StoreProduct>.Create(data, pageNumber, pageSize);
+        }
+
+        private void UpdateDisplayIfExist(StoreProduct data)
+        {
+            var hourNow = DateTime.Now.Hour;
+            float minute = DateTime.Now.Minute;
+            float floatHour = hourNow + (float)(minute / 60);
+
+            var displays = _unitOfWork.StoreDeviceRepository
+               .EnableQuery()
+                   .Include(c => c.Displays!.Where(d => !d.IsDeleted))
+               .Where(c => c.StoreId == data.StoreId && !c.IsDeleted)
+               .SelectMany(c => c.Displays!)
+               .ToList()
+               ?? throw new Exception("Device not found or deleted");
+
+            foreach (var display in displays)
+            {
+                display.IsChanged = true;
+                _unitOfWork.DisplayRepository.Update(display);
+                _unitOfWork.Save();
+            }
         }
     }
 }

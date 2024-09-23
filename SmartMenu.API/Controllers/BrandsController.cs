@@ -13,7 +13,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = SD.Role_Admin)]
+    [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager)]
     public class BrandsController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -75,6 +75,7 @@ namespace SmartMenu.API.Controllers
         //}
 
         [HttpPost]
+        [Authorize(Roles = SD.Role_Admin)]
         public ActionResult Add(BrandCreateDTO brandCreateDTO)
         {
             try
@@ -103,6 +104,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpDelete("{brandId}")]
+        [Authorize(Roles = SD.Role_Admin)]
         public ActionResult Delete(int brandId)
         {
             try

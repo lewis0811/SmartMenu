@@ -40,11 +40,11 @@ namespace SmartMenu.Service.Services
 
             var productSizeType = product.ProductSizePrices.FirstOrDefault()!.ProductSizeType;
 
-            if (productGroup.HaveNormalPrice && productSizeType  != Domain.Models.Enum.ProductSizeType.Normal)
+            if (productGroup.HaveNormalPrice && productSizeType != Domain.Models.Enum.ProductSizeType.Normal)
             {
                 throw new Exception($"This product ID: {product.ProductId} have a price based on size of product " +
                     $"\nSo it not match with product group ID: {productGroup.ProductGroupId} that is defined as having a normal price ");
-            } 
+            }
 
             if (!productGroup.HaveNormalPrice && productSizeType == Domain.Models.Enum.ProductSizeType.Normal)
             {
@@ -55,7 +55,7 @@ namespace SmartMenu.Service.Services
             var existProductInProductGroupItem = _unitOfWork.ProductGroupItemRepository
                 .Find(c => c.ProductId == productGroupItemCreateDTO.ProductId && c.ProductGroupId == productGroupItemCreateDTO.ProductGroupId && !c.IsDeleted)
                 .Any();
-            if (existProductInProductGroupItem) throw new Exception($"Product ID: {productGroupItemCreateDTO.ProductId} already exist in the product group ID: {productGroupItemCreateDTO.ProductGroupId}");
+            if (existProductInProductGroupItem) throw new Exception($"This product already exist in product group");
 
             var data = _mapper.Map<ProductGroupItem>(productGroupItemCreateDTO);
 
@@ -82,7 +82,7 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.ProductGroupItemRepository.EnableQuery()
                 .Where(c => c.Product!.IsDeleted == false)
                 .Include(c => c.Product)
-                    .ThenInclude(c => c!.ProductSizePrices);
+                    .ThenInclude(c => c!.ProductSizePrices!.Where(c => !c.IsDeleted));
 
             var result = DataQuery(data, productGroupItemId, productGroupId, productId, searchString, pageNumber, pageSize);
 
@@ -123,7 +123,8 @@ namespace SmartMenu.Service.Services
             if (searchString != null)
             {
                 searchString = searchString.Trim();
-                if(Enum.TryParse(typeof(ProductSizeType), searchString, out var sizeType)) {
+                if (Enum.TryParse(typeof(ProductSizeType), searchString, out var sizeType))
+                {
                     data = data
                         .Where(c => c.Product!.ProductSizePrices!.Any(d => d.ProductSizeType.Equals((ProductSizeType)sizeType!))
                         );

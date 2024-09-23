@@ -34,8 +34,11 @@ namespace SmartMenu.Service.Services
 
         public object Login(UserLoginDTO userLoginDTO)
         {
-            var data = _unitOfWork.UserRepository.Login(userLoginDTO);
-            if (data == null) throw new Exception("Username or password  incorrect");
+            var data = _unitOfWork.UserRepository.Find(c => c.UserName == userLoginDTO.UserName && c.Password == userLoginDTO.Password)
+                .FirstOrDefault() ?? throw new Exception("Username or password  incorrect");
+
+            if (data.IsDeleted == true) throw new Exception("Account is disabled");
+            if (data.EmailVerified == false) throw new Exception("Please verified your mail!");
 
             var role = data.Role!;
 
@@ -63,7 +66,8 @@ namespace SmartMenu.Service.Services
             int? brandId = null;
             int? storeId = null;
             int? staffId = null;
-            var brandStaff = _unitOfWork.BrandStaffRepository.Find(c => c.UserId == data.UserId)
+            var userId = data.UserId.ToString().ToUpper();
+            var brandStaff = _unitOfWork.BrandStaffRepository.Find(c => c.UserId.ToString().ToUpper() == userId)
                 .FirstOrDefault();
 
             if (brandStaff != null)

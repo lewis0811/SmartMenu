@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -9,6 +11,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_StoreManager)]
     public class DisplayItemsController : ControllerBase
     {
         private readonly IDisplayItemService _displayItemService;
@@ -30,7 +33,7 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
 
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -45,7 +48,7 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
 
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 

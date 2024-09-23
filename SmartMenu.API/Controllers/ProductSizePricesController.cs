@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Models.Enum;
@@ -11,16 +13,15 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class ProductSizePricesController : ControllerBase
     {
         private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IProductSizePriceService _productSizePriceService;
 
-        public ProductSizePricesController(IMapper mapper, IUnitOfWork unitOfWork, IProductSizePriceService productSizePriceService)
+        public ProductSizePricesController(IMapper mapper, IProductSizePriceService productSizePriceService)
         {
             _mapper = mapper;
-            _unitOfWork = unitOfWork;
             _productSizePriceService = productSizePriceService;
         }
 
@@ -34,11 +35,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             };
         }
 
         [HttpPost]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public async Task<ActionResult> AddAsync(ProductSizePriceCreateDTO productSizePriceCreateDTO)
         {
             try
@@ -48,11 +50,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPut("{productSizePriceId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO)
         {
             try
@@ -62,11 +65,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpDelete("{productSizePriceId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Delete(int productSizePriceId)
         {
             try
@@ -76,7 +80,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

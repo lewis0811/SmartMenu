@@ -83,6 +83,24 @@ namespace SmartMenu.Service.Services
             return result ?? Enumerable.Empty<Product>();
         }
 
+        public IEnumerable<Product> GetByBrand(int brandId, string? searchString, int pageNumber, int pageSize)
+        {
+
+            var data = _unitOfWork.BrandRepository.EnableQuery()
+                .Include(c => c.Categories!.Where(c => !c.IsDeleted))
+                    .ThenInclude(c => c.Products!.Where(c => !c.IsDeleted))
+                        .ThenInclude(c => c.ProductSizePrices!.Where(c => !c.IsDeleted))
+                .Where(c => c.BrandId == brandId && !c.IsDeleted)
+                .SelectMany(c => c.Categories!).SelectMany(c => c.Products!);
+
+            //var data = _unitOfWork.ProductRepository.EnableQuery()
+            //    .Include(c => c.ProductSizePrices!.Where(d => d.IsDeleted == false));
+
+            var result = DataQuery(data, null, null, searchString, pageNumber, pageSize);
+
+            return result ?? Enumerable.Empty<Product>();
+        }
+
         public IEnumerable<Product> GetProductByMenuOrCollection(int? menuId, int? collectionId)
         {
             List<Product> menu = new();
@@ -184,5 +202,7 @@ namespace SmartMenu.Service.Services
 
             return PaginatedList<Product>.Create(data, pageNumber, pageSize);
         }
+
+
     }
 }

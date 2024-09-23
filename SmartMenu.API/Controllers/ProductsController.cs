@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -10,15 +12,14 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class ProductsController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IProductService _productService;
 
-        public ProductsController(IUnitOfWork unitOfWork, IMapper mapper, IProductService productService)
+        public ProductsController(IMapper mapper, IProductService productService)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _productService = productService;
         }
@@ -29,6 +30,20 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var data = _productService.GetAll(productId, categoryId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            };
+        }
+
+        [HttpGet("{brandId}")]
+        public ActionResult GetByBrand(int brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                var data = _productService.GetByBrand(brandId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)
@@ -55,6 +70,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Add(ProductCreateDTO productCreateDTO)
         {
             try
@@ -69,6 +85,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPut("{productId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Update(int productId, ProductUpdateDTO productCreateDTO)
         {
             try
@@ -83,6 +100,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpDelete("{productId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Delete(int productId)
         {
             try

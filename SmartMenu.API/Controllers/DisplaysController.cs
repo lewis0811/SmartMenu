@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Hosting.Server;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SmartMenu.API.Ultility;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
@@ -12,6 +14,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_StoreManager)]
     public class DisplaysController : ControllerBase
     {
         private readonly IDisplayService _displayService;
@@ -111,6 +114,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet("V1/{deviceId}/image")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetImageAsync(int deviceId)
         {
             try
@@ -119,7 +123,7 @@ namespace SmartMenu.API.Controllers
                 if (data == null) return BadRequest("Image fail to create");
                 _displayService.DeleteTempFile();
 
-                var isUri = Uri.TryCreate(data, UriKind.RelativeOrAbsolute, out Uri? uri);
+                var isUri = Uri.IsWellFormedUriString(data, UriKind.RelativeOrAbsolute);
                 if (isUri) { return Redirect(data); }
 
                 byte[] b = System.IO.File.ReadAllBytes(data);

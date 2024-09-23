@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -10,15 +12,14 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class CollectionsController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICollectionService _collectionService;
 
-        public CollectionsController(IUnitOfWork unitOfWork, IMapper mapper, ICollectionService collectionService)
+        public CollectionsController(IMapper mapper, ICollectionService collectionService)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _collectionService = collectionService;
         }
@@ -32,7 +33,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -46,10 +47,11 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
         [HttpPost]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Add(CollectionCreateDTO collectionCreateDTO)
         {
             try
@@ -59,11 +61,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPut("{collectionId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Update(int collectionId, CollectionUpdateDTO collectionUpdateDTO)
         {
             try
@@ -73,11 +76,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpDelete("{collectionId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Delete(int collectionId)
         {
             try
@@ -87,7 +91,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

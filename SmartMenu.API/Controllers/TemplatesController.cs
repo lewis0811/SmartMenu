@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Azure;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -10,11 +12,12 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class TemplatesController : ControllerBase
     {
         private readonly ITemplateService _templateService;
 
-        public TemplatesController( ITemplateService templateService)
+        public TemplatesController(ITemplateService templateService)
         {
             _templateService = templateService;
         }
@@ -29,7 +32,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -38,16 +41,17 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                var data = _templateService.GetAllWithLayers(templateId,  brandId, searchString, pageNumber, pageSize);
+                var data = _templateService.GetAllWithLayers(templateId, brandId, searchString, pageNumber, pageSize);
                 return Ok(data);
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPost]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public IActionResult Add(TemplateCreateDTO templateCreateDTO)
         {
             try
@@ -58,11 +62,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPut("{templateId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public IActionResult Update(int templateId, TemplateUpdateDTO templateUpdateDTO)
         {
             try
@@ -73,11 +78,12 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
 
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPut("{templateId}/image")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public IActionResult Update(int templateId, string TemplateImgPath)
         {
             try
@@ -88,11 +94,12 @@ namespace SmartMenu.API.Controllers
             catch (Exception ex)
             {
 
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpDelete("{templateId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public IActionResult Delete(int templateId)
         {
             _templateService.Delete(templateId);

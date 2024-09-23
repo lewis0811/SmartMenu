@@ -6,11 +6,14 @@ using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Repository;
 using SmartMenu.Service.Interfaces;
 using SmartMenu.Service.Services;
+using Microsoft.AspNetCore.Authorization;
+using SmartMenu.API.Ultility;
 
 namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_StoreManager)]
     public class StoreProductsController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -25,7 +28,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult Get(int? storeProductId, int? productId, int? storeId,string? searchString, int pageSize = 10, int pageNumber = 1)
+        public ActionResult Get(int? storeProductId, int? productId, int? storeId, string? searchString, int pageSize = 10, int pageNumber = 1)
         {
             try
             {
@@ -49,7 +52,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -63,7 +66,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -77,7 +80,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -91,7 +94,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -105,7 +108,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

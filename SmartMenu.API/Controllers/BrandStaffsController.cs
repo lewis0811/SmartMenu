@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -10,15 +12,14 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class BrandStaffsController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IBrandStaffService _brandStaffService;
 
-        public BrandStaffsController(IUnitOfWork unitOfWork, IMapper mapper, IBrandStaffService brandStaffService)
+        public BrandStaffsController(IMapper mapper, IBrandStaffService brandStaffService)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _brandStaffService = brandStaffService;
         }
@@ -33,10 +34,11 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             };
         }
         [HttpPost]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager)]
         public ActionResult Add(BrandStaffCreateDTO brandStaffCreateDTO)
         {
             try
@@ -46,7 +48,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -65,6 +67,7 @@ namespace SmartMenu.API.Controllers
         //}
 
         [HttpDelete("{brandStaffId}")]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager)]
         public ActionResult Delete(int brandStaffId)
         {
             try
@@ -74,7 +77,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

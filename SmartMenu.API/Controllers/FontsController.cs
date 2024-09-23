@@ -1,5 +1,8 @@
-﻿using AutoMapper;
+﻿#pragma warning disable CA1416 // Validate platform compatibility
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -12,6 +15,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager)]
     public class FontsController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -28,6 +32,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpGet("test")]
+
         public IActionResult Get(int fondId)
         {
             var font = _unitOfWork.FontRepository.Find(c => c.BFontId == fondId).FirstOrDefault();
@@ -80,6 +85,7 @@ namespace SmartMenu.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = SD.Role_Admin)]
         public IActionResult Add([FromForm] FontCreateDTO fontCreateDTO)
         {
             try
@@ -97,5 +103,21 @@ namespace SmartMenu.API.Controllers
 
             }
         }
+
+        [HttpDelete("{fontId}")]
+        [Authorize(Roles = SD.Role_Admin)]
+        public IActionResult Delete(int fontId)
+        {
+            try
+            {
+                _fontService.Delete(fontId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }
+#pragma warning restore CA1416 // Validate platform compatibility

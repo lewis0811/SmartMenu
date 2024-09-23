@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartMenu.API.Ultility;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
 using SmartMenu.Domain.Repository;
@@ -10,15 +12,14 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = SD.Role_BrandManager + "," + SD.Role_StoreManager)]
     public class CategoriesController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICategoryService _categoryService;
 
-        public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper, ICategoryService categoryService)
+        public CategoriesController(IMapper mapper, ICategoryService categoryService)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _categoryService = categoryService;
         }
@@ -33,10 +34,11 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             };
         }
         [HttpPost]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Add(CategoryCreateDTO categoryCreateDTO)
         {
             try
@@ -46,11 +48,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPut("{categoryId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Update(int categoryId, CategoryCreateDTO categoryCreateDTO)
         {
             try
@@ -60,11 +63,12 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpDelete("{categoryId}")]
+        [Authorize(Roles = SD.Role_BrandManager)]
         public ActionResult Delete(int categoryId)
         {
             try
@@ -74,7 +78,7 @@ namespace SmartMenu.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new {error = ex.Message });
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

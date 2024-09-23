@@ -25,6 +25,9 @@ namespace SmartMenu.Service.Services
 
             var data = _mapper.Map<Menu>(menuCreateDTO);
 
+            var existMenu = _unitOfWork.MenuRepository.Find(c => c.MenuName == menuCreateDTO.MenuName && c.BrandId == data.BrandId).FirstOrDefault();
+            if (existMenu != null) throw new Exception("Menu name already exist!");
+
             _unitOfWork.MenuRepository.Add(data);
             _unitOfWork.Save();
 
@@ -104,13 +107,15 @@ namespace SmartMenu.Service.Services
             if (menuId != null)
             {
                 data = data
-                    .Where(c => c.MenuId == menuId);
+                    .Where(c => c.MenuId == menuId && !c.IsDeleted);
             }
 
             if (brandId != null)
             {
+                var brand = _unitOfWork.BrandRepository.Find(c => c.BrandId == brandId && !c.IsDeleted).FirstOrDefault()
+                    ?? throw new Exception("Brand not found or deleted");
                 data = data
-                    .Where(c => c.BrandId == brandId);
+                    .Where(c => c.BrandId == brandId && !c.IsDeleted);
             }
 
             if (searchString != null)
