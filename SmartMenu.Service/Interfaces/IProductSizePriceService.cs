@@ -12,7 +12,7 @@ namespace SmartMenu.Service.Interfaces
     {
         IEnumerable<ProductSizePrice> GetAll(int? productSizePriceId, int? productId, string? searchString, int pageNumber, int pageSize);
         Task<ProductSizePrice> AddAsync(ProductSizePriceCreateDTO productSizePriceCreateDTO);
-        ProductSizePrice Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO);
+        Task<ProductSizePrice> Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO);
         void Delete(int productSizePriceId);
     }
 }

@@ -86,13 +86,13 @@ namespace SmartMenu.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = SD.Role_Admin)]
-        public IActionResult Add([FromForm] FontCreateDTO fontCreateDTO)
+        public async Task<IActionResult> Add([FromForm] FontCreateDTO fontCreateDTO)
         {
             try
             {
                 //var path = $"{_webHostEnvironment.WebRootPath}\\{SD.FontPath}";
-                var path = $"{_webHostEnvironment.WebRootPath}\\temp";
-                _fontService.Add(fontCreateDTO, path);
+                string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "fonttemp");
+                await _fontService.AddAsync(fontCreateDTO, path);
 
                 return CreatedAtAction(nameof(Get), fontCreateDTO.File!.FileName);
             }

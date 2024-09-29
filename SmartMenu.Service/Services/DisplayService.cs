@@ -151,33 +151,32 @@ namespace SmartMenu.Service.Services
             float minute = DateTime.Now.Minute;
             float floatHour = hourNow + (float)(minute / 60);
 
+            Display unchageDisplay = new Display();
+            Display display = new();
+
+            unchageDisplay = _unitOfWork.DisplayRepository.EnableQuery()
+                .Where(c => c.StoreDeviceId == device.StoreDeviceId && !c.IsDeleted && c.ActiveHour < floatHour)
+                .OrderByDescending(c => c.ActiveHour)
+                .FirstOrDefault()!;
+
+            unchageDisplay ??= _unitOfWork.DisplayRepository
+                    .EnableQuery()
+                    .Where(c => c.StoreDeviceId == device.StoreDeviceId && c.IsDeleted == false && c.ActiveHour > floatHour)
+                    .OrderBy(c => c.ActiveHour)
+                    .FirstOrDefault()! ?? throw new Exception("Fail to get display");
+
+            if (unchageDisplay.IsChanged == false && unchageDisplay.DisplayImgPath != null)
+            {
+                return unchageDisplay.DisplayImgPath;
+            }
+
             var store = await _unitOfWork.StoreRepository.EnableQuery()
                 .Include(c => c.StoreProducts!.Where(c => !c.IsDeleted))
                     .ThenInclude(c => c.Product!)
                         .ThenInclude(c => c.ProductSizePrices)
                 .FirstOrDefaultAsync(c => c.StoreId == device.StoreId) ?? throw new Exception("Store not found");
 
-            Display unchageDisplay = new Display();
-            Display display = new();
 
-            unchageDisplay = await _unitOfWork.DisplayRepository.EnableQuery()
-                .Where(c => c.StoreDeviceId == device.StoreDeviceId && !c.IsDeleted && c.ActiveHour < floatHour)
-                .OrderByDescending(c => c.ActiveHour)
-                .FirstOrDefaultAsync()! ?? new Display();
-
-            if (unchageDisplay.Template == null)
-            {
-                unchageDisplay = await _unitOfWork.DisplayRepository
-                    .EnableQuery()
-                    .Where(c => c.StoreDeviceId == device.StoreDeviceId && c.IsDeleted == false && c.ActiveHour > floatHour)
-                    .OrderBy(c => c.ActiveHour)
-                    .FirstOrDefaultAsync()! ?? throw new Exception("Fail to get display");
-            }
-
-            if (unchageDisplay.IsChanged == false && unchageDisplay.DisplayImgPath != null)
-            {
-                return unchageDisplay.DisplayImgPath;
-            }
 
 
             display = await _unitOfWork.DisplayRepository
@@ -239,6 +238,13 @@ namespace SmartMenu.Service.Services
 
         public async Task<string> GetImageByDisplayAsync(int displayId)
         {
+            var tempDisplay = _unitOfWork.DisplayRepository.Find(c => c.DisplayId == displayId && !c.IsDeleted)
+                .FirstOrDefault() ?? throw new Exception("Display not found or deleted");
+            if (tempDisplay.IsChanged == false && tempDisplay.DisplayImgPath != null)
+            {
+                return tempDisplay.DisplayImgPath;
+            }
+
             var display = await _unitOfWork.DisplayRepository.EnableQuery()
                 .Include(c => c.Template!)
                     .ThenInclude(c => c.Layers!)
@@ -256,10 +262,7 @@ namespace SmartMenu.Service.Services
                 .FirstOrDefaultAsync(c => c.DisplayId == displayId && c.IsDeleted == false)
                 ?? throw new Exception("Display not found or deleted");
 
-            if (display.IsChanged == false && display.DisplayImgPath != null)
-            {
-                return display.DisplayImgPath;
-            }
+
 
             var result = await InitializeDisplayImageAsync(display);
             return result;
@@ -1293,35 +1296,43 @@ namespace SmartMenu.Service.Services
 
                                     foreach (var price in prices)
                                     {
+                                        var getPrice = price.Price;
+                                        string formattedPrice = "";
+                                        if (product.ProductPriceCurrency == ProductPriceCurrency.VND) formattedPrice = getPrice.ToString("N0", CultureInfo.CreateSpecificCulture("vi-VN")) + " ₫";
+                                        else if (product.ProductPriceCurrency == ProductPriceCurrency.USD) formattedPrice = "$" + Math.Floor(getPrice).ToString("N0", CultureInfo.CreateSpecificCulture("en-US"));
+
                                         switch (price.ProductSizeType)
                                         {
                                             case ProductSizeType.S:
-                                                g.DrawString(price.Price.ToString(),
-                                                    font,
-                                                    new SolidBrush(color),
-                                                    rect2);
+                                                //g.DrawString(price.Price.ToString(),
+                                                //    font,
+                                                //    new SolidBrush(color),
+                                                //    rect2);
+                                                DrawStringWithAlpha(g, formattedPrice, font, color, rect2, style!.Transparency, stringFormat);
                                                 break;
 
                                             case ProductSizeType.M:
                                                 var textSizeM = g.MeasureString(price.Price.ToString(), font).Width;
                                                 var newRectM = rect2;
-                                                newRectM.X = (newRectM.X + newRectM.Width / 2) - (textSizeM / 2);
+                                                newRectM.X += newRectM.Width / 2 - (textSizeM / 2);
 
-                                                g.DrawString(price.Price.ToString(),
-                                                    font,
-                                                    new SolidBrush(color),
-                                                    newRectM);
+                                                //g.DrawString(price.Price.ToString(),
+                                                //    font,
+                                                //    new SolidBrush(color),
+                                                //    newRectM);
+                                                DrawStringWithAlpha(g, formattedPrice, font, color, newRectM, style!.Transparency, stringFormat);
                                                 break;
 
                                             case ProductSizeType.L:
                                                 var textSizeL = g.MeasureString(price.Price.ToString(), font).Width;
                                                 var newRectL = rect2;
-                                                newRectL.X = newRectL.X + newRectL.Width - textSizeL;
+                                                newRectL.X = newRectL.Right - textSizeL;
 
-                                                g.DrawString(price.Price.ToString(),
-                                                    font,
-                                                    new SolidBrush(color),
-                                                    newRectL);
+                                                //g.DrawString(price.Price.ToString(),
+                                                //    font,
+                                                //    new SolidBrush(color),
+                                                //    newRectL);
+                                                DrawStringWithAlpha(g, formattedPrice, font, color, newRectL, style!.Transparency, stringFormat);
                                                 break;
                                         }
                                     }
@@ -1330,8 +1341,8 @@ namespace SmartMenu.Service.Services
                                 {
                                     var price = prices[0].Price;
                                     string formattedPrice = "";
-                                    if (product.ProductPriceCurrency == ProductPriceCurrency.VND) formattedPrice = price.ToString("C", CultureInfo.CreateSpecificCulture("vi-VN"));
-                                    else if (product.ProductPriceCurrency == ProductPriceCurrency.USD) formattedPrice = price.ToString("C2", CultureInfo.CreateSpecificCulture("en-US"));
+                                    if (product.ProductPriceCurrency == ProductPriceCurrency.VND) formattedPrice = price.ToString("N0", CultureInfo.CreateSpecificCulture("vi-VN")) + " ₫";
+                                    else if (product.ProductPriceCurrency == ProductPriceCurrency.USD) formattedPrice = "$" + Math.Floor(price).ToString("N0", CultureInfo.CreateSpecificCulture("en-US"));
 
                                     //g2.DrawString(formattedPrice,
                                     //    font,
@@ -1525,13 +1536,19 @@ namespace SmartMenu.Service.Services
 
                                     foreach (var price in prices)
                                     {
+                                        var getPrice = price.Price;
+                                        string formattedPrice = "";
+                                        if (product.ProductPriceCurrency == ProductPriceCurrency.VND) formattedPrice = getPrice.ToString("N0", CultureInfo.CreateSpecificCulture("vi-VN")) + " ₫";
+                                        else if (product.ProductPriceCurrency == ProductPriceCurrency.USD) formattedPrice = "$" + Math.Floor(getPrice).ToString("N0", CultureInfo.CreateSpecificCulture("en-US"));
+
                                         switch (price.ProductSizeType)
                                         {
                                             case ProductSizeType.S:
-                                                g.DrawString(price.Price.ToString(),
-                                                    font,
-                                                    new SolidBrush(color),
-                                                    rect2);
+                                                //g.DrawString(price.Price.ToString(),
+                                                //    font,
+                                                //    new SolidBrush(color),
+                                                //    rect2);
+                                                DrawStringWithAlpha(g, formattedPrice, font, color, rect2, style!.Transparency, stringFormat);
                                                 break;
 
                                             case ProductSizeType.M:
@@ -1539,21 +1556,23 @@ namespace SmartMenu.Service.Services
                                                 var newRectM = rect2;
                                                 newRectM.X += newRectM.Width / 2 - (textSizeM / 2);
 
-                                                g.DrawString(price.Price.ToString(),
-                                                    font,
-                                                    new SolidBrush(color),
-                                                    newRectM);
+                                                //g.DrawString(price.Price.ToString(),
+                                                //    font,
+                                                //    new SolidBrush(color),
+                                                //    newRectM);
+                                                DrawStringWithAlpha(g, formattedPrice, font, color, newRectM, style!.Transparency, stringFormat);
                                                 break;
 
                                             case ProductSizeType.L:
                                                 var textSizeL = g.MeasureString(price.Price.ToString(), font).Width;
                                                 var newRectL = rect2;
-                                                newRectL.X = newRectL.Right - (textSizeL / 2);
+                                                newRectL.X = newRectL.Right - textSizeL;
 
-                                                g.DrawString(price.Price.ToString(),
-                                                    font,
-                                                    new SolidBrush(color),
-                                                    newRectL);
+                                                //g.DrawString(price.Price.ToString(),
+                                                //    font,
+                                                //    new SolidBrush(color),
+                                                //    newRectL);
+                                                DrawStringWithAlpha(g, formattedPrice, font, color, newRectL, style!.Transparency, stringFormat);
                                                 break;
                                         }
                                     }
@@ -1562,8 +1581,8 @@ namespace SmartMenu.Service.Services
                                 {
                                     var price = prices[0].Price;
                                     string formattedPrice = "";
-                                    if (style!.Currency == 0) formattedPrice = price.ToString("C", new System.Globalization.CultureInfo("vi-VN"));
-                                    else if (style!.Currency == 1) formattedPrice = price.ToString("C", new System.Globalization.CultureInfo("en-US"));
+                                    if (product.ProductPriceCurrency == ProductPriceCurrency.VND) formattedPrice = price.ToString("N0", CultureInfo.CreateSpecificCulture("vi-VN")) + " ₫";
+                                    else if (product.ProductPriceCurrency == ProductPriceCurrency.USD) formattedPrice = "$" + Math.Floor(price).ToString("N0", CultureInfo.CreateSpecificCulture("en-US"));
 
                                     //g2.DrawString(formattedPrice,
                                     //    font,
@@ -1584,7 +1603,7 @@ namespace SmartMenu.Service.Services
 
                                 //g2.DrawImage(Image.FromFile(product.ProductImgPath!),
                                 //    rect2);
-                                DrawImageWithAlpha(g, productImg, new Rectangle(0, 0, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
+                                DrawImageWithAlpha(g, productImg, new Rectangle((int)boxItem.BoxItemX, (int)boxItem.BoxItemY, (int)boxItem.BoxItemWidth, (int)boxItem.BoxItemHeight), style!.Transparency);
                                 break;
                             case BoxItemType.ProductIcon:
                                 ////var isEnableIcon = storeProducts.Any(c => c.IconEnable && c.ProductId == product.ProductId);

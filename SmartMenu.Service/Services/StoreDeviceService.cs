@@ -101,11 +101,44 @@ namespace SmartMenu.Service.Services
 
         public void Delete(int storeDeviceId)
         {
-            var data = _unitOfWork.StoreDeviceRepository.Find(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false).FirstOrDefault()
-                ?? throw new Exception("StoreDevice not found or deleted");
+            var displayItems = _unitOfWork.StoreDeviceRepository.EnableQuery()
+                .Include(c => c.Displays!)
+                    .ThenInclude(c => c.DisplayItems)
+                .Where(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false)
+                .SelectMany(c => c.Displays!)
+                .SelectMany(c => c.DisplayItems!)
+                .ToList();
 
-            data.IsDeleted = true;
-            _unitOfWork.StoreDeviceRepository.Update(data);
+            if (displayItems.Count > 0)
+            {
+                foreach (var item in displayItems)
+                {
+                    _unitOfWork.DisplayItemRepository.Remove(item);
+                    _unitOfWork.Save();
+                }
+            }
+
+            var displays = _unitOfWork.StoreDeviceRepository.EnableQuery()
+                .Include(c => c.Displays!)
+                    .ThenInclude(c => c.DisplayItems)
+                .Where(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false)
+                .SelectMany(c => c.Displays!)
+                .ToList();
+
+            if (displays.Count > 0)
+            {
+                foreach (var item in displays)
+                {
+                    _unitOfWork.DisplayRepository.Remove(item);
+                    _unitOfWork.Save();
+                }
+            }
+
+            var data = _unitOfWork.StoreDeviceRepository.EnableQuery()
+                .Where(c => c.StoreDeviceId == storeDeviceId && c.IsDeleted == false)
+                .FirstOrDefault() ?? throw new Exception("Store device not found or deleted");
+
+            _unitOfWork.StoreDeviceRepository.Remove(data);
             _unitOfWork.Save();
         }
 
@@ -137,7 +170,5 @@ namespace SmartMenu.Service.Services
             }
             return PaginatedList<StoreDevice>.Create(data, pageNumber, pageSize);
         }
-
-
     }
 }

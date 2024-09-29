@@ -13,7 +13,7 @@ namespace SmartMenu.Service.Interfaces
         User Find(string gmail);
         Task<Guid?> ForgotPassword(string email);
         object Login(UserLoginDTO userLoginDTO);
-        void Register(UserCreateDTO userCreateDTO);
+        User Register(UserCreateDTO userCreateDTO);
         void ResetPasswordAsync(User user, string token, string password);
         void VerifyEmail(string email);
     }

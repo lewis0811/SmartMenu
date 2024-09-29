@@ -46,8 +46,13 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.BrandStaffRepository.Find(c => c.BrandStaffId == brandStaffId && c.IsDeleted == false).FirstOrDefault()
            ?? throw new Exception("Staff not found or deleted");
 
-            data.IsDeleted = true;
-            _unitOfWork.BrandStaffRepository.Update(data);
+            var userId = data.UserId;
+
+            _unitOfWork.BrandStaffRepository.Remove(data);
+            _unitOfWork.Save();
+
+            var user = _unitOfWork.UserRepository.Find(c => c.UserId == userId).FirstOrDefault() ?? throw new Exception("User not found or is deleted");
+            _unitOfWork.UserRepository.Remove(user);
             _unitOfWork.Save();
         }
 
@@ -98,7 +103,8 @@ namespace SmartMenu.Service.Services
                     .Where(c => c.UserId == userId);
             }
 
-            if (searchString != null) {
+            if (searchString != null)
+            {
                 searchString = searchString.Trim();
                 data = data
                     .Where(c => c.User!.Email.Contains(searchString)

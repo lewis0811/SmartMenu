@@ -56,11 +56,11 @@ namespace SmartMenu.API.Controllers
 
         [HttpPut("{productSizePriceId}")]
         [Authorize(Roles = SD.Role_BrandManager)]
-        public ActionResult Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO)
+        public async Task<ActionResult> Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO)
         {
             try
             {
-                var data = _productSizePriceService.Update(productSizePriceId, productSizePriceUpdateDTO);
+                var data = await _productSizePriceService.Update(productSizePriceId, productSizePriceUpdateDTO);
                 return Ok(data);
             }
             catch (Exception ex)

@@ -38,8 +38,8 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.CategoryRepository.Find(c => c.CategoryId == categoryId && c.IsDeleted == false).FirstOrDefault()
            ?? throw new Exception("Store not found or deleted");
 
-            data.IsDeleted = true;
-            _unitOfWork.CategoryRepository.Update(data);
+            //data.IsDeleted = true;
+            _unitOfWork.CategoryRepository.Remove(data);
             _unitOfWork.Save();
         }
 
@@ -71,7 +71,8 @@ namespace SmartMenu.Service.Services
                     .Where(c => c.CategoryId == categoryId);
             }
 
-            if (brandId != null) { 
+            if (brandId != null)
+            {
                 data = data
                     .Where(c => c.BrandId == brandId);
             }

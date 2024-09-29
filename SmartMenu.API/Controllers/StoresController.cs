@@ -39,6 +39,20 @@ namespace SmartMenu.API.Controllers
             }
         }
 
+        [HttpGet("StoreStaffs/{storeId}")]
+        public ActionResult GetStoreStaffs(int storeId, Guid userId, string? searchString, int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                var data = _storeService.GetStoreWithStaffs(storeId, userId, searchString, pageNumber, pageSize);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
         [HttpGet("StoreMenus")]
         public ActionResult GetStoreMenus(int? storeId, int? brandId, string? searchString, int pageNumber = 1, int pageSize = 10)
         {

@@ -17,7 +17,7 @@ namespace SmartMenu.Domain.Models.DTO
         [Url]
         public string? ProductImgPath { get;  set; }
         
-        [Url]
-        public string? ProductLogoPath { get;  set; }
+        //[Url]
+        //public string? ProductLogoPath { get;  set; }
     }
 }

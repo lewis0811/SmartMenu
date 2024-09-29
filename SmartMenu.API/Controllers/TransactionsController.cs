@@ -8,7 +8,7 @@ namespace SmartMenu.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = SD.Role_StoreManager + "," + SD.Role_Admin)]
+    [Authorize(Roles = SD.Role_StoreManager + "," + SD.Role_Admin + "," + SD.Role_BrandManager)]
     public class TransactionsController : ControllerBase
     {
         private readonly ITransactionService _transactionService;
@@ -24,6 +24,21 @@ namespace SmartMenu.API.Controllers
             try
             {
                 var transactions = _transactionService.GetAll(transactionId, deviceSubscriptionId, searchString, pageNumber, pageSize);
+
+                return Ok(transactions);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("brand/{brandId}")]
+        public IActionResult GetByBrand(int brandId)
+        {
+            try
+            {
+                var transactions = _transactionService.GetByBrand(brandId);
 
                 return Ok(transactions);
             }

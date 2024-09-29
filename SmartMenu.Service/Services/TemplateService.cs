@@ -34,12 +34,12 @@ namespace SmartMenu.Service.Services
 
         public void Delete(int templateId)
         {
-            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault()
+            var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId).FirstOrDefault()
             ?? throw new Exception("Template not found or deleted");
 
-            data.IsDeleted = true;
+            //data.IsDeleted = true;
 
-            _unitOfWork.TemplateRepository.Update(data);
+            _unitOfWork.TemplateRepository.Remove(data);
             _unitOfWork.Save();
         }
 
@@ -78,7 +78,7 @@ namespace SmartMenu.Service.Services
             return data;
         }
 
-        public object Update(int templateId,[Url] string templateImgPath)
+        public object Update(int templateId, [Url] string templateImgPath)
         {
             var data = _unitOfWork.TemplateRepository.Find(c => c.TemplateId == templateId && c.IsDeleted == false).FirstOrDefault()
                 ?? throw new Exception("Template not found or deleted");

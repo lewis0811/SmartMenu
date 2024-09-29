@@ -89,12 +89,14 @@ namespace SmartMenu.Service.Services
             };
         }
 
-        public void Register(UserCreateDTO userCreateDTO)
+        public User Register(UserCreateDTO userCreateDTO)
         {
             var data = _mapper.Map<User>(userCreateDTO);
             data.EmailVerified = false;
             _unitOfWork.UserRepository.Add(data);
             _unitOfWork.Save();
+
+            return data;
         }
 
         public async Task<Guid?> ForgotPassword(string email)

@@ -62,19 +62,28 @@ namespace SmartMenu.Service.Services
             _unitOfWork.ProductGroupItemRepository.Add(data);
             _unitOfWork.Save();
 
+            UpdateDisplayIfExist(productGroup);
+
             return data;
         }
+
+
 
         public void Delete(int productGroupItemId)
         {
             var data = _unitOfWork.ProductGroupItemRepository.Find(c => c.ProductGroupItemId == productGroupItemId && c.IsDeleted == false).FirstOrDefault()
            ?? throw new Exception("Group item not found or deleted");
 
-            data.IsDeleted = true;
-            _unitOfWork.ProductGroupItemRepository.Update(data);
+
+            _unitOfWork.ProductGroupItemRepository.Remove(data);
+            _unitOfWork.Save();
+
+            var productGroup = _unitOfWork.ProductGroupRepository.Find(c => c.ProductGroupId.Equals(productGroupItemId) && !c.IsDeleted)
+                .FirstOrDefault() ?? throw new Exception("Product group not found or deleted");
+
+            UpdateDisplayIfExist(productGroup);
 
             //_unitOfWork.ProductGroupItemRepository.Remove(data);
-            _unitOfWork.Save();
         }
 
         public IEnumerable<ProductGroupItem> GetAll(int? productGroupItemId, int? productGroupId, int? productId, string? searchString, int pageNumber, int pageSize)
@@ -97,6 +106,11 @@ namespace SmartMenu.Service.Services
             _mapper.Map(productGroupItemCreateDTO, data);
             _unitOfWork.ProductGroupItemRepository.Update(data);
             _unitOfWork.Save();
+
+            var productGroup = _unitOfWork.ProductGroupRepository.Find(c => c.ProductGroupId.Equals(productGroupItemId) && !c.IsDeleted)
+                .FirstOrDefault() ?? throw new Exception("Product group not found or deleted");
+
+            UpdateDisplayIfExist(productGroup);
 
             return data;
         }
@@ -142,6 +156,34 @@ namespace SmartMenu.Service.Services
             }
 
             return PaginatedList<ProductGroupItem>.Create(data, pageNumber, pageSize);
+        }
+
+        private void UpdateDisplayIfExist(ProductGroup productGroup)
+        {
+            List<Display> displays = new();
+            if (productGroup.CollectionId != null)
+            {
+                displays = _unitOfWork.DisplayRepository
+                    .EnableQuery()
+                    .Where(c => c.CollectionId == productGroup.CollectionId && !c.IsDeleted).ToList();
+            }
+
+            if (productGroup.MenuId != null)
+            {
+                displays = _unitOfWork.DisplayRepository
+                    .EnableQuery()
+                    .Where(c => c.MenuId == productGroup.MenuId && !c.IsDeleted).ToList();
+            }
+
+            if (displays.Count > 0)
+            {
+                foreach (var display in displays)
+                {
+                    display.IsChanged = true;
+                    _unitOfWork.DisplayRepository.Update(display);
+                    _unitOfWork.Save();
+                }
+            }
         }
     }
 }

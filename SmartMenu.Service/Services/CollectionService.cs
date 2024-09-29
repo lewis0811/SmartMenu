@@ -59,7 +59,7 @@ namespace SmartMenu.Service.Services
 
         public void Delete(int collectionId)
         {
-            var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionId == collectionId && c.IsDeleted == false).FirstOrDefault()
+            var data = _unitOfWork.CollectionRepository.Find(c => c.CollectionId == collectionId).FirstOrDefault()
            ?? throw new Exception("Collection not found or deleted");
 
             data.IsDeleted = true;

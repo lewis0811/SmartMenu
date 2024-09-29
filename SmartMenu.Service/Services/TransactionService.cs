@@ -344,5 +344,27 @@ namespace SmartMenu.Service.Services
 
             return PaginatedList<Transaction>.Create(data, pageNumber, pageSize);
         }
+
+        public IEnumerable<Transaction> GetByBrand(int brandId)
+        {
+            var data = _unitOfWork.BrandRepository.EnableQuery()
+                .Where(c => c.BrandId == brandId && !c.IsDeleted)
+                .Include(c => c.Stores!.Where(c => !c.IsDeleted))
+                .ThenInclude(c => c.StoreDevices.Where(c => !c.IsDeleted))
+                .SelectMany(c => c.Stores!)
+                .SelectMany(c => c.StoreDevices)
+                .ToList();
+
+            var data2 = _unitOfWork.DeviceSubscriptionRepository.EnableQuery()
+                .Include(c => c.Transactions)
+                .ToList();
+
+            // Use DistinctBy or IntersectBy depending on what exactly you need
+            var mainData = data2.IntersectBy(data.Select(c => c.StoreDeviceId), c => c.StoreDeviceId)
+                .SelectMany(c => c.Transactions!.Where(c => !c.IsDeleted))
+                .ToList();
+
+            return mainData;
+        }
     }
 }

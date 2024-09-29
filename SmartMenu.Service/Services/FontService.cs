@@ -54,71 +54,67 @@ namespace SmartMenu.Service.Services
             return PaginatedList<Domain.Models.BFont>.Create(data, pageNumber, pageSize);
         }
 
-        public void Add(FontCreateDTO fontCreateDTO, string path)
+        public async Task AddAsync(FontCreateDTO fontCreateDTO, string path)
         {
-
-            PrivateFontCollection fontCollection = new();
             string fontName = fontCreateDTO.File!.FileName;
-            string fontNameCheck = fontName.Split('.')[0];
-
-            var existFont = _unitOfWork.FontRepository.Find(c => c.FontName == fontNameCheck).FirstOrDefault();
-            if (existFont != null) throw new Exception($"Font: `{fontNameCheck}` already exist ");
-
-            //string realfontName = fontName.Split('.').First();
+            string fontNameWithoutExtension = Path.GetFileNameWithoutExtension(fontName);
             string extensionName = Path.GetExtension(fontName);
 
-            if (extensionName != ".ttf" && extensionName != ".otf") { throw new Exception("File must be \".ttf\" or \".otf\" extension! "); }
-
-            if (!Directory.Exists(path))
+            if (extensionName != ".ttf" && extensionName != ".otf")
             {
-                Directory.CreateDirectory(path);
+                throw new ArgumentException("File must be \".ttf\" or \".otf\" extension!");
             }
 
-            using (FileStream stream = new(Path.Combine(path, fontName), FileMode.Create))
+            var existingFont = await _unitOfWork.FontRepository.FindObjectAsync(c => c.FontName == fontNameWithoutExtension);
+            if (existingFont != null)
             {
-                fontCreateDTO.File.CopyTo(stream);
-                stream.Flush();
+                throw new InvalidOperationException($"Font: `{fontNameWithoutExtension}` already exists");
             }
 
-            // Add to font collection
-            fontCollection.AddFontFile(Path.Combine(path, fontName));
+            Directory.CreateDirectory(path);
+            string fullPath = Path.Combine(path, fontName);
 
-            // Find the specified font family
-
-            FontFamily family = fontCollection.Families.FirstOrDefault(f => f.Name.Equals(fontCollection.Families[0].Name, StringComparison.OrdinalIgnoreCase))
-                ?? throw new Exception("Font not found!");
-
-
-            // Check if the font family was found and supports regular style
-            bool isSupport = family.IsStyleAvailable(FontStyle.Regular);
-            if (!isSupport) { throw new Exception("Font doesn't support regular style, please add another font"); }
-
-            // Upload Parameters
-            var uploadParams = new RawUploadParams()
+            await using (var stream = new FileStream(fullPath, FileMode.Create))
             {
-                File = new FileDescription(Path.Combine(path, fontName)), // Specify the font file
-                Folder = "fonts",                         // Optional: Organize fonts in a folder
-                PublicId = Path.GetFileNameWithoutExtension(Path.Combine(path, fontName)),  // Use file name as Public ID
+                await fontCreateDTO.File.CopyToAsync(stream);
+            }
+
+            FontFamily family;
+            using (var fontCollection = new PrivateFontCollection())
+            {
+                fontCollection.AddFontFile(fullPath);
+                family = fontCollection.Families.FirstOrDefault(f => f.Name.Equals(fontCollection.Families[0].Name, StringComparison.OrdinalIgnoreCase))
+                    ?? throw new FileNotFoundException("Font not found!");
+
+                if (!family.IsStyleAvailable(FontStyle.Regular))
+                {
+                    throw new InvalidOperationException("Font doesn't support regular style, please add another font");
+                }
+            }
+
+            var uploadParams = new RawUploadParams
+            {
+                File = new FileDescription(fullPath),
+                Folder = "fonts",
+                PublicId = fontNameWithoutExtension,
             };
 
-            RawUploadResult uploadResult = _cloudinary.Upload(uploadParams);
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
             if (uploadResult.Error != null)
             {
                 throw new Exception($"Upload failed: {uploadResult.Error.Message}");
             }
 
-
-            fontCollection.AddFontFile(path + $"\\{fontName}");
-
-            var data = new Domain.Models.BFont()
+            var font = new Domain.Models.BFont
             {
-                FontName = fontName.Split('.')[0],
-                //FontPath = path + $"\\{fontName}"
+                FontName = fontNameWithoutExtension,
                 FontPath = uploadResult.SecureUrl.ToString()
             };
 
-            _unitOfWork.FontRepository.Add(data);
+            _unitOfWork.FontRepository.Add(font);
             _unitOfWork.Save();
+
+
         }
 
         public void Delete(int fontId)

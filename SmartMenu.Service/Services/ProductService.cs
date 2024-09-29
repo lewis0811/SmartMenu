@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using MimeKit.Cryptography;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
@@ -24,6 +25,7 @@ namespace SmartMenu.Service.Services
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
+
         public Product Add(ProductCreateDTO productCreateDTO)
         {
             var data = _mapper.Map<Product>(productCreateDTO);
@@ -57,7 +59,6 @@ namespace SmartMenu.Service.Services
                         _unitOfWork.StoreProductRepository.Add(storeProduct);
                         _unitOfWork.Save();
                     }
-
                 }
             }
 
@@ -72,6 +73,9 @@ namespace SmartMenu.Service.Services
             data.IsDeleted = true;
             _unitOfWork.ProductRepository.Update(data);
             _unitOfWork.Save();
+
+            DeleteProductInProductGroup(productId);
+            UpdateDisplayIfExist(productId);
         }
 
         public IEnumerable<Product> GetAll(int? productId, int? categoryId, string? searchString, int pageNumber, int pageSize)
@@ -85,7 +89,6 @@ namespace SmartMenu.Service.Services
 
         public IEnumerable<Product> GetByBrand(int brandId, string? searchString, int pageNumber, int pageSize)
         {
-
             var data = _unitOfWork.BrandRepository.EnableQuery()
                 .Include(c => c.Categories!.Where(c => !c.IsDeleted))
                     .ThenInclude(c => c.Products!.Where(c => !c.IsDeleted))
@@ -164,8 +167,32 @@ namespace SmartMenu.Service.Services
             _unitOfWork.ProductRepository.Update(data);
             _unitOfWork.Save();
 
+            var brand = _unitOfWork.BrandRepository
+                .EnableQuery()
+                .Include(c => c.Categories!.Where(c => !c.IsDeleted))
+                    .ThenInclude(c => c.Products!.Where(c => !c.IsDeleted && c.ProductId == data.ProductId))
+                .FirstOrDefault() ?? throw new Exception("Brand not found or is deleted");
+
+            var displays = _unitOfWork.BrandRepository
+                .EnableQuery()
+                .Include(c => c.Categories!.Where(c => !c.IsDeleted))
+                    .ThenInclude(c => c.Products!.Where(c => !c.IsDeleted && c.ProductId == data.ProductId))
+                .Include(c => c.Stores!.Where(c => !c.IsDeleted))
+                    .ThenInclude(c => c.StoreDevices!.Where(c => !c.IsDeleted))
+                        .ThenInclude(c => c.Displays!.Where(c => !c.IsDeleted))
+                .SelectMany(c => c.Stores!.Where(c => c.BrandId == brand.BrandId && !c.IsDeleted)).SelectMany(c => c.StoreDevices.Where(c => !c.IsDeleted)).SelectMany(c => c.Displays!.Where(c => !c.IsDeleted))
+                .ToList();
+
+            foreach (var display in displays)
+            {
+                display.IsChanged = true;
+                _unitOfWork.DisplayRepository.Update(display);
+                _unitOfWork.Save();
+            }
+
             return data;
         }
+
         private IEnumerable<Product> DataQuery(IQueryable<Product> data, int? productId, int? categoryId, string? searchString, int pageNumber, int pageSize)
         {
             data = data.Where(c => c.IsDeleted == false);
@@ -203,6 +230,52 @@ namespace SmartMenu.Service.Services
             return PaginatedList<Product>.Create(data, pageNumber, pageSize);
         }
 
+        private void DeleteProductInProductGroup(int productId)
+        {
+            var productGroupHoldingProduct = _unitOfWork.ProductGroupRepository.EnableQuery()
+                .Include(c => c.ProductGroupItems!.Where(c => c.ProductId == productId && !c.IsDeleted))
+                .ToList();
 
+            if (productGroupHoldingProduct.Count > 0)
+            {
+                foreach (var productGroup in productGroupHoldingProduct)
+                {
+                    foreach (var product in productGroup.ProductGroupItems!)
+                    {
+                        var data2 = _unitOfWork.ProductGroupItemRepository
+                            .Find(c => c.ProductId.Equals(product.ProductId))
+                            .FirstOrDefault();
+
+                        if (data2 != null)
+                        {
+                            _unitOfWork.ProductGroupItemRepository.Remove(data2);
+                            _unitOfWork.Save();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void UpdateDisplayIfExist(int productId)
+        {
+            var displays = _unitOfWork.BrandRepository.EnableQuery()
+                .Include(c => c.Categories!.Where(c => !c.IsDeleted))
+                    .ThenInclude(c => c.Products!.Where(c => c.ProductId == productId && !c.IsDeleted))
+                .Include(c => c.Stores!.Where(c => !c.IsDeleted))
+                    .ThenInclude(c => c.StoreDevices!.Where(c => !c.IsDeleted))
+                        .ThenInclude(c => c.Displays!.Where(c => !c.IsDeleted))
+                .SelectMany(c => c.Stores!).SelectMany(c => c.StoreDevices!).SelectMany(c => c.Displays!)
+                .ToList();
+
+            if (displays.Count > 0)
+            {
+                foreach (var display in displays)
+                {
+                    display.IsChanged = true;
+                    _unitOfWork.DisplayRepository.Update(display);
+                    _unitOfWork.Save();
+                }
+            }
+        }
     }
 }

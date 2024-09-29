@@ -31,7 +31,7 @@ namespace SmartMenu.API.Controllers
         {
             try
             {
-                _authService.Register(userCreateDTO);
+                var data = _authService.Register(userCreateDTO);
 
                 var verifyLink = Url.Action(nameof(EmailVerify), "Auth", new { email = userCreateDTO.Email }, Request.Scheme);
                 string emailBody = $@"
@@ -57,7 +57,7 @@ namespace SmartMenu.API.Controllers
                 ";
 
                 _emailService.SendEmail(new MessageCreateDTO(new string[] { userCreateDTO.Email }, "Verify Your Email", emailBody));
-                return Ok("Registration successful. Please check your email for verification.");
+                return Ok(data);
             }
             catch (Exception ex)
             {

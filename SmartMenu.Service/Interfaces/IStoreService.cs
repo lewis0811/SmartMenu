@@ -16,5 +16,6 @@ namespace SmartMenu.Service.Interfaces
         Store Add(StoreCreateDTO storeCreateDTO);
         Store Update(int storeId, StoreUpdateDTO storeUpdateDTO);
         void Delete(int storeId);
+        Store GetStoreWithStaffs(int storeId, Guid userId, string? searchString, int pageNumber, int pageSize);
     }
 }

@@ -52,19 +52,19 @@ namespace SmartMenu.API.Controllers
             }
         }
 
-        //[HttpPut("{brandStaffId}")]
-        //public ActionResult Update(int brandStaffId, BrandStaffUpdateDTO brandStaffUpdateDTO)
-        //{
-        //    try
-        //    {
-        //        var data = _brandStaffService.Update(brandStaffId, brandStaffUpdateDTO);
-        //        return Ok(data);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new {error = ex.Message });
-        //    }
-        //}
+        [HttpPut("{brandStaffId}")]
+        public ActionResult Update(int brandStaffId, BrandStaffUpdateDTO brandStaffUpdateDTO)
+        {
+            try
+            {
+                var data = _brandStaffService.Update(brandStaffId, brandStaffUpdateDTO);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
 
         [HttpDelete("{brandStaffId}")]
         [Authorize(Roles = SD.Role_Admin + "," + SD.Role_BrandManager)]

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SmartMenu.DAO;
 using SmartMenu.Domain.Models;
 using SmartMenu.Domain.Models.DTO;
@@ -25,6 +26,7 @@ namespace SmartMenu.Service.Services
         }
         public async Task<ProductSizePrice> AddAsync(ProductSizePriceCreateDTO productSizePriceCreateDTO)
         {
+
             var existProductSizePrice = await _unitOfWork.ProductSizePriceRepository
                 .FindObjectAsync(c => c.ProductId == productSizePriceCreateDTO.ProductId && c.IsDeleted == false);
 
@@ -32,13 +34,19 @@ namespace SmartMenu.Service.Services
             {
                 if (existProductSizePrice.ProductSizeType != ProductSizeType.Normal && productSizePriceCreateDTO.ProductSizeType == ProductSizeType.Normal) throw new Exception("This product already have price based on size, it can't have normal price");
                 if (existProductSizePrice.ProductSizeType == ProductSizeType.Normal && productSizePriceCreateDTO.ProductSizeType != ProductSizeType.Normal) throw new Exception("This product already have a normal price, it can't have size based price");
-                if (_unitOfWork.ProductSizePriceRepository
-                    .EnableQuery()
-                    .Any(c => c.ProductId == productSizePriceCreateDTO.ProductId && c.ProductSizeType == productSizePriceCreateDTO.ProductSizeType && !c.IsDeleted))
+
+                var existProductSizeType = await _unitOfWork.ProductSizePriceRepository
+                    .FindObjectAsync(c => c.ProductId == productSizePriceCreateDTO.ProductId && c.ProductSizeType == productSizePriceCreateDTO.ProductSizeType && !c.IsDeleted);
+
+                if (existProductSizeType != null)
+                {
                     throw new Exception($"This product already have a price size {productSizePriceCreateDTO.ProductSizeType}");
+                }
             }
 
+
             var data = _mapper.Map<ProductSizePrice>(productSizePriceCreateDTO);
+            await CheckValidPrice(data);
 
             _unitOfWork.ProductSizePriceRepository.Add(data);
             _unitOfWork.Save();
@@ -46,13 +54,15 @@ namespace SmartMenu.Service.Services
             return data;
         }
 
+
+
         public void Delete(int productSizePriceId)
         {
             var data = _unitOfWork.ProductSizePriceRepository.Find(c => c.ProductSizePriceId == productSizePriceId && c.IsDeleted == false).FirstOrDefault()
            ?? throw new Exception("Size price not found or deleted");
 
-            data.IsDeleted = true;
-            _unitOfWork.ProductSizePriceRepository.Update(data);
+
+            _unitOfWork.ProductSizePriceRepository.Remove(data);
             _unitOfWork.Save();
         }
 
@@ -64,12 +74,14 @@ namespace SmartMenu.Service.Services
             return result ?? Enumerable.Empty<ProductSizePrice>();
         }
 
-        public ProductSizePrice Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO)
+        public async Task<ProductSizePrice> Update(int productSizePriceId, ProductSizePriceUpdateDTO productSizePriceUpdateDTO)
         {
             var data = _unitOfWork.ProductSizePriceRepository.Find(c => c.ProductSizePriceId == productSizePriceId && c.IsDeleted == false).FirstOrDefault()
                 ?? throw new Exception("Size price not found or deleted");
 
             _mapper.Map(productSizePriceUpdateDTO, data);
+            await CheckValidUpdatePrice(data);
+
             _unitOfWork.ProductSizePriceRepository.Update(data);
             _unitOfWork.Save();
 
@@ -104,6 +116,89 @@ namespace SmartMenu.Service.Services
             }
 
             return PaginatedList<ProductSizePrice>.Create(data, pageNumber, pageSize);
+        }
+        private async Task CheckValidPrice(ProductSizePrice data)
+        {
+            var totalPriceOfProduct = await _unitOfWork.ProductSizePriceRepository
+                .FindListAsync(c => c.ProductId == data.ProductId && !c.IsDeleted);
+
+            if (totalPriceOfProduct.Any())
+            {
+                switch (data.ProductSizeType)
+                {
+                    case ProductSizeType.S:
+                        var anotherSizeType = totalPriceOfProduct.Where(c => c.Price <= data.Price).FirstOrDefault();
+                        if (anotherSizeType != null)
+                        {
+                            throw new Exception($"Size S price can't have price lower than other price");
+                        }
+                        break;
+
+                    case ProductSizeType.M:
+                        var existSizeS = totalPriceOfProduct.Where(c => c.ProductSizeType == ProductSizeType.S && !c.IsDeleted).FirstOrDefault();
+                        var existSizeL = totalPriceOfProduct.Where(c => c.ProductSizeType == ProductSizeType.L && !c.IsDeleted).FirstOrDefault();
+
+                        if (existSizeS != null)
+                        {
+                            if (data.Price < existSizeS.Price) throw new Exception($"Size M price must higher than Size {existSizeS.ProductSizeType} price");
+                        }
+                        if (existSizeL != null)
+                        {
+                            if (data.Price > existSizeL.Price) throw new Exception($"Size M price must lower than than Size {existSizeL.ProductSizeType} price");
+                        }
+                        break;
+
+                    case ProductSizeType.L:
+                        var anotherSizeType2 = totalPriceOfProduct.Where(c => c.Price >= data.Price).FirstOrDefault();
+                        if (anotherSizeType2 != null)
+                        {
+                            throw new Exception($"Size L price can't have lower price than other price");
+                        }
+                        break;
+                }
+            }
+        }
+        private async Task CheckValidUpdatePrice(ProductSizePrice data)
+        {
+            var totalPriceOfProduct = await _unitOfWork.ProductSizePriceRepository.EnableQuery()
+                .Where(c => c.ProductId == data.ProductId && c.ProductSizeType != data.ProductSizeType && !c.IsDeleted)
+                .ToListAsync();
+
+            if (totalPriceOfProduct.Any())
+            {
+                switch (data.ProductSizeType)
+                {
+                    case ProductSizeType.S:
+                        var anotherSizeType = totalPriceOfProduct.Where(c => c.Price <= data.Price).FirstOrDefault();
+                        if (anotherSizeType != null)
+                        {
+                            throw new Exception($"Size S price can't have price lower than other price");
+                        }
+                        break;
+
+                    case ProductSizeType.M:
+                        var existSizeS = totalPriceOfProduct.Where(c => c.ProductSizeType == ProductSizeType.S && !c.IsDeleted).FirstOrDefault();
+                        var existSizeL = totalPriceOfProduct.Where(c => c.ProductSizeType == ProductSizeType.L && !c.IsDeleted).FirstOrDefault();
+
+                        if (existSizeS != null)
+                        {
+                            if (data.Price < existSizeS.Price) throw new Exception($"Size M price must higher than Size {existSizeS.ProductSizeType} price");
+                        }
+                        if (existSizeL != null)
+                        {
+                            if (data.Price > existSizeL.Price) throw new Exception($"Size M price must lower than than Size {existSizeL.ProductSizeType} price");
+                        }
+                        break;
+
+                    case ProductSizeType.L:
+                        var anotherSizeType2 = totalPriceOfProduct.Where(c => c.Price >= data.Price).FirstOrDefault();
+                        if (anotherSizeType2 != null)
+                        {
+                            throw new Exception($"Size L price can't have lower price than other price");
+                        }
+                        break;
+                }
+            }
         }
     }
 }

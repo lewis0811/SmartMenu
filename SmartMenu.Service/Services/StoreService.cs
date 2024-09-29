@@ -45,7 +45,7 @@ namespace SmartMenu.Service.Services
         private static string InitializeStoreCode(Brand brand)
         {
             string tempCode = "";
-            
+
             var words = brand.BrandName.Split(' ');
             if (words.Length > 0)
             {
@@ -53,7 +53,8 @@ namespace SmartMenu.Service.Services
                 {
                     tempCode += word.Take(1).FirstOrDefault().ToString().ToUpper();
                 }
-            } else
+            }
+            else
             {
                 tempCode = brand.BrandName.Take(1).FirstOrDefault().ToString().ToUpper();
             }
@@ -80,14 +81,14 @@ namespace SmartMenu.Service.Services
             return result ?? Enumerable.Empty<Store>();
         }
 
-        public IEnumerable<Store> GetStoreWithStaffs(int? storeId, int? brandId, string? searchString, int pageNumber, int pageSize)
+        public Store GetStoreWithStaffs(int storeId, Guid userId, string? searchString, int pageNumber, int pageSize)
         {
-            var data = _unitOfWork.StoreRepository.EnableQuery();
-            data = data.Include(c => c.Staffs);
+            var data = _unitOfWork.StoreRepository.EnableQuery()
+                .Include(c => c.Staffs)
+                .Where(s => s.Staffs.Any(staff => !staff.IsDeleted && staff.UserId == userId))
+                .FirstOrDefault() ?? throw new Exception("Store not found or deleted");
 
-            var result = DataQuery(data, storeId, brandId, searchString, pageNumber, pageSize);
-
-            return result ?? Enumerable.Empty<Store>();
+            return data;
         }
 
         public IEnumerable<Store> GetStoreWithMenus(int? storeId, int? brandId, string? searchString, int pageNumber, int pageSize)
@@ -149,5 +150,6 @@ namespace SmartMenu.Service.Services
 
             return PaginatedList<Store>.Create(data, pageNumber, pageSize);
         }
+
     }
 }

@@ -13,6 +13,7 @@ namespace SmartMenu.Service.Interfaces
         Task<Transaction> AddTransaction(TransactionCreateDTO transactionCreateDTO);
         void Delete(int transactionId);
         IEnumerable<Transaction> GetAll(int? transactionId, int? deviceSubscriptionId, string? searchString, int pageNumber, int pageSize);
+        IEnumerable<Transaction> GetByBrand(int brandId);
         Task<Transaction> Update(int transactionId, TransactionUpdateDTO transactionUpdateDTO);
     }
 }

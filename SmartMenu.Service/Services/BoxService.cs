@@ -99,11 +99,12 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.BoxRepository.Find(c => c.BoxId == boxId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("Box not found or deleted");
 
+            UpdateDisplayIfExist(data);
             //data.IsDeleted = true;
+
             _unitOfWork.BoxRepository.Remove(data);
             _unitOfWork.Save();
 
-            UpdateDisplayIfExist(data);
         }
 
         private static IEnumerable<Box> DataQuery(IQueryable<Box> data, int? boxId, int? layerId, string? searchString, int pageNumber, int pageSize)
@@ -139,17 +140,20 @@ namespace SmartMenu.Service.Services
         {
             // Find the display associated with the template and check if it exists and is not deleted
             var display = _unitOfWork.DisplayRepository.EnableQuery()
+                .Where(c => !c.Template!.IsDeleted)
                 .Include(c => c.Template!)
                     .ThenInclude(c => c.Layers!.Where(d => d.LayerId == data.LayerId && !d.IsDeleted))
-                .Where(c => !c.Template!.IsDeleted)
-                .FirstOrDefault();
+                .ToList();
 
             // If the display exists, mark it as changed and save the changes
-            if (display != null)
+            if (display.Count > 0)
             {
-                display.IsChanged = true;
-                _unitOfWork.DisplayRepository.Update(display);
-                _unitOfWork.Save();
+                foreach (var item in display)
+                {
+                    item.IsChanged = true;
+                    _unitOfWork.DisplayRepository.Update(item);
+                    _unitOfWork.Save();
+                }
             }
         }
     }

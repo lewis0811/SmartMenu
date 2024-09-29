@@ -15,9 +15,9 @@ namespace SmartMenu.Domain.Models.DTO
         public ProductPriceCurrency ProductPriceCurrency { get; set; }
 
         [Url]
-        public string? ProductImgPath { get;  set; }
+        public string? ProductImgPath { get; set; }
 
-        [Url]
-        public string? ProductLogoPath { get;  set; }
+        //[Url]
+        //public string? ProductLogoPath { get;  set; }
     }
 }

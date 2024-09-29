@@ -114,11 +114,12 @@ namespace SmartMenu.Service.Services
             var data = _unitOfWork.BoxItemRepository.Find(c => c.BoxItemId == boxItemId && c.IsDeleted == false).FirstOrDefault()
             ?? throw new Exception("BoxItem not found or deleted");
 
+            UpdateDisplayIfExist(data);
             //data.IsDeleted = true;
+
             _unitOfWork.BoxItemRepository.Remove(data);
             _unitOfWork.Save();
 
-            UpdateDisplayIfExist(data);
         }
 
         public BoxItem Update(int boxItemId, BoxItemUpdateDTO boxItemUpdateDTO)
@@ -130,11 +131,11 @@ namespace SmartMenu.Service.Services
             ?? throw new Exception("Font not found or deleted");
 
             _mapper.Map(boxItemUpdateDTO, data);
+            UpdateDisplayIfExist(data);
 
             _unitOfWork.BoxItemRepository.Update(data);
             _unitOfWork.Save();
 
-            UpdateDisplayIfExist(data);
             return data;
         }
 
@@ -177,18 +178,26 @@ namespace SmartMenu.Service.Services
         {
             // Find the display associated with the template and check if it exists and is not deleted
             var display = _unitOfWork.DisplayRepository.EnableQuery()
+                .Where(c => !c.Template!.IsDeleted &&
+                            c.Template.Layers!.Any(l => !l.IsDeleted &&
+                                l.Boxes!.Any(b => !b.IsDeleted &&
+                                    b.BoxItems!.Any(bi => bi.BoxItemId == data.BoxItemId && !bi.IsDeleted))))
                 .Include(c => c.Template!)
-                    .ThenInclude(c => c.Layers!.Where(c => !c.IsDeleted))
-                        .ThenInclude(c => c.Boxes!.Where(c => c.BoxId == data.BoxId && !c.IsDeleted))
-                .Where(c => !c.Template!.IsDeleted)
-                .FirstOrDefault();
+                    .ThenInclude(c => c.Layers!)
+                        .ThenInclude(c => c.Boxes!)
+                            .ThenInclude(c => c.BoxItems!)
+                .ToList();
+
 
             // If the display exists, mark it as changed and save the changes
-            if (display != null)
+            if (display.Count > 0)
             {
-                display.IsChanged = true;
-                _unitOfWork.DisplayRepository.Update(display);
-                _unitOfWork.Save();
+                foreach (var item in display)
+                {
+                    item.IsChanged = true;
+                    _unitOfWork.DisplayRepository.Update(item);
+                    _unitOfWork.Save();
+                }
             }
         }
     }
